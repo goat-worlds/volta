@@ -6,9 +6,9 @@ export default function AdminRequests() {
 
   return (
     <div>
-      <PageTitle title="Demandes de location" subtitle="Toutes les demandes créées depuis le catalogue public." />
+      <PageTitle title="Demandes de devis" subtitle="Toutes les demandes créées depuis le catalogue public." />
       {rentalRequests.length === 0 ? (
-        <EmptyState title="Aucune demande" subtitle="Les demandes de location apparaîtront ici." />
+        <EmptyState title="Aucune demande" subtitle="Les demandes de devis apparaîtront ici." />
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">

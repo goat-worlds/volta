@@ -9,9 +9,9 @@ export default function SupplierRequests() {
 
   return (
     <div>
-      <PageTitle title="Demandes reçues" subtitle="Demandes de location envoyées par les clients." />
+      <PageTitle title="Demandes reçues" subtitle="Demandes de devis envoyées par les clients." />
       {mine.length === 0 ? (
-        <EmptyState title="Aucune demande reçue" subtitle="Les demandes de location apparaîtront ici." />
+        <EmptyState title="Aucune demande reçue" subtitle="Les demandes de devis apparaîtront ici." />
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">

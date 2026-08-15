@@ -4,6 +4,7 @@ import { AdminLayout, PublicLayout, SupplierLayout, TechnicalLayout } from './co
 import Home from './pages/public/Home'
 import Catalogue from './pages/public/Catalogue'
 import EquipmentDetail from './pages/public/EquipmentDetail'
+import Suppliers from './pages/public/Suppliers'
 import SupplierDashboard from './pages/supplier/SupplierDashboard'
 import SupplierEquipment from './pages/supplier/SupplierEquipment'
 import SupplierEquipmentNew from './pages/supplier/SupplierEquipmentNew'
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
+            <Route path="/fournisseurs" element={<Suppliers />} />
           </Route>
           <Route element={<SupplierLayout />}>
             <Route path="/supplier" element={<SupplierDashboard />} />

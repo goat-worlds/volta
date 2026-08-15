@@ -107,37 +107,57 @@ export function TechnicalLayout() {
   )
 }
 
+function publicNavClass({ isActive }: { isActive: boolean }) {
+  return `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+    isActive ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+  }`
+}
+
 export function PublicLayout() {
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
-            <span className="text-lg font-bold text-slate-900">VOLTA</span>
-          </Link>
-          <nav className="flex items-center gap-1 text-sm font-medium">
-            <NavLink to="/catalogue" className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100">
-              Catalogue
-            </NavLink>
-            <NavLink to="/supplier" className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100">
-              Fournisseur
-            </NavLink>
-            <NavLink to="/technical" className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100">
-              Équipe technique
-            </NavLink>
-            <NavLink to="/admin" className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700">
-              Admin
-            </NavLink>
+    <div className="flex min-h-screen">
+      <aside className="hidden w-56 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex">
+        <Link to="/" className="mb-6 flex items-center gap-2 px-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
+          <span className="text-lg font-bold text-slate-900">VOLTA</span>
+        </Link>
+        <nav className="flex flex-col gap-1">
+          <NavLink to="/" end className={publicNavClass}>🏠 Accueil</NavLink>
+          <NavLink to="/catalogue" className={publicNavClass}>🚜 Équipements</NavLink>
+          <NavLink to="/fournisseurs" className={publicNavClass}>🏢 Fournisseurs</NavLink>
+        </nav>
+        <div className="mt-6 border-t border-slate-200 pt-4">
+          <div className="mb-2 px-3 text-xs font-semibold uppercase text-slate-400">Espaces</div>
+          <nav className="flex flex-col gap-1">
+            <NavLink to="/supplier" className={publicNavClass}>👷 Fournisseur</NavLink>
+            <NavLink to="/technical" className={publicNavClass}>🔧 Équipe technique</NavLink>
+            <NavLink to="/admin" className={publicNavClass}>🛡️ Admin</NavLink>
           </nav>
         </div>
-      </header>
-      <main>
-        <Outlet />
-      </main>
-      <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-500">
-        © 2026 VOLTA — Location d'engins de chantier vérifiés en Côte d'Ivoire
-      </footer>
+        <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
+          Des milliers d'équipements vérifiés par VOLTA pour vos projets.
+        </div>
+      </aside>
+      <div className="flex flex-1 flex-col">
+        <header className="sticky top-0 z-40 border-b border-slate-200 bg-white md:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Link to="/" className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
+              <span className="text-lg font-bold text-slate-900">VOLTA</span>
+            </Link>
+            <nav className="flex items-center gap-1 text-sm font-medium">
+              <NavLink to="/catalogue" className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100">Équipements</NavLink>
+              <NavLink to="/admin" className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700">Admin</NavLink>
+            </nav>
+          </div>
+        </header>
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-500">
+          © 2026 VOLTA — Équipements de chantier vérifiés en Côte d'Ivoire
+        </footer>
+      </div>
     </div>
   )
 }

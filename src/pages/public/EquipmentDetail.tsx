@@ -8,6 +8,7 @@ export default function EquipmentDetail() {
   const { equipment, categories, users, createRentalRequest } = useStore()
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [form, setForm] = useState({
@@ -43,7 +44,7 @@ export default function EquipmentDetail() {
       const req = createRentalRequest({ ...form, equipmentId: eq.id })
       setSending(false)
       setModalOpen(false)
-      setToast(`Demande ${req.reference} envoyée ! Le fournisseur et VOLTA ont été notifiés.`)
+      setToast(`Demande de devis ${req.reference} envoyée ! Le fournisseur et VOLTA ont été notifiés.`)
       setTimeout(() => setToast(null), 5000)
     }, 600)
   }
@@ -85,16 +86,46 @@ export default function EquipmentDetail() {
             <div className="mt-1 text-slate-600">{supplier?.company} — {supplier?.city}</div>
             <div className="text-xs text-emerald-600">✔ Fournisseur vérifié VOLTA</div>
           </Card>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="mt-5 w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
-          >
-            Demander une location
-          </button>
+          <div className="mt-5 grid gap-2">
+            <button
+              onClick={() => setContactOpen(true)}
+              className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+            >
+              Contacter le fournisseur
+            </button>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="w-full rounded-lg border border-blue-600 py-3 font-semibold text-blue-600 hover:bg-blue-50"
+            >
+              Demander un devis
+            </button>
+          </div>
         </div>
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={`Demande de location — ${eq.name}`}>
+      <Modal open={contactOpen} onClose={() => setContactOpen(false)} title={`Contacter le fournisseur — ${supplier?.company}`}>
+        <div className="grid gap-3 text-sm">
+          <Card className="p-4">
+            <div className="font-semibold">{supplier?.company}</div>
+            <div className="mt-1 text-slate-600">👤 {supplier?.name}</div>
+            <div className="text-slate-600">📍 {supplier?.city}</div>
+            <div className="text-slate-600">📞 {supplier?.phone}</div>
+            <div className="text-slate-600">✉️ {supplier?.email}</div>
+            <div className="mt-2 text-xs text-emerald-600">✔ Fournisseur vérifié VOLTA</div>
+          </Card>
+          <p className="text-xs text-slate-500">
+            VOLTA met en relation : contactez directement le fournisseur pour discuter de vos besoins. Aucune réservation ni paiement ne passe par la plateforme.
+          </p>
+          <button
+            onClick={() => setContactOpen(false)}
+            className="rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700"
+          >
+            Fermer
+          </button>
+        </div>
+      </Modal>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={`Demande de devis — ${eq.name}`}>
         <form onSubmit={submit} className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -143,7 +174,7 @@ export default function EquipmentDetail() {
             disabled={sending}
             className="mt-2 rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
-            {sending ? 'Envoi en cours…' : 'Envoyer la demande'}
+            {sending ? 'Envoi en cours…' : 'Envoyer la demande de devis'}
           </button>
         </form>
       </Modal>
