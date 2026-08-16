@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card } from '../../components/ui'
+import { useStore } from '../../store/StoreContext'
+
+const TEAM_ID = 'u-tech-1'
 
 export default function TechnicalDashboard() {
   const navigate = useNavigate()
+  const { inspections, equipment, startInspection, submitReport } = useStore()
   const [user, setUser] = useState<any>(null)
-  const [stats] = useState({ pending: 7, completed: 24, urgent: 2 })
   const [activeTab, setActiveTab] = useState<'missions' | 'reports' | 'stats'>('missions')
   const [showNewModal, setShowNewModal] = useState(false)
 
@@ -17,6 +20,10 @@ export default function TechnicalDashboard() {
 
   if (!user) return <div className="flex items-center justify-center h-screen">Chargement...</div>
 
+  const mine = inspections.filter((i) => i.technicalTeamId === TEAM_ID)
+  const urgent = mine.filter((i) => i.status === 'ASSIGNED')
+  const inProgress = mine.filter((i) => i.status === 'IN_PROGRESS')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-6xl mx-auto">
@@ -27,16 +34,16 @@ export default function TechnicalDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-6 bg-gradient-to-br from-red-600 to-red-700 text-white">
-            <div className="text-3xl font-bold mb-2">{stats.urgent}</div>
+            <div className="text-3xl font-bold mb-2">{urgent.length}</div>
             <div className="text-red-100">Inspections urgentes</div>
           </Card>
           <Card className="p-6 bg-gradient-to-br from-yellow-600 to-yellow-700 text-white">
-            <div className="text-3xl font-bold mb-2">{stats.pending}</div>
-            <div className="text-yellow-100">En attente</div>
+            <div className="text-3xl font-bold mb-2">{mine.length}</div>
+            <div className="text-yellow-100">En attente / assignées</div>
           </Card>
           <Card className="p-6 bg-gradient-to-br from-green-600 to-green-700 text-white">
-            <div className="text-3xl font-bold mb-2">{stats.completed}</div>
-            <div className="text-green-100">Inspections complétées</div>
+            <div className="text-3xl font-bold mb-2">{inProgress.length}</div>
+            <div className="text-green-100">Inspections en cours</div>
           </Card>
         </div>
 
@@ -47,20 +54,35 @@ export default function TechnicalDashboard() {
                 Missions d'inspection urgentes
               </h2>
               <div className="space-y-3">
-                {[1, 2].map((i) => (
-                  <div key={i} className="p-4 rounded-lg bg-red-900/20 border border-red-500/30 hover:bg-red-900/40 transition">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-semibold text-white">🚨 Pelle #REF{i}</div>
-                        <div className="text-sm text-slate-600 mt-1">Fournisseur: BTP Solutions • Localisation: Abidjan</div>
-                        <div className="text-xs text-red-300 mt-2">⚠️ Vérification urgente demandée</div>
+                {urgent.length === 0 && <div className="text-sm text-slate-400">Aucune mission urgente.</div>}
+                {urgent.map((i) => {
+                  const eq = equipment.find((e) => e.id === i.equipmentId)
+                  return (
+                    <div key={i.id} className="p-4 rounded-lg bg-red-900/20 border border-red-500/30 hover:bg-red-900/40 transition">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="font-semibold text-white">🚨 {eq?.name ?? 'Engin inconnu'}</div>
+                          <div className="text-sm text-slate-600 mt-1">Fournisseur: {eq?.supplierId ?? '—'}</div>
+                          <div className="text-xs text-red-300 mt-2">⚠️ Vérification urgente demandée</div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => navigate(`/technical/inspection/${i.id}`)}
+                            className="px-3 py-1 rounded text-white text-sm font-bold bg-blue-600 hover:opacity-90"
+                          >
+                            Détails
+                          </button>
+                          <button
+                            onClick={() => startInspection(i.id)}
+                            className="px-3 py-1 rounded text-white text-sm font-bold bg-green-600 hover:opacity-90"
+                          >
+                            Commencer
+                          </button>
+                        </div>
                       </div>
-                      <button style={{ backgroundColor: '#FF8C00' }} className="px-3 py-1 rounded text-white text-sm font-bold hover:opacity-90">
-                        Assigner
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </Card>
 
@@ -69,18 +91,27 @@ export default function TechnicalDashboard() {
                 Inspections en cours
               </h2>
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                {inProgress.length === 0 && <div className="text-sm text-slate-400">Aucune inspection en cours.</div>}
+                {inProgress.map((i) => (
+                  <div key={i.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-white">Inspection #{i}</div>
+                        <div className="font-semibold text-white">Inspection #{i.id}</div>
                         <div className="text-sm text-slate-600 mt-1">Vérification: Mécanicien, Entrepôt, Pièces</div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">
+                        <button
+                          onClick={() => navigate(`/technical/inspection/${i.id}`)}
+                          className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
+                        >
                           Détails
                         </button>
-                        <button className="px-2 py-1 rounded bg-green-600 text-white text-xs font-bold hover:bg-green-700">
+                        <button
+                          onClick={() => {
+                            submitReport(i.id, 'Validé depuis le dashboard', i.checklist)
+                          }}
+                          className="px-2 py-1 rounded bg-green-600 text-white text-xs font-bold hover:bg-green-700"
+                        >
                           Valider
                         </button>
                       </div>
@@ -168,13 +199,13 @@ export default function TechnicalDashboard() {
                 📋 Rapports d'inspection
               </h2>
               <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition cursor-pointer">
+                {inspections.slice(0, 5).map((r) => (
+                  <div key={r.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition cursor-pointer">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-white">Rapport #INS{1000 + i}</div>
-                        <div className="text-sm text-slate-600 mt-1">Fournisseur: BTP Solutions • Date: {new Date(Date.now() - i * 86400000).toLocaleDateString('fr-FR')}</div>
-                        <div className="text-xs text-slate-700 mt-2">Statut: Approuvé ✓</div>
+                        <div className="font-semibold text-white">Rapport #{r.id}</div>
+                        <div className="text-sm text-slate-600 mt-1">Date: {r.assignedAt}</div>
+                        <div className="text-xs text-slate-700 mt-2">Statut: {r.status}</div>
                       </div>
                       <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
                         📥 Télécharger

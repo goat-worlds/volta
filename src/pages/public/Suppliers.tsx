@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
@@ -11,6 +11,19 @@ export default function Suppliers() {
   const [showModal, setShowModal] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'equipment' | 'region'>('name')
   const [hoveredCriteria, setHoveredCriteria] = useState<string | null>(null)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  const carouselImages = [
+    '/chargeuse hydraulique(.webp).webp',
+    '/perle hydrolique(.webp).webp',
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const suppliers = users.filter((u) => u.role === 'SUPPLIER')
   const regions = [...new Set(suppliers.map((s) => s.city))]
@@ -46,68 +59,136 @@ export default function Suppliers() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-800 to-blue-600 px-4 py-12 text-white">
-        <div className="mx-auto max-w-6xl">
-          <h1 className="text-4xl font-bold mb-3">Nos fournisseurs partenaires</h1>
-          <p className="text-lg text-blue-100 mb-4 max-w-2xl">
-            Découvrez notre réseau de fournisseurs vérifiés et certifiés.
-            Tous nos partenaires respectent les critères stricts de VOLTA pour garantir la qualité et la fiabilité de leurs services.
-          </p>
-          <div className="flex flex-col gap-2 text-sm text-blue-100">
-            <div>✓ Inspections techniques complètes</div>
-            <div>✓ Certifications vérifiées</div>
-            <div>✓ Support disponible 24/7</div>
+      {/* Hero Section with Image Background */}
+      <section
+        className="relative px-4 py-20 text-white overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(135deg, rgba(30, 30, 40, 0.85) 0%, rgba(20, 20, 30, 0.75) 100%), url('${carouselImages[0]}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+        }}
+      >
+        <div className="mx-auto max-w-6xl relative z-10">
+          <div className="max-w-2xl">
+            <div className="mb-6 inline-block px-4 py-2 rounded-full bg-orange-600/80 backdrop-blur-sm">
+              <span className="text-sm font-semibold">🏆 VOLTA - Le comparateur de référence</span>
+            </div>
+
+            <h1 className="text-6xl font-bold mb-4 leading-tight">
+              Le premier comparateur de location d'équipements
+            </h1>
+
+            <p className="text-2xl text-orange-300 font-semibold mb-4">
+              100% sécurisé · 100% technique · 100% certifié
+            </p>
+
+            <p className="text-lg text-slate-200 mb-8 leading-relaxed max-w-xl">
+              Des milliers d'équipements vérifiés par VOLTA pour vos projets. Tous nos fournisseurs respectent les critères les plus stricts pour garantir la qualité et la sécurité technique de leurs services.
+            </p>
+
+            <div className="space-y-3 mb-10 text-slate-100">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🔐</span>
+                <span>Canal de réservation sécurisé & certifié</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🔍</span>
+                <span>Inspections techniques complètes</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">✅</span>
+                <span>100% des fournisseurs certifiés VOLTA</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⏰</span>
+                <span>Support technique disponible 24/7</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                to="/catalogue"
+                className="inline-block px-8 py-4 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95"
+                style={{ backgroundColor: '#FF8C00' }}
+              >
+                Explorer nos équipements →
+              </Link>
+              <Link
+                to="/fournisseurs"
+                className="inline-block px-8 py-4 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 border-2 border-white hover:bg-white/10"
+              >
+                Nos fournisseurs
+              </Link>
+            </div>
           </div>
+        </div>
+
+        {/* Carousel Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+          {carouselImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentImageIndex(idx)}
+              className={`h-2 transition-all rounded-full ${
+                idx === currentImageIndex ? 'bg-orange-500 w-8' : 'bg-white/40 w-2 hover:bg-white/60'
+              }`}
+            />
+          ))}
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-4 py-12">
+      <div className="mx-auto max-w-6xl px-4 py-16">
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-          <Card className="p-6 text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
+            <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
               {suppliers.length}
             </div>
-            <div className="text-slate-600">Fournisseurs actifs</div>
+            <div className="text-slate-800 font-semibold text-lg">Fournisseurs actifs</div>
+            <p className="text-slate-700 text-sm mt-2">Partenaires de confiance</p>
           </Card>
-          <Card className="p-6 text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+          <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
+            <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
               {equipment.filter((e) => e.status === 'PUBLISHED').length}
             </div>
-            <div className="text-slate-600">Équipements disponibles</div>
+            <div className="text-slate-800 font-semibold text-lg">Équipements disponibles</div>
+            <p className="text-slate-700 text-sm mt-2">Prêts à la location</p>
           </Card>
-          <Card className="p-6 text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+          <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
+            <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
               100%
             </div>
-            <div className="text-slate-600">Certifiés VOLTA</div>
+            <div className="text-slate-800 font-semibold text-lg">Certifiés VOLTA</div>
+            <p className="text-slate-700 text-sm mt-2">Vérification complète</p>
           </Card>
         </div>
 
         {/* Criteria Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: '#FF8C00' }}>
-            Critères de certification
-          </h2>
-          <p className="text-slate-600 mb-6">
-            Tous nos fournisseurs doivent répondre à ces critères essentiels pour rejoindre notre plateforme.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3" style={{ color: '#FF8C00' }}>
+              ✓ Critères de certification VOLTA
+            </h2>
+            <p className="text-slate-700 max-w-2xl mx-auto">
+              Tous nos fournisseurs doivent répondre à ces critères essentiels pour rejoindre notre plateforme et garantir une expérience sécurisée.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {criteria.map((crit) => (
               <div key={crit.key} onMouseEnter={() => setHoveredCriteria(crit.key)} onMouseLeave={() => setHoveredCriteria(null)}>
               <Card
-                className="p-6 hover:shadow-lg transition transform hover:scale-105 cursor-pointer"
+                className="p-8 hover:shadow-xl transition transform hover:scale-105 cursor-pointer h-full"
               >
-                <div className="text-6xl mb-3 transition transform" style={{
-                  transform: hoveredCriteria === crit.key ? 'scale(1.3) rotate(10deg)' : 'scale(1)',
+                <div className="text-7xl mb-4 transition transform inline-block" style={{
+                  transform: hoveredCriteria === crit.key ? 'scale(1.2) rotate(5deg)' : 'scale(1)',
                 }}>
                   {crit.icon}
                 </div>
-                <h3 className="font-bold text-lg mb-2" style={{ color: '#FF8C00' }}>
+                <h3 className="font-bold text-xl mb-3" style={{ color: '#FF8C00' }}>
                   {crit.label}
                 </h3>
-                <p className="text-sm text-slate-600">
+                <p className="text-slate-700 leading-relaxed">
                   {hoveredCriteria === crit.key ? crit.description : (
                     <>
                       {crit.key === 'mechanic' && 'Un mécanicien certifié disponible pour maintenance et réparations urgentes.'}
@@ -159,8 +240,8 @@ export default function Suppliers() {
         </div>
 
         {/* Filter Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: '#FF8C00' }}>
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold mb-6" style={{ color: '#FF8C00' }}>
             Fournisseurs par région
           </h2>
           <div className="flex flex-wrap gap-2">
