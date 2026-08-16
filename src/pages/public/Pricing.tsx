@@ -109,7 +109,7 @@ export default function Pricing() {
         </div>
 
         {/* Support */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-12 border border-blue-200">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-12 border border-brand-200">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Support 24/7</h2>
             <p className="text-slate-700 mb-6">

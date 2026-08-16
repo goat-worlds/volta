@@ -30,26 +30,26 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">👨‍💼 Administration VOLTA</h1>
-          <p className="text-slate-600 mt-1">Contrôle et gestion plateforme</p>
+          <p className="text-slate-400 mt-1">Contrôle et gestion plateforme</p>
         </div>
 
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
             <div className="text-3xl font-bold mb-2">{totalRequests}</div>
-            <div className="text-blue-100">Demandes totales</div>
+            <div className="text-brand-100">Demandes totales</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-orange-600 to-orange-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-accent-500 to-accent-600 text-white">
             <div className="text-3xl font-bold mb-2">{pendingQuotes.length}</div>
-            <div className="text-orange-100">À traiter</div>
+            <div className="text-accent-100">À traiter</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-purple-600 to-purple-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-violet-600 to-violet-700 text-white">
             <div className="text-3xl font-bold mb-2">{inInspection.length}</div>
-            <div className="text-purple-100">En inspection</div>
+            <div className="text-violet-100">En inspection</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-green-600 to-green-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
             <div className="text-3xl font-bold mb-2">{toBeReviewed.length}</div>
-            <div className="text-green-100">À valider</div>
+            <div className="text-emerald-100">À valider</div>
           </Card>
         </div>
 
@@ -57,8 +57,8 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {/* Pending Quotes */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Demandes en attente de traitement
               </h2>
               {pendingQuotes.length === 0 ? (
@@ -88,8 +88,8 @@ export default function AdminDashboard() {
             </Card>
 
             {/* Inspections in Progress */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Inspections en cours
               </h2>
               {inInspection.length === 0 ? (
@@ -121,8 +121,8 @@ export default function AdminDashboard() {
             </Card>
 
             {/* Reports to Review */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Rapports à valider
               </h2>
               {toBeReviewed.length === 0 ? (
@@ -141,8 +141,7 @@ export default function AdminDashboard() {
                           </div>
                           <Link
                             to={`/admin/validate/${qr.id}`}
-                            className="px-3 py-1 rounded text-white text-sm font-bold transition hover:scale-105"
-                            style={{ backgroundColor: '#FF8C00' }}
+                            className="px-3 py-1 rounded text-white text-sm font-bold transition hover:scale-105 bg-accent-500"
                           >
                             Valider
                           </Link>
@@ -158,8 +157,8 @@ export default function AdminDashboard() {
           {/* Sidebar */}
           <div>
             {/* Platform Overview */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Plateforme
               </h2>
               <div className="space-y-3 text-sm">
@@ -172,26 +171,25 @@ export default function AdminDashboard() {
                   <div className="text-slate-400">Clients inscrits</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-700">
-                  <div className="text-2xl text-green-400 font-bold">{technicians.length}</div>
+                  <div className="text-2xl text-emerald-400 font-bold">{technicians.length}</div>
                   <div className="text-slate-400">Techniciens VOLTA</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-700">
-                  <div className="text-2xl text-orange-400 font-bold">{equipment.length}</div>
+                  <div className="text-2xl text-accent-500 font-bold">{equipment.length}</div>
                   <div className="text-slate-400">Équipements listés</div>
                 </div>
               </div>
             </Card>
 
             {/* Quick Actions */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Actions rapides
               </h2>
               <div className="space-y-2">
                 <Link
                   to="/admin/quotes"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm"
-                  style={{ backgroundColor: '#FF8C00' }}
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500"
                 >
                   📋 Toutes les demandes
                 </Link>
@@ -205,10 +203,10 @@ export default function AdminDashboard() {
             </Card>
 
             {/* Platform Info */}
-            <Card className="p-6 bg-gradient-to-br from-blue-600/20 to-blue-700/20 border border-blue-400/30">
+            <Card dark className="p-6 bg-gradient-to-br from-brand-600/20 to-brand-700/20 border border-brand-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <span className="text-2xl">ℹ️</span>
-                <span style={{ color: '#FF8C00' }}>Modèle VOLTA</span>
+                <span className="text-accent-600">Modèle VOLTA</span>
               </h2>
               <div className="space-y-2 text-xs text-slate-300">
                 <p className="leading-relaxed">

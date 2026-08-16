@@ -4,7 +4,7 @@ import type { Role } from '../store/types'
 
 function navClass({ isActive }: { isActive: boolean }) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-    isActive ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-800 hover:text-white'
+    isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
   }`
 }
 
@@ -24,10 +24,10 @@ function Sidebar({
   return (
     <aside className="flex w-60 shrink-0 flex-col bg-slate-900 p-4">
       <Link to="/" className="mb-6 flex items-center gap-2 px-2">
-        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${color} font-bold text-white`}>V</span>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${color}`}><img src="/volta-logo.svg" alt="VOLTA" className="h-6 w-6" /></span>
         <div>
           <div className="font-bold text-white">VOLTA</div>
-          <div className="text-xs text-slate-600">{title}</div>
+          <div className="text-xs text-slate-400">{title}</div>
         </div>
       </Link>
       <nav className="flex flex-col gap-1">
@@ -37,7 +37,7 @@ function Sidebar({
           </NavLink>
         ))}
       </nav>
-      <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-600">
+      <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-400">
         🔔 {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
       </div>
     </aside>
@@ -49,7 +49,7 @@ export function SupplierLayout() {
     <div className="flex min-h-screen">
       <Sidebar
         title="Espace Fournisseur"
-        color="bg-blue-600"
+        color="bg-brand-600"
         role="SUPPLIER"
         links={[
           { to: '/supplier', label: '📊 Tableau de bord', end: true },
@@ -109,7 +109,7 @@ export function TechnicalLayout() {
 
 function publicNavClass({ isActive }: { isActive: boolean }) {
   return `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-    isActive ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+    isActive ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
   }`
 }
 
@@ -118,7 +118,7 @@ export function PublicLayout() {
     <div className="flex min-h-screen">
       <aside className="hidden w-56 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex">
         <Link to="/" className="mb-6 flex items-center gap-2 px-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600"><img src="/volta-logo.svg" alt="VOLTA" className="h-6 w-6" /></span>
           <span className="text-lg font-bold text-slate-900">VOLTA</span>
         </Link>
         <nav className="flex flex-col gap-1">
@@ -129,7 +129,7 @@ export function PublicLayout() {
         <div className="mt-6 border-t border-slate-200 pt-4 flex-1">
           <div className="space-y-3">
             {/* Supplier Portal */}
-            <NavLink to="/supplier" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-blue-50 border border-blue-200' : 'hover:bg-slate-50 border border-transparent'}`}>
+            <NavLink to="/supplier" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-brand-50 border border-brand-200' : 'hover:bg-slate-50 border border-transparent'}`}>
               <div className="font-semibold text-slate-900 flex items-center gap-2">
                 <span className="text-xl">📦</span>
                 Espace Fournisseur
@@ -165,12 +165,12 @@ export function PublicLayout() {
 
         {/* Services Promo */}
         <div className="mt-auto space-y-3">
-          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 p-4 border border-blue-200">
+          <div className="rounded-lg bg-gradient-to-br from-brand-50 to-brand-100 p-4 border border-brand-200">
             <div className="font-bold text-slate-900 mb-2">✨ VOLTA Premium</div>
             <p className="text-xs text-slate-700 leading-snug mb-3">
               Accédez à des services exclusifs: support VIP 24/7, inspection technique complète, assurance équipements
             </p>
-            <a href="/pricing" className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition">
+            <a href="/pricing" className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition">
               En savoir plus →
             </a>
           </div>
@@ -183,12 +183,12 @@ export function PublicLayout() {
         <header className="sticky top-0 z-40 border-b border-slate-200 bg-white md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600"><img src="/volta-logo.svg" alt="VOLTA" className="h-6 w-6" /></span>
               <span className="text-lg font-bold text-slate-900">VOLTA</span>
             </Link>
             <nav className="flex items-center gap-1 text-sm font-medium">
               <NavLink to="/catalogue" className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100">Équipements</NavLink>
-              <NavLink to="/admin" className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700">Admin</NavLink>
+              <NavLink to="/admin" className="rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700">Admin</NavLink>
             </nav>
           </div>
         </header>

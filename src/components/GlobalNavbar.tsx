@@ -27,7 +27,7 @@ export default function GlobalNavbar() {
   }, [])
 
   const isDashboard = location.pathname.includes('dashboard') || location.pathname === '/login'
-  const dashboardColor = isDashboard ? 'from-slate-900 to-slate-800' : 'from-white to-blue-50'
+  const dashboardColor = isDashboard ? 'from-slate-900 to-slate-800' : 'from-white to-brand-50'
 
   const getRoleIcon = () => {
     if (!user) return '🏠'
@@ -67,8 +67,8 @@ export default function GlobalNavbar() {
             <img src="/volta-logo.svg" alt="VOLTA" className="w-8 h-8" />
           </div>
           <div>
-            <div className={`font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent ${!isDashboard && 'md:block'}`}>VOLTA</div>
-            <div className={`text-xs ${isDashboard ? 'text-slate-600' : 'text-slate-700'}`}>Équipements</div>
+            <div className={`font-bold text-lg ${isDashboard ? 'text-white' : 'text-brand-700'}`}>VOLTA</div>
+            <div className={`text-xs ${isDashboard ? 'text-slate-400' : 'text-slate-700'}`}>Équipements</div>
           </div>
         </Link>
 
@@ -79,7 +79,7 @@ export default function GlobalNavbar() {
               <Link
                 to="/"
                 className={`font-medium transition hover:opacity-70 ${
-                  location.pathname === '/' ? 'text-blue-600' : 'text-slate-700'
+                  location.pathname === '/' ? 'text-brand-600' : 'text-slate-700'
                 }`}
               >
                 🏠 Accueil
@@ -87,7 +87,7 @@ export default function GlobalNavbar() {
               <Link
                 to="/catalogue"
                 className={`font-medium transition hover:opacity-70 ${
-                  location.pathname === '/catalogue' ? 'text-blue-600' : 'text-slate-700'
+                  location.pathname === '/catalogue' ? 'text-brand-600' : 'text-slate-700'
                 }`}
               >
                 🚜 Catalogue
@@ -95,7 +95,7 @@ export default function GlobalNavbar() {
               <Link
                 to="/fournisseurs"
                 className={`font-medium transition hover:opacity-70 ${
-                  location.pathname === '/fournisseurs' ? 'text-blue-600' : 'text-slate-700'
+                  location.pathname === '/fournisseurs' ? 'text-brand-600' : 'text-slate-700'
                 }`}
               >
                 🏢 Fournisseurs
@@ -111,7 +111,7 @@ export default function GlobalNavbar() {
               {!isDashboard && (
                 <Link
                   to={getDashboardLink()}
-                  className="hidden sm:inline-block px-4 py-2 rounded-lg text-white transition hover:scale-105 transform bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  className="hidden sm:inline-block px-4 py-2 rounded-lg text-white transition hover:scale-105 transform bg-brand-600 hover:bg-brand-700"
                 >
                   {getRoleIcon()} Mon Espace
                 </Link>
@@ -120,11 +120,9 @@ export default function GlobalNavbar() {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition hover:opacity-70"
-                  style={{
-                    backgroundColor: isDashboard ? 'linear-gradient(to right, #4f46e5, #9333ea)' : '#E5E7EB',
-                    color: isDashboard ? 'white' : '#1F2937',
-                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:opacity-70 ${
+                    isDashboard ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-800'
+                  }`}
                 >
                   <span className="text-lg">{getRoleIcon()}</span>
                   <span className="font-medium">{user.company}</span>
@@ -136,7 +134,7 @@ export default function GlobalNavbar() {
                     <div className="p-4 border-b border-slate-200">
                       <div className="font-semibold text-slate-900">{user.company}</div>
                       <div className="text-xs text-slate-700 mt-1">{user.email}</div>
-                      <div className="text-xs text-slate-700 mt-1" style={{ color: '#FF8C00' }}>
+                      <div className="text-xs text-accent-600 mt-1">
                         {user.role === 'CLIENT' && '👤 Client'}
                         {user.role === 'SUPPLIER' && '🏭 Fournisseur'}
                         {user.role === 'TECHNICAL' && '🔧 Technique'}
@@ -179,7 +177,7 @@ export default function GlobalNavbar() {
             <>
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-lg text-white transition hover:scale-105 transform bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="px-4 py-2 rounded-lg text-white transition hover:scale-105 transform bg-brand-600 hover:bg-brand-700"
               >
                 🔓 Connexion
               </Link>

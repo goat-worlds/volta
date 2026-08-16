@@ -28,22 +28,22 @@ export default function TechnicalDashboard() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">🔧 Tableau de bord Équipe Technique</h1>
-          <p className="text-slate-600 mt-1">Inspections et certifications d'équipements</p>
+          <p className="text-slate-400 mt-1">Inspections et certifications d'équipements</p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="p-6 bg-gradient-to-br from-amber-600 to-amber-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-accent-500 to-accent-600 text-white">
             <div className="text-3xl font-bold mb-2">{assigned.length}</div>
-            <div className="text-amber-100">Missions assignées</div>
+            <div className="text-accent-100">Missions assignées</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
             <div className="text-3xl font-bold mb-2">{inProgress.length}</div>
-            <div className="text-blue-100">En inspection</div>
+            <div className="text-brand-100">En inspection</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-green-600 to-green-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
             <div className="text-3xl font-bold mb-2">{completed.length}</div>
-            <div className="text-green-100">Rapports complétés</div>
+            <div className="text-emerald-100">Rapports complétés</div>
           </Card>
         </div>
 
@@ -51,8 +51,8 @@ export default function TechnicalDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {/* Assigned Missions */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Missions d'inspection à commencer
               </h2>
               {assigned.length === 0 ? (
@@ -74,7 +74,7 @@ export default function TechnicalDashboard() {
                           <div className="flex flex-col gap-2 shrink-0">
                             <Link
                               to={`/technical/inspection/${insp.id}`}
-                              className="px-3 py-1 rounded text-white text-xs font-bold bg-blue-600 hover:bg-blue-700 text-center"
+                              className="px-3 py-1 rounded text-white text-xs font-bold bg-brand-600 hover:bg-brand-700 text-center"
                             >
                               Voir détails
                             </Link>
@@ -94,8 +94,8 @@ export default function TechnicalDashboard() {
             </Card>
 
             {/* In Progress */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Inspections en cours
               </h2>
               {inProgress.length === 0 ? (
@@ -107,7 +107,7 @@ export default function TechnicalDashboard() {
                     const filled = insp.checklist.filter((c) => c.result !== null).length
                     const complete = filled === insp.checklist.length
                     return (
-                      <div key={insp.id} className="p-4 rounded-lg bg-blue-900/30 border border-blue-500/50 hover:bg-blue-900/40 transition">
+                      <div key={insp.id} className="p-4 rounded-lg bg-blue-900/30 border border-brand-500/50 hover:bg-blue-900/40 transition">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-white">🔍 {eq?.name ?? 'Équipement'}</div>
@@ -123,7 +123,7 @@ export default function TechnicalDashboard() {
                             <Link
                               to={`/technical/inspection/${insp.id}`}
                               className={`px-3 py-1 rounded text-white text-xs font-bold text-center ${
-                                complete ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'
+                                complete ? 'bg-purple-600 hover:bg-purple-700' : 'bg-brand-600 hover:bg-brand-700'
                               }`}
                             >
                               {complete ? 'Soumettre' : 'Continuer'}
@@ -138,8 +138,8 @@ export default function TechnicalDashboard() {
             </Card>
 
             {/* Completed Reports */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Rapports complétés
               </h2>
               {completed.length === 0 ? (
@@ -155,7 +155,7 @@ export default function TechnicalDashboard() {
                             <div className="font-semibold text-white text-sm">✓ {eq?.name}</div>
                             <div className="text-xs text-slate-400 mt-1">Rapport soumis</div>
                           </div>
-                          <span className="text-green-400 text-sm font-bold">Complétée</span>
+                          <span className="text-emerald-400 text-sm font-bold">Complétée</span>
                         </div>
                       </div>
                     )
@@ -168,15 +168,14 @@ export default function TechnicalDashboard() {
           {/* Sidebar */}
           <div>
             {/* Quick Links */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Navigation rapide
               </h2>
               <div className="space-y-2">
                 <Link
                   to="/technical/missions"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm"
-                  style={{ backgroundColor: '#FF8C00' }}
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500"
                 >
                   📋 Toutes les missions
                 </Link>
@@ -190,8 +189,8 @@ export default function TechnicalDashboard() {
             </Card>
 
             {/* Account Info */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Profil
               </h2>
               <div className="space-y-3 text-sm text-slate-300">
@@ -211,16 +210,16 @@ export default function TechnicalDashboard() {
             </Card>
 
             {/* Inspection Standards */}
-            <Card className="p-6 bg-gradient-to-br from-green-600/20 to-green-700/20 border border-green-400/30">
+            <Card dark className="p-6 bg-gradient-to-br from-emerald-600/20 to-emerald-700/20 border border-emerald-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <span className="text-2xl">✓</span>
-                <span style={{ color: '#FF8C00' }}>Catégories</span>
+                <span className="text-accent-600">Catégories</span>
               </h2>
               <div className="space-y-2 text-xs">
                 <div className="p-2 rounded bg-emerald-700/40 text-emerald-300">
                   <strong>A:</strong> Excellent état
                 </div>
-                <div className="p-2 rounded bg-blue-700/40 text-blue-300">
+                <div className="p-2 rounded bg-brand-700/40 text-blue-300">
                   <strong>B:</strong> Bon état
                 </div>
                 <div className="p-2 rounded bg-yellow-700/40 text-yellow-300">

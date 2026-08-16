@@ -29,7 +29,7 @@ export default function TechnicalInspection() {
       <div>
         <EmptyState title="Inspection introuvable" />
         <div className="mt-4">
-          <Link to="/technical/missions" className="font-medium text-blue-600 hover:underline">← Retour aux missions</Link>
+          <Link to="/technical/missions" className="font-medium text-brand-600 hover:underline">← Retour aux missions</Link>
         </div>
       </div>
     )
@@ -64,7 +64,7 @@ export default function TechnicalInspection() {
 
   return (
     <div className="max-w-4xl">
-      <Link to="/technical/missions" className="text-sm font-medium text-blue-600 hover:underline">← Retour aux missions</Link>
+      <Link to="/technical/missions" className="text-sm font-medium text-brand-600 hover:underline">← Retour aux missions</Link>
       <div className="mt-2">
         <PageTitle
           title={`Inspection — ${eq.name}`}
@@ -82,7 +82,7 @@ export default function TechnicalInspection() {
         <>
           <Card className="mb-4 flex items-center justify-between p-4 text-sm">
             <span className="font-medium">Progression de la checklist</span>
-            <span className="font-bold text-blue-700">{filled} / {checklist.length} contrôles</span>
+            <span className="font-bold text-brand-700">{filled} / {checklist.length} contrôles</span>
           </Card>
 
           {sections.map((section) => (

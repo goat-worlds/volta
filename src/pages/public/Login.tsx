@@ -59,24 +59,24 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-800 to-blue-600 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-brand-800 to-brand-600 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white font-bold text-blue-700 text-xl">
-              V
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white">
+              <img src="/volta-logo.svg" alt="VOLTA" className="h-8 w-8" />
             </div>
             <div>
               <div className="text-2xl font-bold text-white">VOLTA</div>
-              <div className="text-xs text-blue-100">Plateforme de location d'équipements</div>
+              <div className="text-xs text-brand-100">Plateforme de location d'équipements</div>
             </div>
           </div>
         </div>
 
         {/* Login Form Card */}
         <Card className="p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+          <h2 className="text-2xl font-bold mb-2 text-accent-600">
             Accès aux dashboards
           </h2>
           <p className="text-slate-600 text-sm mb-6">
@@ -99,7 +99,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="exemple@volta.ci"
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition"
                 disabled={isLoading}
               />
             </div>
@@ -113,7 +113,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition"
                 disabled={isLoading}
               />
             </div>
@@ -121,8 +121,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || !email || !password}
-              className="w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: isLoading ? '#D4956F' : '#FF8C00' }}
+              className={`w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${isLoading ? 'bg-accent-200' : 'bg-accent-500 hover:bg-accent-600'}`}
             >
               {isLoading ? '⏳ Connexion...' : '🔓 Se connecter'}
             </button>
@@ -145,16 +144,16 @@ export default function Login() {
                                               account.role === 'SUPPLIER' ? '🏭 Fournisseur' :
                                               account.role === 'TECHNICAL' ? '🔧 Technique' :
                                               '👨‍💼 Admin'}</div>
-                <div className="text-xs text-blue-100 mt-1">{account.company}</div>
+                <div className="text-xs text-brand-100 mt-1">{account.company}</div>
               </button>
             ))}
           </div>
         </div>
 
         {/* Info Box */}
-        <div className="p-4 bg-blue-50 border-l-4 rounded-lg" style={{ borderLeftColor: '#FF8C00' }}>
+        <div className="p-4 bg-brand-50 border-l-4 rounded-lg border-l-accent-500">
           <p className="text-xs text-slate-700 leading-relaxed">
-            <strong style={{ color: '#FF8C00' }}>💡 Info:</strong> Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.
+            <strong className="text-accent-600">💡 Info:</strong> Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.
           </p>
         </div>
       </div>

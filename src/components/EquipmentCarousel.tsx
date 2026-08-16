@@ -118,7 +118,7 @@ export default function EquipmentCarousel({ equipment, title, showArrows = true 
                     {/* Category Badge */}
                     {item.category && (
                       <div className="absolute top-3 right-3">
-                        <span className="inline-block px-3 py-1 rounded-full bg-blue-500 text-white text-xs font-bold">
+                        <span className="inline-block px-3 py-1 rounded-full bg-brand-500 text-white text-xs font-bold">
                           {item.category}
                         </span>
                       </div>
@@ -143,7 +143,7 @@ export default function EquipmentCarousel({ equipment, title, showArrows = true 
 
                     {/* CTA */}
                     <div className="pt-4 border-t border-slate-200">
-                      <button className="w-full px-3 py-2 rounded-lg bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 transition-all duration-300">
+                      <button className="w-full px-3 py-2 rounded-lg bg-accent-500 text-white text-xs font-bold hover:bg-accent-600 transition-all duration-300">
                         📧 Demander devis
                       </button>
                     </div>

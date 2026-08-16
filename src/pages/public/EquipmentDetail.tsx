@@ -15,7 +15,7 @@ export default function EquipmentDetail() {
       <div className="mx-auto max-w-3xl px-4 pt-12">
         <EmptyState title="Équipement introuvable" />
         <div className="mt-4 text-center">
-          <Link to="/catalogue" className="font-medium text-blue-600 hover:underline">← Retour au catalogue</Link>
+          <Link to="/catalogue" className="font-medium text-brand-600 hover:underline">← Retour au catalogue</Link>
         </div>
       </div>
     )
@@ -27,7 +27,7 @@ export default function EquipmentDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-8 pb-16">
-      <Link to="/catalogue" className="text-sm font-medium text-blue-600 hover:underline">← Retour au catalogue</Link>
+      <Link to="/catalogue" className="text-sm font-medium text-brand-600 hover:underline">← Retour au catalogue</Link>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
         {/* Images */}
@@ -90,7 +90,7 @@ export default function EquipmentDetail() {
           </div>
 
           {/* Supplier Info */}
-          <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
+          <Card className="p-4 mb-6 bg-brand-50 border-brand-200">
             <div className="text-sm font-semibold text-slate-900">Fournisseur</div>
             <div className="text-slate-700 mt-2">
               <div className="font-semibold">{supplier?.company}</div>
@@ -102,8 +102,7 @@ export default function EquipmentDetail() {
           {/* CTA Button */}
           <button
             onClick={() => setModalOpen(true)}
-            className="w-full py-3 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#FF8C00' }}
+            className="w-full py-3 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 bg-accent-500"
           >
             📧 Demander un devis
           </button>

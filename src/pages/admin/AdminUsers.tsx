@@ -4,7 +4,7 @@ import type { Role } from '../../store/types'
 
 const ROLE_LABEL: Record<Role, { label: string; cls: string }> = {
   ADMIN: { label: 'Admin', cls: 'bg-indigo-100 text-indigo-700' },
-  SUPPLIER: { label: 'Fournisseur', cls: 'bg-blue-100 text-blue-700' },
+  SUPPLIER: { label: 'Fournisseur', cls: 'bg-brand-100 text-brand-700' },
   TECHNICAL: { label: 'Équipe technique', cls: 'bg-emerald-100 text-emerald-700' },
   CLIENT: { label: 'Client', cls: 'bg-slate-100 text-slate-700' },
 }

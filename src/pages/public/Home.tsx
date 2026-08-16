@@ -102,7 +102,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-6xl px-4">
       {/* Hero Section */}
-      <section className="mt-8 rounded-2xl bg-gradient-to-r from-blue-800 to-blue-600 p-10 text-white relative overflow-hidden">
+      <section className="mt-8 rounded-2xl bg-gradient-to-r from-brand-800 to-brand-600 p-10 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
         </div>
@@ -110,7 +110,7 @@ export default function Home() {
           <h1 className="max-w-2xl text-3xl font-bold leading-tight md:text-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
             Trouvez le bon équipement. Au bon moment.
           </h1>
-          <p className="mt-4 max-w-2xl text-blue-100 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <p className="mt-4 max-w-2xl text-brand-100 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             VOLTA est la plateforme de référence pour la location d'équipements de chantier en Côte d'Ivoire.
             Nous connectons les entreprises de construction avec des fournisseurs vérifiés et fiables.
             Tous nos partenaires sont certifiés et disposent des ressources nécessaires pour assurer votre succès.
@@ -118,21 +118,19 @@ export default function Home() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
             <Link
               to="/catalogue"
-              className="inline-block rounded-lg bg-white px-6 py-2.5 font-semibold hover:bg-blue-50 text-center transition transform hover:scale-110 active:scale-95"
-              style={{ color: '#FF8C00' }}
+              className="inline-block rounded-lg bg-white px-6 py-2.5 font-semibold hover:bg-brand-50 text-center transition transform hover:scale-110 active:scale-95 text-accent-600"
             >
               🔍 Parcourir le catalogue
             </Link>
             <Link
               to="/fournisseurs"
-              className="inline-block rounded-lg border-2 border-white px-6 py-2.5 font-semibold text-white hover:bg-blue-700 text-center transition transform hover:scale-110 active:scale-95"
+              className="inline-block rounded-lg border-2 border-white px-6 py-2.5 font-semibold text-white hover:bg-brand-700 text-center transition transform hover:scale-110 active:scale-95"
             >
               🏭 Nos fournisseurs
             </Link>
             <button
               onClick={() => setShowModal(true)}
-              className="inline-block rounded-lg px-6 py-2.5 font-semibold text-center transition transform hover:scale-110 active:scale-95"
-              style={{ backgroundColor: '#FF8C00', color: 'white' }}
+              className="inline-block rounded-lg bg-accent-500 px-6 py-2.5 font-semibold text-white text-center transition transform hover:scale-110 active:scale-95 hover:bg-accent-600"
             >
               💬 Nous contacter
             </button>
@@ -148,7 +146,7 @@ export default function Home() {
             placeholder="🔍 Chercher un équipement... (pelle, bulldozer, camion...)"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full px-6 py-3 rounded-xl border-2 border-slate-300 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition text-lg"
+            className="w-full px-6 py-3 rounded-xl border-2 border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-100 transition text-lg"
           />
           {searchInput && filteredEquipment.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-slate-200 bg-white shadow-2xl z-50 max-h-96 overflow-y-auto">
@@ -162,7 +160,7 @@ export default function Home() {
                   <div className="text-xs text-slate-700 mt-1">
                     {e.brand} • {e.location}
                   </div>
-                  <div className="text-sm font-bold mt-1" style={{ color: '#FF8C00' }}>
+                  <div className="text-sm font-bold mt-1 text-accent-600">
                     {'Demander un devis'} / jour
                   </div>
                 </Link>
@@ -176,19 +174,19 @@ export default function Home() {
       <section className="mt-12 mb-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-8 text-center transform transition hover:scale-110 cursor-pointer">
-            <div className="text-5xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+            <div className="text-5xl font-bold mb-2 text-accent-600">
               {counters.users.toLocaleString()}+
             </div>
             <div className="text-slate-600 font-medium">Utilisateurs satisfaits</div>
           </Card>
           <Card className="p-8 text-center transform transition hover:scale-110 cursor-pointer">
-            <div className="text-5xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+            <div className="text-5xl font-bold mb-2 text-accent-600">
               {counters.equipment.toLocaleString()}+
             </div>
             <div className="text-slate-600 font-medium">Équipements disponibles</div>
           </Card>
           <Card className="p-8 text-center transform transition hover:scale-110 cursor-pointer">
-            <div className="text-5xl font-bold mb-2" style={{ color: '#FF8C00' }}>
+            <div className="text-5xl font-bold mb-2 text-accent-600">
               {counters.transactions.toLocaleString()}+
             </div>
             <div className="text-slate-600 font-medium">Locations réussies</div>
@@ -199,7 +197,7 @@ export default function Home() {
       {/* Categories Section */}
       <section className="mt-12">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+          <h2 className="text-2xl font-bold text-accent-600">
             Catégories populaires
           </h2>
           <p className="mt-2 text-slate-600">
@@ -221,7 +219,7 @@ export default function Home() {
                 }}>
                   {c.icon}
                 </div>
-                <div className="text-sm font-semibold" style={{ color: hoveredCard === c.id ? '#FF8C00' : '#1F2937' }}>
+                <div className={`text-sm font-semibold ${hoveredCard === c.id ? 'text-accent-600' : 'text-slate-800'}`}>
                   {c.name}
                 </div>
               </Card>
@@ -234,7 +232,7 @@ export default function Home() {
       {/* Technical Verification Criteria */}
       <section className="mt-12">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+          <h2 className="text-2xl font-bold text-accent-600">
             Critères de vérification technique
           </h2>
           <p className="mt-2 text-slate-600">
@@ -249,11 +247,11 @@ export default function Home() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="text-5xl">{item.icon}</div>
-                <span style={{ color: '#FF8C00' }} className="text-2xl font-bold">
+                <span className="text-accent-600 text-2xl font-bold">
                   {idx + 1}
                 </span>
               </div>
-              <h3 className="font-bold text-lg mb-2" style={{ color: '#FF8C00' }}>
+              <h3 className="font-bold text-lg mb-2 text-accent-600">
                 {item.title}
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed mb-3 flex-1">
@@ -261,13 +259,13 @@ export default function Home() {
               </p>
               {expandedCriteria === idx && (
                 <div className="mt-4 pt-4 border-t border-slate-200 animate-pulse">
-                  <div className="text-xs font-semibold mb-2" style={{ color: '#FF8C00' }}>
+                  <div className="text-xs font-semibold mb-2 text-accent-600">
                     Étapes de vérification:
                   </div>
                   <ul className="space-y-2">
                     {item.steps.map((step, stepIdx) => (
                       <li key={stepIdx} className="text-sm text-slate-600 flex items-center gap-2">
-                        <span style={{ color: '#FF8C00' }} className="font-bold">✓</span>
+                        <span className="text-accent-600 font-bold">✓</span>
                         {step}
                       </li>
                     ))}
@@ -283,7 +281,7 @@ export default function Home() {
       {/* Why VOLTA Section */}
       <section className="mt-12">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+          <h2 className="text-2xl font-bold text-accent-600">
             Pourquoi choisir VOLTA ?
           </h2>
           <p className="mt-2 text-slate-600">
@@ -294,7 +292,7 @@ export default function Home() {
           {benefits.map((item, idx) => (
             <Card key={idx} className="p-6 h-full flex flex-col transition transform hover:shadow-lg hover:-translate-y-1">
               <div className="text-5xl mb-3">{item.icon}</div>
-              <h3 className="font-bold text-lg mb-2" style={{ color: '#FF8C00' }}>
+              <h3 className="font-bold text-lg mb-2 text-accent-600">
                 {item.title}
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
@@ -321,7 +319,7 @@ export default function Home() {
         <Link to="/pricing" className="block">
           <Card className="p-12 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
             <h3 className="text-3xl font-bold mb-4">Découvrez nos tarifs</h3>
-            <p className="text-slate-600 mb-6 max-w-2xl">
+            <p className="text-slate-300 mb-6 max-w-2xl">
               Trois plans adaptés à tous les budgets. Commencez gratuitement ou passez premium pour plus d'avantages.
             </p>
             <div className="flex items-center gap-2 text-slate-200 font-semibold hover:gap-3 transition-all">
@@ -337,7 +335,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-md p-8 animate-in scale-in-95 duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+              <h2 className="text-2xl font-bold text-accent-600">
                 Nous contacter
               </h2>
               <button
@@ -361,7 +359,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Votre nom"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition"
                   required
                 />
               </div>
@@ -370,7 +368,7 @@ export default function Home() {
                 <input
                   type="email"
                   placeholder="votre@email.ci"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition"
                   required
                 />
               </div>
@@ -379,14 +377,13 @@ export default function Home() {
                 <textarea
                   placeholder="Votre message..."
                   rows={4}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition resize-none"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition resize-none"
                   required
                 ></textarea>
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95"
-                style={{ backgroundColor: '#FF8C00' }}
+                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95 bg-accent-500"
               >
                 📧 Envoyer
               </button>

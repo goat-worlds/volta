@@ -101,14 +101,14 @@ export default function QuoteRequestForm({
     }, 600)
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition'
+  const inputClass = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition'
   const labelClass = 'block text-xs font-semibold text-slate-900 mb-1.5'
 
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Equipment Info */}
-        <Card className="p-3 bg-blue-50 border-blue-200">
+        <Card className="p-3 bg-brand-50 border-brand-200">
           <div className="text-sm">
             <span className="font-semibold text-slate-900">Équipement:</span>
             <span className="text-slate-700 ml-2">{equipmentName}</span>
@@ -225,8 +225,7 @@ export default function QuoteRequestForm({
         <button
           type="submit"
           disabled={sending}
-          className="w-full py-2.5 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-          style={{ backgroundColor: '#FF8C00' }}
+          className="w-full py-2.5 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-6 bg-accent-500"
         >
           {sending ? (
             <>⏳ Envoi en cours...</>

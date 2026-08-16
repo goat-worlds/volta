@@ -21,7 +21,7 @@ export default function Catalogue() {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-8 pb-16">
       {/* Explanation Banner */}
-      <Card className="mb-8 p-4 bg-blue-50 border border-blue-200">
+      <Card className="mb-8 p-4 bg-brand-50 border border-brand-200">
         <div className="flex gap-4">
           <div className="text-3xl">ℹ️</div>
           <div>
@@ -43,7 +43,7 @@ export default function Catalogue() {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           <option value="">Toutes les catégories</option>
           {categories.map((c) => (
@@ -56,7 +56,7 @@ export default function Catalogue() {
         <select
           value={selectedLocation}
           onChange={(e) => setSelectedLocation(e.target.value)}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           <option value="">Toutes les localisations</option>
           {locations.map((l) => (
@@ -133,8 +133,7 @@ export default function Catalogue() {
                   {/* CTA Button */}
                   <button
                     onClick={() => setQuoteFormOpen(e.id)}
-                    className="w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95"
-                    style={{ backgroundColor: '#FF8C00' }}
+                    className="w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95 bg-accent-500"
                   >
                     📧 Demander un devis
                   </button>
@@ -147,7 +146,7 @@ export default function Catalogue() {
 
       {/* Model Explanation Section */}
       <div className="mt-16 mb-12">
-        <div className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border-l-4" style={{ borderLeftColor: '#FF8C00' }}>
+        <div className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border-l-4 border-l-accent-500">
           <h2 className="text-2xl font-bold text-slate-900 mb-4">💡 Le modèle VOLTA expliqué</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div>
@@ -173,7 +172,7 @@ export default function Catalogue() {
           <p className="text-sm text-slate-600 mt-1">Équipements disponibles</p>
         </Card>
         <Card className="p-6 text-center">
-          <div className="text-3xl font-bold" style={{ color: '#FF8C00' }}>
+          <div className="text-3xl font-bold text-accent-600">
             {[...new Set(equipment.map(e => e.supplierId))].length}
           </div>
           <p className="text-sm text-slate-600 mt-1">Fournisseurs vérifiés</p>
@@ -185,7 +184,7 @@ export default function Catalogue() {
           <p className="text-sm text-slate-600 mt-1">Équipements catégorisés</p>
         </Card>
         <Card className="p-6 text-center">
-          <div className="text-3xl font-bold text-blue-600">100%</div>
+          <div className="text-3xl font-bold text-brand-600">100%</div>
           <p className="text-sm text-slate-600 mt-1">Inspection technique</p>
         </Card>
       </div>
@@ -209,12 +208,12 @@ export default function Catalogue() {
               </div>
 
               {/* Equipment Quick View */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="mb-4 p-3 bg-brand-50 rounded-lg border border-brand-200">
                 <p className="text-sm text-slate-600">Équipement sélectionné</p>
                 <p className="font-semibold text-slate-900">{selectedEquipment.name}</p>
                 <Link
                   to={`/equipment/${selectedEquipment.id}`}
-                  className="text-xs text-blue-600 hover:underline mt-2 inline-block"
+                  className="text-xs text-brand-600 hover:underline mt-2 inline-block"
                 >
                   Voir le produit →
                 </Link>

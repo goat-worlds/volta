@@ -46,12 +46,12 @@ export default function SupplierEquipment() {
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wide">Contact</p>
                     <p className="text-sm">
-                      <a href={`tel:${qr.clientPhone}`} className="text-blue-600 hover:underline">
+                      <a href={`tel:${qr.clientPhone}`} className="text-brand-600 hover:underline">
                         📞 {qr.clientPhone}
                       </a>
                     </p>
                     <p className="text-sm">
-                      <a href={`mailto:${qr.clientEmail}`} className="text-blue-600 hover:underline">
+                      <a href={`mailto:${qr.clientEmail}`} className="text-brand-600 hover:underline">
                         📧 {qr.clientEmail}
                       </a>
                     </p>
@@ -78,8 +78,8 @@ export default function SupplierEquipment() {
                 </div>
 
                 {qr.message && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-xs text-blue-700 font-semibold mb-1">Message du client</p>
+                  <div className="mb-4 p-3 bg-brand-50 rounded-lg border border-brand-200">
+                    <p className="text-xs text-brand-700 font-semibold mb-1">Message du client</p>
                     <p className="text-sm text-slate-700">{qr.message}</p>
                   </div>
                 )}

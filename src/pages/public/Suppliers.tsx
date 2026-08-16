@@ -72,7 +72,7 @@ export default function Suppliers() {
       >
         <div className="mx-auto max-w-6xl relative z-10">
           <div className="max-w-2xl">
-            <div className="mb-6 inline-block px-4 py-2 rounded-full bg-orange-600/80 backdrop-blur-sm">
+            <div className="mb-6 inline-block px-4 py-2 rounded-full bg-accent-600/80 backdrop-blur-sm">
               <span className="text-sm font-semibold">🏆 VOLTA - Plateforme de mise en relation</span>
             </div>
 
@@ -80,7 +80,7 @@ export default function Suppliers() {
               Mettez en relation fournisseurs et clients
             </h1>
 
-            <p className="text-2xl text-orange-300 font-semibold mb-4">
+            <p className="text-2xl text-accent-200 font-semibold mb-4">
               100% transparent · ZÉRO commission · 100% technique
             </p>
 
@@ -110,8 +110,7 @@ export default function Suppliers() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/catalogue"
-                className="inline-block px-8 py-4 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95"
-                style={{ backgroundColor: '#FF8C00' }}
+                className="inline-block px-8 py-4 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 bg-accent-500"
               >
                 Explorer nos équipements →
               </Link>
@@ -132,7 +131,7 @@ export default function Suppliers() {
               key={idx}
               onClick={() => setCurrentImageIndex(idx)}
               className={`h-2 transition-all rounded-full ${
-                idx === currentImageIndex ? 'bg-orange-500 w-8' : 'bg-white/40 w-2 hover:bg-white/60'
+                idx === currentImageIndex ? 'bg-accent-500 w-8' : 'bg-white/40 w-2 hover:bg-white/60'
               }`}
             />
           ))}
@@ -143,21 +142,21 @@ export default function Suppliers() {
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
-            <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
+            <div className="text-5xl font-bold mb-3 text-accent-600">
               {suppliers.length}
             </div>
             <div className="text-slate-800 font-semibold text-lg">Fournisseurs actifs</div>
             <p className="text-slate-700 text-sm mt-2">Partenaires de confiance</p>
           </Card>
           <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
-            <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
+            <div className="text-5xl font-bold mb-3 text-accent-600">
               {equipment.length}
             </div>
             <div className="text-slate-800 font-semibold text-lg">Équipements disponibles</div>
             <p className="text-slate-700 text-sm mt-2">Prêts à la location</p>
           </Card>
           <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
-            <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
+            <div className="text-5xl font-bold mb-3 text-accent-600">
               100%
             </div>
             <div className="text-slate-800 font-semibold text-lg">Certifiés VOLTA</div>
@@ -168,7 +167,7 @@ export default function Suppliers() {
         {/* Criteria Section */}
         <div className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3" style={{ color: '#FF8C00' }}>
+            <h2 className="text-3xl font-bold mb-3 text-accent-600">
               ✓ Critères de certification VOLTA
             </h2>
             <p className="text-slate-700 max-w-2xl mx-auto">
@@ -186,7 +185,7 @@ export default function Suppliers() {
                 }}>
                   {crit.icon}
                 </div>
-                <h3 className="font-bold text-xl mb-3" style={{ color: '#FF8C00' }}>
+                <h3 className="font-bold text-xl mb-3 text-accent-600">
                   {crit.label}
                 </h3>
                 <p className="text-slate-700 leading-relaxed">
@@ -212,7 +211,7 @@ export default function Suppliers() {
               placeholder="🔍 Chercher un fournisseur..."
               value={searchSupplier}
               onChange={(e) => setSearchSupplier(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-slate-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition text-lg"
+              className="w-full px-4 py-3 rounded-lg border-2 border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition text-lg"
             />
           </div>
           <div className="flex flex-wrap gap-3">
@@ -229,10 +228,9 @@ export default function Suppliers() {
                 onClick={() => setSortBy(option.value as any)}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   sortBy === option.value
-                    ? 'text-white'
-                    : 'text-slate-700 border border-slate-300 hover:border-orange-300'
+                    ? 'bg-accent-500 text-white'
+                    : 'bg-transparent text-slate-700 border border-slate-300 hover:border-accent-200'
                 }`}
-                style={{ backgroundColor: sortBy === option.value ? '#FF8C00' : 'transparent' }}
               >
                 {option.label}
               </button>
@@ -242,7 +240,7 @@ export default function Suppliers() {
 
         {/* Filter Section */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-6" style={{ color: '#FF8C00' }}>
+          <h2 className="text-3xl font-bold mb-6 text-accent-600">
             Fournisseurs par région
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -250,10 +248,9 @@ export default function Suppliers() {
               onClick={() => setSelectedRegion('')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 selectedRegion === ''
-                  ? 'text-white'
-                  : 'text-slate-700 border border-slate-300 hover:border-orange-300'
+                  ? 'bg-accent-500 text-white'
+                  : 'bg-transparent text-slate-700 border border-slate-300 hover:border-accent-200'
               }`}
-              style={{ backgroundColor: selectedRegion === '' ? '#FF8C00' : 'transparent' }}
             >
               Tous ({suppliers.length})
             </button>
@@ -265,10 +262,9 @@ export default function Suppliers() {
                   onClick={() => setSelectedRegion(region)}
                   className={`px-4 py-2 rounded-lg font-medium transition ${
                     selectedRegion === region
-                      ? 'text-white'
-                      : 'text-slate-700 border border-slate-300 hover:border-orange-300'
+                      ? 'bg-accent-500 text-white'
+                      : 'bg-transparent text-slate-700 border border-slate-300 hover:border-accent-200'
                   }`}
-                  style={{ backgroundColor: selectedRegion === region ? '#FF8C00' : 'transparent' }}
                 >
                   {region} ({count})
                 </button>
@@ -292,8 +288,7 @@ export default function Suppliers() {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                   <div className="flex gap-4 flex-1">
                     <div
-                      className="flex h-16 w-16 items-center justify-center rounded-xl font-bold text-white text-2xl shrink-0"
-                      style={{ backgroundColor: '#FF8C00' }}
+                      className="flex h-16 w-16 items-center justify-center rounded-xl font-bold text-white text-2xl shrink-0 bg-accent-500"
                     >
                       {s.company.slice(0, 2).toUpperCase()}
                     </div>
@@ -329,7 +324,7 @@ export default function Suppliers() {
                         <span className="inline-block px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
                           ✓ Certifié VOLTA
                         </span>
-                        <span className="inline-block px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-semibold">
                           🔧 Mécanicien
                         </span>
                         <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
@@ -342,8 +337,7 @@ export default function Suppliers() {
                   {/* CTA Button */}
                   <Link
                     to="/catalogue"
-                    className="px-6 py-3 rounded-lg text-white font-bold transition transform hover:scale-105 whitespace-nowrap text-center"
-                    style={{ backgroundColor: '#FF8C00' }}
+                    className="px-6 py-3 rounded-lg text-white font-bold transition transform hover:scale-105 whitespace-nowrap text-center bg-accent-500"
                   >
                     Voir équipements →
                   </Link>
@@ -356,12 +350,11 @@ export default function Suppliers() {
                       {criteria.map((crit) => (
                         <div
                           key={crit.key}
-                          className="p-4 rounded-lg"
-                          style={{ backgroundColor: '#FF8C00' + '15' }}
+                          className="p-4 rounded-lg bg-accent-500/10"
                         >
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-2xl">{crit.icon}</span>
-                            <h4 className="font-bold" style={{ color: '#FF8C00' }}>
+                            <h4 className="font-bold text-accent-600">
                               {crit.label}
                             </h4>
                           </div>
@@ -377,7 +370,7 @@ export default function Suppliers() {
                     {/* Equipment Preview */}
                     {count > 0 && (
                       <div className="mt-4">
-                        <h4 className="font-bold mb-3" style={{ color: '#FF8C00' }}>
+                        <h4 className="font-bold mb-3 text-accent-600">
                           Équipements populaires ({count} disponibles)
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -415,13 +408,13 @@ export default function Suppliers() {
         )}
 
         {/* CTA Section */}
-        <div className="mt-16 rounded-2xl p-10 text-white cursor-pointer transition transform hover:scale-105 active:scale-95" style={{ backgroundColor: '#FF8C00' }} onClick={() => setShowModal(true)}>
+        <div className="mt-16 rounded-2xl p-10 text-white cursor-pointer transition transform hover:scale-105 active:scale-95 bg-accent-500" onClick={() => setShowModal(true)}>
           <h2 className="text-2xl font-bold mb-3">🚀 Vous êtes fournisseur ?</h2>
-          <p className="mb-5 text-orange-100 max-w-2xl">
+          <p className="mb-5 text-accent-100 max-w-2xl">
             Rejoignez le réseau VOLTA et accédez à une clientèle stable et vérifiée.
             Profitez de nos certifications reconnues, de nos inspections techniques, et restez à 100% des tarifs que vous fixez.
           </p>
-          <button className="px-6 py-3 rounded-lg bg-white font-bold transition hover:scale-110 active:scale-95" style={{ color: '#FF8C00' }}>
+          <button className="px-6 py-3 rounded-lg bg-white font-bold transition hover:scale-110 active:scale-95 text-accent-600">
             Demander à nous rejoindre →
           </button>
         </div>
@@ -432,7 +425,7 @@ export default function Suppliers() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-md p-8 animate-in scale-in-95 duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+              <h2 className="text-2xl font-bold text-accent-600">
                 Rejoindre VOLTA
               </h2>
               <button
@@ -453,23 +446,23 @@ export default function Suppliers() {
             >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nom de l'entreprise</label>
-                <input type="text" placeholder="BTP Solutions" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                <input type="text" placeholder="BTP Solutions" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Responsable</label>
-                <input type="text" placeholder="Votre nom" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                <input type="text" placeholder="Votre nom" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                <input type="email" placeholder="contact@btp.ci" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                <input type="email" placeholder="contact@btp.ci" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Téléphone</label>
-                <input type="tel" placeholder="+225 XX XX XX XX" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                <input type="tel" placeholder="+225 XX XX XX XX" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Région</label>
-                <select className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required>
+                <select className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent-500 transition" required>
                   <option>Sélectionner une région</option>
                   {regions.map((r) => (
                     <option key={r} value={r}>{r}</option>
@@ -478,8 +471,7 @@ export default function Suppliers() {
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95"
-                style={{ backgroundColor: '#FF8C00' }}
+                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95 bg-accent-500"
               >
                 📋 Soumettre ma demande
               </button>

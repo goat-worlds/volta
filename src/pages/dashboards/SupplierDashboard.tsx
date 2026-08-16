@@ -25,22 +25,22 @@ export default function SupplierDashboard() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">🏭 Tableau de bord Fournisseur</h1>
-          <p className="text-slate-600 mt-1">{user.company}</p>
+          <p className="text-slate-400 mt-1">{user.company}</p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
             <div className="text-3xl font-bold mb-2">{supplierEquipment.length}</div>
-            <div className="text-blue-100">Équipements listés</div>
+            <div className="text-brand-100">Équipements listés</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-orange-600 to-orange-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-accent-500 to-accent-600 text-white">
             <div className="text-3xl font-bold mb-2">{newRequests.length}</div>
-            <div className="text-orange-100">Nouvelles demandes</div>
+            <div className="text-accent-100">Nouvelles demandes</div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-green-600 to-green-700 text-white">
+          <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
             <div className="text-3xl font-bold mb-2">{myRequests.length}</div>
-            <div className="text-green-100">Demandes totales</div>
+            <div className="text-emerald-100">Demandes totales</div>
           </Card>
         </div>
 
@@ -48,8 +48,8 @@ export default function SupplierDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {/* New Requests */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Nouvelles demandes reçues
               </h2>
               {newRequests.length === 0 ? (
@@ -79,8 +79,8 @@ export default function SupplierDashboard() {
             </Card>
 
             {/* All Requests */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Toutes les demandes
               </h2>
               {myRequests.length === 0 ? (
@@ -94,7 +94,7 @@ export default function SupplierDashboard() {
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-white text-sm">{qr.reference}</div>
-                            <div className="text-xs text-slate-600 mt-1">{qr.clientName} • {eq?.name}</div>
+                            <div className="text-xs text-slate-400 mt-1">{qr.clientName} • {eq?.name}</div>
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
@@ -109,15 +109,14 @@ export default function SupplierDashboard() {
           {/* Sidebar */}
           <div>
             {/* Quick Actions */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Actions rapides
               </h2>
               <div className="space-y-2">
                 <Link
                   to="/supplier/equipment"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform"
-                  style={{ backgroundColor: '#FF8C00' }}
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform bg-accent-500"
                 >
                   🛠️ Mes équipements
                 </Link>
@@ -131,8 +130,8 @@ export default function SupplierDashboard() {
             </Card>
 
             {/* Account Info */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Informations d'entreprise
               </h2>
               <div className="space-y-3 text-sm text-slate-300">
@@ -156,21 +155,21 @@ export default function SupplierDashboard() {
             </Card>
 
             {/* Certification Status */}
-            <Card className="p-6 bg-gradient-to-br from-green-600/20 to-green-700/20 border border-green-400/30">
+            <Card dark className="p-6 bg-gradient-to-br from-emerald-600/20 to-emerald-700/20 border border-emerald-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <span className="text-2xl">✓</span>
-                <span style={{ color: '#FF8C00' }}>Certifications</span>
+                <span className="text-accent-600">Certifications</span>
               </h2>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 p-2 rounded bg-green-700/40">
+                <div className="flex items-center gap-2 p-2 rounded bg-emerald-700/40">
                   <span>🔧</span>
                   <span className="text-white">Mécanicien Qualifié</span>
                 </div>
-                <div className="flex items-center gap-2 p-2 rounded bg-green-700/40">
+                <div className="flex items-center gap-2 p-2 rounded bg-emerald-700/40">
                   <span>🏭</span>
                   <span className="text-white">Entrepôt Équipé</span>
                 </div>
-                <div className="flex items-center gap-2 p-2 rounded bg-green-700/40">
+                <div className="flex items-center gap-2 p-2 rounded bg-emerald-700/40">
                   <span>✓</span>
                   <span className="text-white">Certifié VOLTA</span>
                 </div>
