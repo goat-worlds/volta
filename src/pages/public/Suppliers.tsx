@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
@@ -7,19 +7,42 @@ export default function Suppliers() {
   const { users, equipment } = useStore()
   const [selectedRegion, setSelectedRegion] = useState<string>('')
   const [expandedSupplier, setExpandedSupplier] = useState<string | null>(null)
+  const [searchSupplier, setSearchSupplier] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [sortBy, setSortBy] = useState<'name' | 'equipment' | 'region'>('name')
+  const [hoveredCriteria, setHoveredCriteria] = useState<string | null>(null)
 
   const suppliers = users.filter((u) => u.role === 'SUPPLIER')
   const regions = [...new Set(suppliers.map((s) => s.city))]
 
   const criteria = [
-    { icon: '🔧', label: 'Mécanicien qualifié', key: 'mechanic' },
-    { icon: '⚡', label: 'Remplacement 24h', key: 'replacement' },
-    { icon: '🏭', label: 'Entrepôt équipé', key: 'warehouse' },
+    { icon: '🔧', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
+    { icon: '⚡', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
+    { icon: '🏭', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
   ]
 
-  const filteredSuppliers = selectedRegion
+  let filteredSuppliers = selectedRegion
     ? suppliers.filter((s) => s.city === selectedRegion)
     : suppliers
+
+  // Search filter
+  if (searchSupplier.trim()) {
+    filteredSuppliers = filteredSuppliers.filter((s) =>
+      s.company.toLowerCase().includes(searchSupplier.toLowerCase())
+    )
+  }
+
+  // Sort
+  const sortedSuppliers = [...filteredSuppliers].sort((a, b) => {
+    if (sortBy === 'name') return a.company.localeCompare(b.company)
+    if (sortBy === 'equipment') {
+      const countA = equipment.filter((e) => e.supplierId === a.id).length
+      const countB = equipment.filter((e) => e.supplierId === b.id).length
+      return countB - countA
+    }
+    if (sortBy === 'region') return a.city.localeCompare(b.city)
+    return 0
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
@@ -72,17 +95,66 @@ export default function Suppliers() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {criteria.map((crit) => (
-              <Card key={crit.key} className="p-6 hover:shadow-lg transition">
-                <div className="text-5xl mb-3">{crit.icon}</div>
+              <Card
+                key={crit.key}
+                className="p-6 hover:shadow-lg transition transform hover:scale-105 cursor-pointer"
+                onMouseEnter={() => setHoveredCriteria(crit.key)}
+                onMouseLeave={() => setHoveredCriteria(null)}
+              >
+                <div className="text-6xl mb-3 transition transform" style={{
+                  transform: hoveredCriteria === crit.key ? 'scale(1.3) rotate(10deg)' : 'scale(1)',
+                }}>
+                  {crit.icon}
+                </div>
                 <h3 className="font-bold text-lg mb-2" style={{ color: '#FF8C00' }}>
                   {crit.label}
                 </h3>
                 <p className="text-sm text-slate-600">
-                  {crit.key === 'mechanic' && 'Un mécanicien certifié disponible pour maintenance et réparations urgentes.'}
-                  {crit.key === 'replacement' && 'Garantie de remplacement d\'équipement en moins de 24 heures en cas de panne.'}
-                  {crit.key === 'warehouse' && 'Entrepôt équipé avec pièces de rechange et outils nécessaires.'}
+                  {hoveredCriteria === crit.key ? crit.description : (
+                    <>
+                      {crit.key === 'mechanic' && 'Un mécanicien certifié disponible pour maintenance et réparations urgentes.'}
+                      {crit.key === 'replacement' && 'Garantie de remplacement d\'équipement en moins de 24 heures en cas de panne.'}
+                      {crit.key === 'warehouse' && 'Entrepôt équipé avec pièces de rechange et outils nécessaires.'}
+                    </>
+                  )}
                 </p>
               </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Search and Sort Section */}
+        <div className="mb-8 space-y-4">
+          <div>
+            <input
+              type="text"
+              placeholder="🔍 Chercher un fournisseur..."
+              value={searchSupplier}
+              onChange={(e) => setSearchSupplier(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-slate-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition text-lg"
+            />
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              Trier par:
+            </label>
+            {[
+              { value: 'name', label: 'Nom' },
+              { value: 'equipment', label: 'Équipements' },
+              { value: 'region', label: 'Région' },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSortBy(option.value as any)}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  sortBy === option.value
+                    ? 'text-white'
+                    : 'text-slate-700 border border-slate-300 hover:border-orange-300'
+                }`}
+                style={{ backgroundColor: sortBy === option.value ? '#FF8C00' : 'transparent' }}
+              >
+                {option.label}
+              </button>
             ))}
           </div>
         </div>
@@ -126,14 +198,15 @@ export default function Suppliers() {
 
         {/* Suppliers Grid */}
         <div className="grid gap-6">
-          {filteredSuppliers.map((s) => {
+          {sortedSuppliers.map((s, idx) => {
             const count = equipment.filter((e) => e.supplierId === s.id && e.status === 'PUBLISHED').length
             const isExpanded = expandedSupplier === s.id
 
             return (
               <Card
                 key={s.id}
-                className="p-6 cursor-pointer transition hover:shadow-lg hover:scale-105"
+                className="p-6 cursor-pointer transition hover:shadow-lg hover:scale-105 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${idx * 50}ms` }}
                 onClick={() => setExpandedSupplier(isExpanded ? null : s.id)}
               >
                 {/* Main Info */}
@@ -239,26 +312,87 @@ export default function Suppliers() {
           })}
         </div>
 
-        {filteredSuppliers.length === 0 && (
-          <Card className="p-12 text-center">
+        {sortedSuppliers.length === 0 && (
+          <Card className="p-12 text-center animate-in fade-in duration-300">
             <div className="text-5xl mb-4">🔍</div>
             <h3 className="text-xl font-bold mb-2">Aucun fournisseur trouvé</h3>
-            <p className="text-slate-600">Essayez une autre région</p>
+            <p className="text-slate-600">Essayez une autre recherche ou région</p>
           </Card>
         )}
 
         {/* CTA Section */}
-        <div className="mt-16 rounded-2xl p-10 text-white" style={{ backgroundColor: '#FF8C00' }}>
-          <h2 className="text-2xl font-bold mb-3">Vous êtes fournisseur ?</h2>
+        <div className="mt-16 rounded-2xl p-10 text-white cursor-pointer transition transform hover:scale-105 active:scale-95" style={{ backgroundColor: '#FF8C00' }} onClick={() => setShowModal(true)}>
+          <h2 className="text-2xl font-bold mb-3">🚀 Vous êtes fournisseur ?</h2>
           <p className="mb-5 text-orange-100 max-w-2xl">
             Rejoignez le réseau VOLTA et accédez à une clientèle stable et de confiance.
             Profitez de nos services de marketing, de gestion de paiements et de support technique.
           </p>
-          <button className="px-6 py-3 rounded-lg bg-white font-bold transition hover:scale-105" style={{ color: '#FF8C00' }}>
+          <button className="px-6 py-3 rounded-lg bg-white font-bold transition hover:scale-110 active:scale-95" style={{ color: '#FF8C00' }}>
             Demander à nous rejoindre →
           </button>
         </div>
       </div>
+
+      {/* Modal - Join as Supplier */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-md p-8 animate-in scale-in-95 duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+                Rejoindre VOLTA
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-3xl text-slate-400 hover:text-slate-600 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                alert('Merci! Nous examinerons votre demande et vous contacterons bientôt.')
+                setShowModal(false)
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nom de l'entreprise</label>
+                <input type="text" placeholder="BTP Solutions" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Responsable</label>
+                <input type="text" placeholder="Votre nom" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <input type="email" placeholder="contact@btp.ci" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Téléphone</label>
+                <input type="tel" placeholder="+225 XX XX XX XX" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Région</label>
+                <select className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required>
+                  <option>Sélectionner une région</option>
+                  {regions.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95"
+                style={{ backgroundColor: '#FF8C00' }}
+              >
+                📋 Soumettre ma demande
+              </button>
+            </form>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
