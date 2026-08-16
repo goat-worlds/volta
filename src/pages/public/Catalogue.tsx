@@ -20,9 +20,22 @@ export default function Catalogue() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-8 pb-16">
+      {/* Explanation Banner */}
+      <Card className="mb-8 p-4 bg-blue-50 border border-blue-200">
+        <div className="flex gap-4">
+          <div className="text-3xl">ℹ️</div>
+          <div>
+            <h3 className="font-bold text-slate-900 mb-1">Comment fonctionne VOLTA?</h3>
+            <p className="text-sm text-slate-700">
+              <strong>VOLTA est une plateforme de mise en relation.</strong> Vous trouvez l'équipement qui vous convient, vous demandez un devis directement au fournisseur. Aucune commission VOLTA - les prix et conditions sont négociés entre vous et le fournisseur. VOLTA assure uniquement la sécurité technique via inspections et certifications (Catégories A/B/C/D/E).
+            </p>
+          </div>
+        </div>
+      </Card>
+
       <PageTitle
         title="Catalogue d'Équipements"
-        subtitle={`${filtered.length} équipement(s) disponible(s)`}
+        subtitle={`${filtered.length} équipement(s) disponible(s) - Catégorisés par inspections VOLTA`}
       />
 
       {/* Filters */}
@@ -92,10 +105,16 @@ export default function Catalogue() {
                     <div className="text-2xl">{cat?.icon}</div>
                   </div>
 
-                  {/* Category Badge */}
+                  {/* Category Badge - Inspection Result */}
                   {e.category && (
-                    <div className="mb-2">
+                    <div className="mb-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <div className="text-xs text-slate-600 mb-1">📊 Évaluation technique VOLTA</div>
                       <CategoryBadge category={e.category} />
+                    </div>
+                  )}
+                  {!e.category && (
+                    <div className="mb-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                      <div className="text-xs text-amber-700">⏳ En cours d'inspection VOLTA</div>
                     </div>
                   )}
 
@@ -126,8 +145,29 @@ export default function Catalogue() {
         </div>
       )}
 
+      {/* Model Explanation Section */}
+      <div className="mt-16 mb-12">
+        <Card className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 border-l-4" style={{ borderLeftColor: '#FF8C00' }}>
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">💡 Le modèle VOLTA expliqué</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <div className="font-bold text-slate-900 mb-2">🔍 VOLTA = Inspecteur</div>
+              <p className="text-slate-700">Nous inspectons chaque équipement et assignons une catégorie (A/B/C/D/E)</p>
+            </div>
+            <div>
+              <div className="font-bold text-slate-900 mb-2">🤝 Vous négociez directement</div>
+              <p className="text-slate-700">Vous contactez le fournisseur. Les prix et conditions sont entre vous</p>
+            </div>
+            <div>
+              <div className="font-bold text-slate-900 mb-2">💰 Zéro commission</div>
+              <p className="text-slate-700">VOLTA ne prend aucun fonds. Aucune commission sur les transactions</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
       {/* Quick Stats */}
-      <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-6 text-center">
           <div className="text-3xl font-bold text-slate-900">{equipment.length}</div>
           <p className="text-sm text-slate-600 mt-1">Équipements disponibles</p>

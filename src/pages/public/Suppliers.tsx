@@ -73,37 +73,37 @@ export default function Suppliers() {
         <div className="mx-auto max-w-6xl relative z-10">
           <div className="max-w-2xl">
             <div className="mb-6 inline-block px-4 py-2 rounded-full bg-orange-600/80 backdrop-blur-sm">
-              <span className="text-sm font-semibold">🏆 VOLTA - Le comparateur de référence</span>
+              <span className="text-sm font-semibold">🏆 VOLTA - Plateforme de mise en relation</span>
             </div>
 
             <h1 className="text-6xl font-bold mb-4 leading-tight">
-              Le premier comparateur de location d'équipements
+              Mettez en relation fournisseurs et clients
             </h1>
 
             <p className="text-2xl text-orange-300 font-semibold mb-4">
-              100% sécurisé · 100% technique · 100% certifié
+              100% transparent · ZÉRO commission · 100% technique
             </p>
 
             <p className="text-lg text-slate-200 mb-8 leading-relaxed max-w-xl">
-              Des milliers d'équipements vérifiés par VOLTA pour vos projets. Tous nos fournisseurs respectent les critères les plus stricts pour garantir la qualité et la sécurité technique de leurs services.
+              VOLTA est une plateforme de mise en relation et d'évaluation technique. Les fournisseurs et clients négocient directement. VOLTA ne prend aucune commission - c'est une plateforme de coordination et de sécurité technique.
             </p>
 
             <div className="space-y-3 mb-10 text-slate-100">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🔐</span>
-                <span>Canal de réservation sécurisé & certifié</span>
+                <span className="text-2xl">🤝</span>
+                <span>Mise en relation directe fournisseur-client</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🔍</span>
-                <span>Inspections techniques complètes</span>
+                <span>Inspections techniques complètes (certification)</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">✅</span>
-                <span>100% des fournisseurs certifiés VOLTA</span>
+                <span className="text-2xl">📊</span>
+                <span>Catégories A/B/C/D/E basées sur évaluations</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">⏰</span>
-                <span>Support technique disponible 24/7</span>
+                <span className="text-2xl">💰</span>
+                <span>Aucune commission VOLTA - Tarifs directs fournisseur</span>
               </div>
             </div>
 
@@ -304,7 +304,8 @@ export default function Suppliers() {
                           ✓ Certifié
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                      {/* Quick Info */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 mb-3">
                         <div className="text-sm">
                           <div className="text-slate-700">📍 Région</div>
                           <div className="font-semibold text-slate-800">{s.city}</div>
@@ -321,6 +322,19 @@ export default function Suppliers() {
                           <div className="text-slate-700">📧 Email</div>
                           <div className="font-semibold text-slate-800 truncate">{s.email}</div>
                         </div>
+                      </div>
+
+                      {/* Certifications */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                          ✓ Certifié VOLTA
+                        </span>
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                          🔧 Mécanicien
+                        </span>
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                          🏭 Entrepôt équipé
+                        </span>
                       </div>
                     </div>
                   </div>
