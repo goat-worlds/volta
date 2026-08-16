@@ -418,8 +418,8 @@ export default function Suppliers() {
         <div className="mt-16 rounded-2xl p-10 text-white cursor-pointer transition transform hover:scale-105 active:scale-95" style={{ backgroundColor: '#FF8C00' }} onClick={() => setShowModal(true)}>
           <h2 className="text-2xl font-bold mb-3">🚀 Vous êtes fournisseur ?</h2>
           <p className="mb-5 text-orange-100 max-w-2xl">
-            Rejoignez le réseau VOLTA et accédez à une clientèle stable et de confiance.
-            Profitez de nos services de marketing, de gestion de paiements et de support technique.
+            Rejoignez le réseau VOLTA et accédez à une clientèle stable et vérifiée.
+            Profitez de nos certifications reconnues, de nos inspections techniques, et restez à 100% des tarifs que vous fixez.
           </p>
           <button className="px-6 py-3 rounded-lg bg-white font-bold transition hover:scale-110 active:scale-95" style={{ color: '#FF8C00' }}>
             Demander à nous rejoindre →

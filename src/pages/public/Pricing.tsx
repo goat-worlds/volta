@@ -1,240 +1,167 @@
-import { useState } from 'react'
 import { Card } from '../../components/ui'
 
-type Plan = 'basic' | 'silver' | 'gold'
-
 export default function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
-  const [hoveredPlan, setHoveredPlan] = useState<Plan | null>(null)
-
-  const plans = [
-    {
-      name: 'Basic',
-      id: 'basic' as const,
-      icon: '🚜',
-      description: 'Pour commencer',
-      price: { monthly: 0, yearly: 0 },
-      badge: 'Gratuit',
-      color: '#64748b',
-      lightColor: '#f1f5f9',
-      features: [
-        { text: 'Accès au catalogue', included: true },
-        { text: 'Jusqu\'à 3 locations/mois', included: true },
-        { text: 'Support par email', included: true },
-        { text: 'Garantie 7 jours', included: false },
-        { text: 'Priorité support', included: false },
-        { text: 'Assurance complète', included: false },
-      ],
-    },
-    {
-      name: 'Silver',
-      id: 'silver' as const,
-      icon: '⭐',
-      description: 'Pour les PME',
-      price: { monthly: 29999, yearly: 299990 },
-      badge: 'Populaire',
-      color: '#06b6d4',
-      lightColor: '#ecf0f1',
-      features: [
-        { text: 'Accès au catalogue', included: true },
-        { text: 'Locations illimitées', included: true },
-        { text: 'Support prioritaire 24/7', included: true },
-        { text: 'Garantie 14 jours', included: true },
-        { text: 'Réduction 10%', included: true },
-        { text: 'Assurance limitée', included: false },
-      ],
-    },
-    {
-      name: 'Gold',
-      id: 'gold' as const,
-      icon: '👑',
-      description: 'Pour les grandes entreprises',
-      price: { monthly: 79999, yearly: 799990 },
-      badge: 'Premium',
-      color: '#d4af37',
-      lightColor: '#fffbf0',
-      features: [
-        { text: 'Accès au catalogue', included: true },
-        { text: 'Locations illimitées', included: true },
-        { text: 'Support VIP 24/7', included: true },
-        { text: 'Garantie 30 jours', included: true },
-        { text: 'Réduction 20%', included: true },
-        { text: 'Assurance complète', included: true },
-      ],
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
+      {/* Hero Section */}
       <div className="pt-16 pb-12 px-4 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-          Tarification simple et transparente
+          Mise en relation gratuite
         </h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8">
-          Choisissez le plan qui correspond à vos besoins. Pas de frais cachés, annulation à tout moment.
+        <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-8">
+          VOLTA est une plateforme de mise en relation. <strong>Zéro commission VOLTA.</strong> Les tarifs sont négociés directement entre vous et le fournisseur.
         </p>
+      </div>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2 rounded-md font-medium transition ${
-                billingCycle === 'monthly'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Mensuel
-            </button>
-            <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-6 py-2 rounded-md font-medium transition ${
-                billingCycle === 'yearly'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Annuel <span className="text-xs ml-1">(-2 mois)</span>
-            </button>
+      <div className="mx-auto max-w-6xl px-4 pb-20">
+        {/* Model Explanation */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+            Comment fonctionne VOLTA
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="p-8">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">VOLTA inspecte</h3>
+              <p className="text-slate-700">
+                Nous inspectons chaque équipement et assignons une catégorie (A/B/C/D/E) basée sur l'état technique.
+              </p>
+            </Card>
+
+            <Card className="p-8">
+              <div className="text-4xl mb-4">🤝</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Vous négociez</h3>
+              <p className="text-slate-700">
+                Contactez directement le fournisseur. Les tarifs et conditions sont convenus entre vous.
+              </p>
+            </Card>
+
+            <Card className="p-8">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Zéro commission</h3>
+              <p className="text-slate-700">
+                VOLTA ne prend aucun fonds. Vous gardez 100% du contrôle sur les tarifs et les négociations.
+              </p>
+            </Card>
           </div>
         </div>
-      </div>
 
-      {/* Pricing Cards */}
-      <div className="max-w-6xl mx-auto px-4 pb-20">
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-6">
-          {plans.map((plan) => {
-            const isPopular = plan.name === 'Silver'
-            const isHovered = hoveredPlan === plan.id
-
-            return (
-              <div
-                key={plan.id}
-                onMouseEnter={() => setHoveredPlan(plan.id)}
-                onMouseLeave={() => setHoveredPlan(null)}
-                className={`relative transition-all duration-300 ${
-                  isHovered ? 'scale-105' : 'scale-100'
-                }`}
-              >
-                {/* Glow effect for popular plan */}
-                {isPopular && (
-                  <div className="absolute inset-0 rounded-2xl blur-2xl opacity-20" style={{ backgroundColor: plan.color }} />
-                )}
-
-                <Card className={`relative h-full p-8 border transition-all duration-300 ${
-                  isPopular
-                    ? 'border-slate-300 shadow-xl'
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
-                >
-                  {/* Popular Badge */}
-                  {isPopular && (
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                      <span
-                        className="px-4 py-1.5 rounded-full text-xs font-bold text-white"
-                        style={{ backgroundColor: plan.color }}
-                      >
-                        {plan.badge}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Icon & Name */}
-                  <div className="mb-6">
-                    <div className="text-5xl mb-4">{plan.icon}</div>
-                    <h3 className="text-2xl font-bold text-slate-900">{plan.name}</h3>
-                    <p className="text-sm text-slate-600 mt-1">{plan.description}</p>
-                  </div>
-
-                  {/* Price */}
-                  <div className="mb-8">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-slate-900">
-                        {(plan.price[billingCycle] / 1000).toFixed(0)}k
-                      </span>
-                      <span className="text-slate-600">FCFA/{billingCycle === 'monthly' ? 'mois' : 'an'}</span>
-                    </div>
-                    {billingCycle === 'yearly' && plan.price.yearly > 0 && (
-                      <p className="text-xs text-green-600 mt-2">
-                        💰 Économisez {((plan.price.monthly * 12 - plan.price.yearly) / 1000).toFixed(0)}k FCFA/an
-                      </p>
-                    )}
-                  </div>
-
-                  {/* CTA Button */}
-                  <button
-                    className="w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 mb-8 group"
-                    style={{
-                      backgroundColor: isHovered ? plan.color : `${plan.color}15`,
-                      color: isHovered ? 'white' : plan.color,
-                      border: `2px solid ${plan.color}30`,
-                    }}
-                  >
-                    Commencer
-                    <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
-                  </button>
-
-                  {/* Divider */}
-                  <div className="h-px bg-slate-200 mb-8" />
-
-                  {/* Features */}
-                  <div className="space-y-4">
-                    {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        {feature.included ? (
-                          <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs flex-shrink-0"
-                            style={{ backgroundColor: plan.color }}
-                          >
-                            ✓
-                          </div>
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-slate-200 flex-shrink-0" />
-                        )}
-                        <span
-                          className={`text-sm ${
-                            feature.included ? 'text-slate-700 font-medium' : 'text-slate-600'
-                          }`}
-                        >
-                          {feature.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* FAQ Section */}
-      <div className="bg-white py-16 border-t border-slate-200">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">
-            Questions fréquentes
+        {/* Certifications */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+            Certifications VOLTA
           </h2>
-          <div className="space-y-6">
+          <p className="text-center text-slate-600 max-w-2xl mx-auto mb-8">
+            Tous nos fournisseurs sont certifiés et respectent les critères stricts de qualité VOLTA.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="p-8 border-l-4 border-green-600">
+              <div className="text-3xl mb-4">🔧</div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Mécanicien Qualifié</h3>
+              <p className="text-slate-700 text-sm">
+                Certification professionnelle vérifiée. Disponible pour maintenance et réparations urgentes.
+              </p>
+            </Card>
+
+            <Card className="p-8 border-l-4 border-blue-600">
+              <div className="text-3xl mb-4">🏭</div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Entrepôt Équipé</h3>
+              <p className="text-slate-700 text-sm">
+                Stock permanent de pièces de rechange et outils nécessaires.
+              </p>
+            </Card>
+
+            <Card className="p-8 border-l-4 border-purple-600">
+              <div className="text-3xl mb-4">✓</div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Certifié VOLTA</h3>
+              <p className="text-slate-700 text-sm">
+                Respect des normes qualité et inspections techniques complètes.
+              </p>
+            </Card>
+          </div>
+        </div>
+
+        {/* Categories */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+            Catégories d'Équipements
+          </h2>
+          <p className="text-center text-slate-600 max-w-2xl mx-auto mb-8">
+            Basées sur inspections techniques complètes par l'équipe VOLTA.
+          </p>
+          <div className="grid md:grid-cols-5 gap-4">
+            {[
+              { cat: 'A', label: 'Excellent', color: 'emerald', desc: 'État premium' },
+              { cat: 'B', label: 'Bon', color: 'blue', desc: 'Très bon état' },
+              { cat: 'C', label: 'Moyen', color: 'yellow', desc: 'À surveiller' },
+              { cat: 'D', label: 'Maintenance', color: 'orange', desc: 'Intervention' },
+              { cat: 'E', label: 'Non conforme', color: 'red', desc: 'À éviter' },
+            ].map((item) => (
+              <Card key={item.cat} className={`p-6 text-center border-t-4 border-${item.color}-500`}>
+                <div className="text-4xl font-bold mb-2" style={{ color: `var(--color-${item.color}-600)` }}>
+                  {item.cat}
+                </div>
+                <h4 className="font-bold text-slate-900 mb-1">{item.label}</h4>
+                <p className="text-xs text-slate-600">{item.desc}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Support */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-12 border border-blue-200">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Support 24/7</h2>
+            <p className="text-slate-700 mb-6">
+              L'équipe VOLTA est disponible 24 heures sur 24, 7 jours sur 7 pour vous aider avec les inspections, les certifications, et la coordination entre fournisseurs et clients.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="mailto:support@volta.ci"
+                className="px-8 py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition"
+              >
+                📧 Contacter le support
+              </a>
+              <a
+                href="tel:+22507000001"
+                className="px-8 py-3 rounded-lg border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-50 transition"
+              >
+                📞 Appeler maintenant
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Questions fréquentes</h2>
+          <div className="max-w-3xl mx-auto space-y-6">
             {[
               {
-                q: 'Puis-je changer de plan à tout moment?',
-                a: 'Oui, vous pouvez upgrader ou downgrader votre plan à tout moment. Les changements sont effectués au prorata.',
+                q: 'VOLTA prend-elle une commission?',
+                a: 'Non. VOLTA est une plateforme de mise en relation. Aucune commission n\'est prélevée. Les tarifs sont négociés directement entre client et fournisseur.',
               },
               {
-                q: 'Acceptez-vous les annulations?',
-                a: 'Bien sûr! Vous pouvez annuler votre abonnement à tout moment sans pénalité ni frais.',
+                q: 'Comment fonctionnent les inspections?',
+                a: 'L\'équipe technique VOLTA inspecte chaque équipement selon des critères stricts et assigne une catégorie (A/B/C/D/E). Cela garantit la sécurité technique.',
               },
               {
-                q: 'Qu\'est-ce qui est inclus dans l\'assurance?',
-                a: 'L\'assurance couvre les dommages accidentels, le vol et les problèmes de maintenance liés à l\'équipement.',
+                q: 'Qu\'est-ce qu\'un fournisseur certifié?',
+                a: 'Un fournisseur certifié a passé la vérification VOLTA et dispose de: un mécanicien qualifié, un entrepôt équipé, et une certification de qualité.',
+              },
+              {
+                q: 'Comment contacter un fournisseur?',
+                a: 'Browsez le catalogue, sélectionnez un équipement, et demandez un devis. Vous obtiendrez les informations de contact du fournisseur pour négocier directement.',
+              },
+              {
+                q: 'Existe-t-il une assurance?',
+                a: 'Les détails d\'assurance et les protections supplémentaires sont à négocier directement avec le fournisseur. VOLTA met les parties en relation.',
               },
             ].map((faq, idx) => (
-              <div key={idx} className="p-6 rounded-lg bg-slate-50 border border-slate-200">
+              <Card key={idx} className="p-6">
                 <h4 className="font-bold text-slate-900 mb-2">{faq.q}</h4>
-                <p className="text-slate-600">{faq.a}</p>
-              </div>
+                <p className="text-slate-700">{faq.a}</p>
+              </Card>
             ))}
           </div>
         </div>

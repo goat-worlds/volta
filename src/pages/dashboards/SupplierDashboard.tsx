@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Card } from '../../components/ui'
+import { useNavigate, Link } from 'react-router-dom'
+import { useStore } from '../../store/StoreContext'
+import { Card, QuoteStatusBadge } from '../../components/ui'
 
 export default function SupplierDashboard() {
   const navigate = useNavigate()
+  const { quoteRequests, equipment } = useStore()
   const [user, setUser] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'stats' | 'payments'>('dashboard')
-  const [showNewModal, setShowNewModal] = useState(false)
-  const [stats] = useState({ active: 8, inquiries: 5, revenue: 2400000 })
 
   useEffect(() => {
     const userStr = localStorage.getItem('volta_user')
@@ -17,6 +16,10 @@ export default function SupplierDashboard() {
 
   if (!user) return <div className="flex items-center justify-center h-screen">Chargement...</div>
 
+  const supplierEquipment = equipment.filter((e) => e.supplierId === user.id)
+  const myRequests = quoteRequests.filter((qr) => qr.supplierId === user.id)
+  const newRequests = myRequests.filter((qr) => qr.status === 'NOUVELLE' || qr.status === 'TRANSMISE')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-6xl mx-auto">
@@ -25,262 +28,156 @@ export default function SupplierDashboard() {
           <p className="text-slate-600 mt-1">{user.company}</p>
         </div>
 
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-            <div className="text-3xl font-bold mb-2">{stats.active}</div>
-            <div className="text-blue-100">Équipements actifs</div>
+            <div className="text-3xl font-bold mb-2">{supplierEquipment.length}</div>
+            <div className="text-blue-100">Équipements listés</div>
           </Card>
           <Card className="p-6 bg-gradient-to-br from-orange-600 to-orange-700 text-white">
-            <div className="text-3xl font-bold mb-2">{stats.inquiries}</div>
-            <div className="text-orange-100">Demandes reçues</div>
+            <div className="text-3xl font-bold mb-2">{newRequests.length}</div>
+            <div className="text-orange-100">Nouvelles demandes</div>
           </Card>
           <Card className="p-6 bg-gradient-to-br from-green-600 to-green-700 text-white">
-            <div className="text-3xl font-bold mb-2">{(stats.revenue / 1000000).toFixed(1)}M</div>
-            <div className="text-green-100">Revenus (FCFA)</div>
+            <div className="text-3xl font-bold mb-2">{myRequests.length}</div>
+            <div className="text-green-100">Demandes totales</div>
           </Card>
         </div>
 
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
+            {/* New Requests */}
             <Card className="p-6 mb-6">
               <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
-                Mes équipements
+                Nouvelles demandes reçues
               </h2>
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold text-white">Bulldozer CAT D6T #{i}</div>
-                        <div className="text-sm text-slate-600 mt-1">État: Excellent • 2500h</div>
+              {newRequests.length === 0 ? (
+                <p className="text-slate-400 text-sm">Aucune nouvelle demande</p>
+              ) : (
+                <div className="space-y-3">
+                  {newRequests.map((qr) => {
+                    const eq = equipment.find((e) => e.id === qr.equipmentId)
+                    return (
+                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition cursor-pointer">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-white">{qr.reference} • {qr.clientName}</div>
+                            <div className="text-sm text-slate-400 mt-1">{qr.clientCompany}</div>
+                            <div className="text-xs text-slate-500 mt-1">Équipement: {eq?.name} • {qr.duration}</div>
+                            <div className="text-xs text-slate-500">
+                              📞 {qr.clientPhone} | 📧 {qr.clientEmail}
+                            </div>
+                          </div>
+                          <QuoteStatusBadge status={qr.status} />
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div style={{ color: '#FF8C00' }} className="font-bold">200 000 FCFA/jour</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </Card>
 
+            {/* All Requests */}
             <Card className="p-6">
               <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
-                Demandes en attente
+                Toutes les demandes
               </h2>
-              <div className="space-y-3">
-                {[1, 2].map((i) => (
-                  <div key={i} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold text-white">Demande de {i === 1 ? 'Acme' : 'BTP'} Corp</div>
-                        <div className="text-sm text-slate-600 mt-1">Pelle • 5 jours • {25000000 * i} FCFA</div>
+              {myRequests.length === 0 ? (
+                <p className="text-slate-400 text-sm">Aucune demande reçue</p>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {myRequests.map((qr) => {
+                    const eq = equipment.find((e) => e.id === qr.equipmentId)
+                    return (
+                      <div key={qr.id} className="p-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-white text-sm">{qr.reference}</div>
+                            <div className="text-xs text-slate-600 mt-1">{qr.clientName} • {eq?.name}</div>
+                          </div>
+                          <QuoteStatusBadge status={qr.status} />
+                        </div>
                       </div>
-                      <button style={{ backgroundColor: '#FF8C00' }} className="px-3 py-1 rounded text-white text-sm font-bold hover:opacity-90">
-                        Répondre
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </Card>
           </div>
 
+          {/* Sidebar */}
           <div>
+            {/* Quick Actions */}
             <Card className="p-6 mb-6">
               <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
-                Actions
+                Actions rapides
               </h2>
               <div className="space-y-2">
-                <button
-                  onClick={() => setShowNewModal(true)}
-                  className="w-full p-3 rounded-lg text-white transition hover:scale-105 transform"
+                <Link
+                  to="/supplier/equipment"
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform"
                   style={{ backgroundColor: '#FF8C00' }}
                 >
-                  ➕ Ajouter équipement
-                </button>
-                <button
-                  onClick={() => setActiveTab('stats')}
-                  className={`w-full p-3 rounded-lg transition ${activeTab === 'stats' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
-                  style={{ backgroundColor: activeTab === 'stats' ? '#FF8C00' : undefined }}
+                  🛠️ Mes équipements
+                </Link>
+                <Link
+                  to="/catalogue"
+                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600"
                 >
-                  📊 Statistiques
-                </button>
-                <button
-                  onClick={() => setActiveTab('payments')}
-                  className={`w-full p-3 rounded-lg transition ${activeTab === 'payments' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
-                  style={{ backgroundColor: activeTab === 'payments' ? '#FF8C00' : undefined }}
-                >
-                  💰 Paiements
-                </button>
+                  📊 Voir le catalogue
+                </Link>
               </div>
             </Card>
 
+            {/* Account Info */}
             <Card className="p-6 mb-6">
               <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
-                Certifications
+                Informations d'entreprise
               </h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-green-400">
-                  <span>✓</span> Mécanicien qualifié
+              <div className="space-y-3 text-sm text-slate-300">
+                <div>
+                  <div className="font-semibold text-white">Entreprise</div>
+                  <div className="text-slate-400">{user.company}</div>
                 </div>
-                <div className="flex items-center gap-2 text-green-400">
-                  <span>✓</span> Remplacement 24h
+                <div>
+                  <div className="font-semibold text-white">Région</div>
+                  <div className="text-slate-400">{user.city}</div>
                 </div>
-                <div className="flex items-center gap-2 text-green-400">
-                  <span>✓</span> Entrepôt équipé
+                <div>
+                  <div className="font-semibold text-white">Email</div>
+                  <div className="text-slate-400 break-all">{user.email}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-white">Téléphone</div>
+                  <div className="text-slate-400">{user.phone}</div>
                 </div>
               </div>
             </Card>
 
-            {/* VOLTA Growth Tools */}
-            <Card className="p-6 bg-gradient-to-br from-blue-600/10 to-blue-500/10 border border-blue-300/20">
+            {/* Certification Status */}
+            <Card className="p-6 bg-gradient-to-br from-green-600/20 to-green-700/20 border border-green-400/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-2xl">📈</span>
-                <span style={{ color: '#FF8C00' }}>Augmentez vos Ventes</span>
+                <span className="text-2xl">✓</span>
+                <span style={{ color: '#FF8C00' }}>Certifications</span>
               </h2>
-              <div className="space-y-3">
-                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
-                  <div className="font-semibold text-white mb-1">💼 Clients Vérifiés</div>
-                  <p className="text-sm text-slate-400">Accédez à des milliers de clients fiables</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 p-2 rounded bg-green-700/40">
+                  <span>🔧</span>
+                  <span className="text-white">Mécanicien Qualifié</span>
                 </div>
-                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
-                  <div className="font-semibold text-white mb-1">💰 Paiements Sécurisés</div>
-                  <p className="text-sm text-slate-400">Versements rapides via système escrow</p>
+                <div className="flex items-center gap-2 p-2 rounded bg-green-700/40">
+                  <span>🏭</span>
+                  <span className="text-white">Entrepôt Équipé</span>
                 </div>
-                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
-                  <div className="font-semibold text-white mb-1">🏆 Certification Premium</div>
-                  <p className="text-sm text-slate-400">Augmentez votre visibilité VOLTA</p>
+                <div className="flex items-center gap-2 p-2 rounded bg-green-700/40">
+                  <span>✓</span>
+                  <span className="text-white">Certifié VOLTA</span>
                 </div>
               </div>
             </Card>
           </div>
         </div>
-
-        {/* Statistiques Section */}
-        {activeTab === 'stats' && (
-          <div className="mt-8">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
-                📊 Statistiques
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-600 mb-2">Taux d'occupation</div>
-                  <div className="text-3xl font-bold text-white mb-2">78%</div>
-                  <div className="w-full bg-slate-600 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '78%' }}></div>
-                  </div>
-                </div>
-                <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-600 mb-2">Note moyenne</div>
-                  <div className="text-3xl font-bold text-white">4.8/5</div>
-                  <div className="text-xs text-slate-600 mt-2">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-600 mb-2">Revenus ce mois</div>
-                  <div className="text-3xl font-bold text-white">2.4M FCFA</div>
-                  <div className="text-xs text-green-400 mt-2">↑ 12% vs mois précédent</div>
-                </div>
-                <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-600 mb-2">Clients satisfaits</div>
-                  <div className="text-3xl font-bold text-white">234</div>
-                  <div className="text-xs text-slate-600 mt-2">Locations complétées</div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Paiements Section */}
-        {activeTab === 'payments' && (
-          <div className="mt-8">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
-                💰 Paiements
-              </h2>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-4 rounded-lg bg-slate-700">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold text-white">Paiement #PAY{2000 + i}</div>
-                        <div className="text-sm text-slate-600 mt-1">Période: {new Date(Date.now() - i * 30 * 86400000).toLocaleDateString('fr-FR')} - {new Date(Date.now() - (i - 1) * 30 * 86400000).toLocaleDateString('fr-FR')}</div>
-                        <div className="text-xs text-green-400 mt-2">✓ Reçu</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-white">{750000 * i} FCFA</div>
-                        <button className="mt-2 px-4 py-2 rounded-lg text-white text-sm transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
-                          📄 Facture
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Modale - Ajouter Équipement */}
-        {showNewModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-            <Card className="w-full max-w-md p-8 animate-in scale-in-95 duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
-                  ➕ Ajouter équipement
-                </h2>
-                <button
-                  onClick={() => setShowNewModal(false)}
-                  className="text-3xl text-slate-600 hover:text-slate-600 transition"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  alert('Équipement ajouté! En attente de vérification technique.')
-                  setShowNewModal(false)
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nom</label>
-                  <input type="text" placeholder="ex: Pelle hydraulique CAT 320" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Catégorie</label>
-                  <select className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required>
-                    <option>Pelleteuses</option>
-                    <option>Bulldozers</option>
-                    <option>Camions</option>
-                    <option>Grues</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Prix par jour (FCFA)</label>
-                  <input type="number" placeholder="150000" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Année</label>
-                  <input type="number" placeholder="2022" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: '#FF8C00' }}
-                >
-                  ✓ Ajouter l'équipement
-                </button>
-              </form>
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   )

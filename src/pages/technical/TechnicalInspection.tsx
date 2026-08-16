@@ -35,7 +35,7 @@ export default function TechnicalInspection() {
     )
   }
 
-  const done = inspection.status === 'DONE'
+  const done = inspection.status === 'TERMINEE' || inspection.status === 'DONE'
   const filled = checklist.filter((c) => c.result !== null).length
   const complete = filled === checklist.length
 
@@ -43,7 +43,7 @@ export default function TechnicalInspection() {
     const next = checklist.map((c, i) => (i === index ? { ...c, result } : c))
     setChecklist(next)
     updateChecklist(inspection.id, next)
-    if (inspection.status === 'ASSIGNED') startInspection(inspection.id)
+    if (inspection.status === 'ASSIGNEE' || inspection.status === 'ASSIGNED') startInspection(inspection.id)
   }
 
   const sections = [...new Set(checklist.map((c) => c.section))]

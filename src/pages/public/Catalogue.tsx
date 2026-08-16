@@ -147,7 +147,7 @@ export default function Catalogue() {
 
       {/* Model Explanation Section */}
       <div className="mt-16 mb-12">
-        <Card className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 border-l-4" style={{ borderLeftColor: '#FF8C00' }}>
+        <div className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border-l-4" style={{ borderLeftColor: '#FF8C00' }}>
           <h2 className="text-2xl font-bold text-slate-900 mb-4">💡 Le modèle VOLTA expliqué</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div>
@@ -163,7 +163,7 @@ export default function Catalogue() {
               <p className="text-slate-700">VOLTA ne prend aucun fonds. Aucune commission sur les transactions</p>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Quick Stats */}

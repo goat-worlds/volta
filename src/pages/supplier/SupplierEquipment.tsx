@@ -1,88 +1,97 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, LevelBadge, PageTitle, ProgressBar, StatusBadge, Toast, fmtPrice } from '../../components/ui'
-import type { EquipmentStatus } from '../../store/types'
+import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
 
 const SUPPLIER_ID = 'u-sup-1'
 
-const PROGRESS: Partial<Record<EquipmentStatus, number>> = {
-  DRAFT: 10,
-  SUBMITTED: 25,
-  PENDING_INSPECTION: 40,
-  INSPECTION_IN_PROGRESS: 55,
-  REPORT_SUBMITTED: 70,
-  PENDING_ADMIN_REVIEW: 80,
-  REFERENCED: 90,
-  PUBLISHED: 100,
-  REJECTED: 100,
-  UNPUBLISHED: 100,
-}
-
 export default function SupplierEquipment() {
-  const { equipment, submitEquipment } = useStore()
-  const [toast, setToast] = useState<string | null>(null)
-  const mine = equipment.filter((e) => e.supplierId === SUPPLIER_ID)
-
-  const submit = (id: string, name: string) => {
-    submitEquipment(id)
-    setToast(`${name} soumis pour vérification VOLTA ✔`)
-    setTimeout(() => setToast(null), 4000)
-  }
+  const { quoteRequests, equipment } = useStore()
+  const myRequests = quoteRequests.filter((qr) => qr.supplierId === SUPPLIER_ID)
 
   return (
-    <div>
+    <div className="max-w-4xl">
       <PageTitle
-        title="Mes engins"
-        subtitle="Suivez la progression du dossier de chaque engin."
-        actions={
-          <Link to="/supplier/equipment/new" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-            + Ajouter un engin
-          </Link>
-        }
+        title="Demandes de devis reçues"
+        subtitle={`${myRequests.length} demande(s)`}
       />
-      {mine.length === 0 ? (
-        <EmptyState title="Aucun engin" subtitle="Ajoutez votre premier engin pour commencer." />
+
+      {myRequests.length === 0 ? (
+        <EmptyState
+          title="Aucune demande"
+          subtitle="Les clients qui vous demandent un devis apparaîtront ici."
+        />
       ) : (
         <div className="grid gap-4">
-          {mine.map((e) => (
-            <Card key={e.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-              <img src={e.photos[0]} alt={e.name} className="h-20 w-32 rounded-lg object-cover" />
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold">{e.name}</span>
-                  <StatusBadge status={e.status} />
-                  <LevelBadge level={e.level} />
-                </div>
-                <div className="mt-1 text-xs text-slate-700">
-                  {e.brand} {e.model} · {e.year} · {fmtPrice(e.pricePerDay)} / jour
-                </div>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="w-full max-w-xs">
-                    <ProgressBar value={PROGRESS[e.status] ?? 0} />
+          {myRequests.map((qr) => {
+            const eq = equipment.find((e) => e.id === qr.equipmentId)
+            return (
+              <Card key={qr.id} className="p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-slate-900">{qr.reference}</h3>
+                      <QuoteStatusBadge status={qr.status} />
+                    </div>
+                    <p className="text-sm text-slate-600 mt-1">
+                      Équipement: <span className="font-semibold">{eq?.name}</span>
+                    </p>
                   </div>
-                  <span className="text-xs text-slate-700">Dossier : {PROGRESS[e.status] ?? 0}%</span>
                 </div>
-              </div>
-              <div>
-                {e.status === 'DRAFT' ? (
-                  <button
-                    onClick={() => submit(e.id, e.name)}
-                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-                  >
-                    Soumettre
-                  </button>
-                ) : (
-                  <span className="text-xs text-slate-600">
-                    {e.status === 'PUBLISHED' ? 'Visible au catalogue' : 'En traitement par VOLTA'}
-                  </span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Client</p>
+                    <p className="font-semibold text-slate-900">{qr.clientName}</p>
+                    <p className="text-sm text-slate-600">{qr.clientCompany}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Contact</p>
+                    <p className="text-sm">
+                      <a href={`tel:${qr.clientPhone}`} className="text-blue-600 hover:underline">
+                        📞 {qr.clientPhone}
+                      </a>
+                    </p>
+                    <p className="text-sm">
+                      <a href={`mailto:${qr.clientEmail}`} className="text-blue-600 hover:underline">
+                        📧 {qr.clientEmail}
+                      </a>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Durée demandée</p>
+                    <p className="font-semibold text-slate-900">{qr.duration}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Localisation</p>
+                    <p className="font-semibold text-slate-900">{qr.location}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Date demandée</p>
+                    <p className="font-semibold text-slate-900">{qr.requestedDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Créée le</p>
+                    <p className="font-semibold text-slate-900">{new Date(qr.createdAt).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                </div>
+
+                {qr.message && (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-700 font-semibold mb-1">Message du client</p>
+                    <p className="text-sm text-slate-700">{qr.message}</p>
+                  </div>
                 )}
-              </div>
-            </Card>
-          ))}
+
+                <div className="text-xs text-slate-500">
+                  💡 Contactez le client directement pour négocier les tarifs et conditions.
+                </div>
+              </Card>
+            )
+          })}
         </div>
       )}
-      <Toast message={toast} />
     </div>
   )
 }

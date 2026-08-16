@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { EquipmentStatus, EquipmentCategory } from '../store/types'
+import type { EquipmentStatus, EquipmentCategory, QuoteRequestStatus } from '../store/types'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
   DISPONIBLE: 'Disponible',
@@ -19,6 +19,32 @@ export function StatusBadge({ status }: { status: EquipmentStatus }) {
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_COLORS[status]}`}>
       {STATUS_LABELS[status]}
+    </span>
+  )
+}
+
+export const QUOTE_STATUS_LABELS: Record<QuoteRequestStatus, string> = {
+  NOUVELLE: 'Nouvelle',
+  TRANSMISE: 'Transmise',
+  EN_INSPECTION: 'En inspection',
+  RAPPORT_REÇU: 'Rapport reçu',
+  CATEGORISEE: 'Catégorisée',
+  TERMINEE: 'Terminée',
+}
+
+const QUOTE_STATUS_COLORS: Record<QuoteRequestStatus, string> = {
+  NOUVELLE: 'bg-blue-100 text-blue-700',
+  TRANSMISE: 'bg-purple-100 text-purple-700',
+  EN_INSPECTION: 'bg-amber-100 text-amber-700',
+  RAPPORT_REÇU: 'bg-cyan-100 text-cyan-700',
+  CATEGORISEE: 'bg-green-100 text-green-700',
+  TERMINEE: 'bg-emerald-100 text-emerald-700',
+}
+
+export function QuoteStatusBadge({ status }: { status: QuoteRequestStatus }) {
+  return (
+    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${QUOTE_STATUS_COLORS[status]}`}>
+      {QUOTE_STATUS_LABELS[status]}
     </span>
   )
 }
