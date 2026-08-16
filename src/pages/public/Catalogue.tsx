@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, CategoryBadge, StatusBadge } from '../../components/ui'
+import QuoteRequestForm from '../../components/QuoteRequestForm'
 
 export default function Catalogue() {
   const { equipment, categories, users } = useStore()
@@ -148,31 +150,50 @@ export default function Catalogue() {
         </Card>
       </div>
 
-      {/* Quote Modal Placeholder */}
-      {quoteFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Demander un devis</h2>
-              <button
-                onClick={() => setQuoteFormOpen(null)}
-                className="text-2xl text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="text-sm text-slate-600 mb-4">
-              Formulaire de devis à intégrer
-            </p>
-            <button
-              onClick={() => setQuoteFormOpen(null)}
-              className="w-full py-2 rounded-lg bg-slate-200 text-slate-700 font-medium"
-            >
-              Fermer
-            </button>
-          </Card>
-        </div>
-      )}
+      {/* Quote Request Modal */}
+      {quoteFormOpen && (() => {
+        const selectedEquipment = equipment.find((e) => e.id === quoteFormOpen)
+        if (!selectedEquipment) return null
+
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+            <Card className="w-full max-w-md p-6 animate-in scale-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-4 border-b">
+                <h2 className="text-xl font-bold">Demander un devis</h2>
+                <button
+                  onClick={() => setQuoteFormOpen(null)}
+                  className="text-2xl text-slate-400 hover:text-slate-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Equipment Quick View */}
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-slate-600">Équipement sélectionné</p>
+                <p className="font-semibold text-slate-900">{selectedEquipment.name}</p>
+                <Link
+                  to={`/equipment/${selectedEquipment.id}`}
+                  className="text-xs text-blue-600 hover:underline mt-2 inline-block"
+                >
+                  Voir le produit →
+                </Link>
+              </div>
+
+              {/* Quote Form */}
+              <QuoteRequestForm
+                equipmentId={quoteFormOpen}
+                equipmentName={selectedEquipment.name}
+                onSuccess={() => {
+                  setQuoteFormOpen(null)
+                }}
+                onClose={() => setQuoteFormOpen(null)}
+                autoClose={true}
+              />
+            </Card>
+          </div>
+        )
+      })()}
     </div>
   )
 }
