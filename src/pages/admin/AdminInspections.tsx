@@ -14,7 +14,7 @@ export default function AdminInspections() {
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-700">
               <tr>
                 <th className="px-4 py-3">Engin</th>
                 <th className="px-4 py-3">Équipe technique</th>

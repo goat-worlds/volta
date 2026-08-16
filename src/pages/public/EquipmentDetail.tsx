@@ -68,7 +68,7 @@ export default function EquipmentDetail() {
             <h1 className="text-2xl font-bold">{eq.name}</h1>
             <LevelBadge level={eq.level} />
           </div>
-          <div className="mt-1 text-sm text-slate-500">
+          <div className="mt-1 text-sm text-slate-700">
             {cat?.name} · {eq.brand} {eq.model}
           </div>
           <div className="mt-3 text-2xl font-bold text-blue-700">{fmtPrice(eq.pricePerDay)} / jour</div>
@@ -113,7 +113,7 @@ export default function EquipmentDetail() {
             <div className="text-slate-600">✉️ {supplier?.email}</div>
             <div className="mt-2 text-xs text-emerald-600">✔ Fournisseur vérifié VOLTA</div>
           </Card>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-700">
             VOLTA met en relation : contactez directement le fournisseur pour discuter de vos besoins. Aucune réservation ni paiement ne passe par la plateforme.
           </p>
           <button
@@ -129,16 +129,16 @@ export default function EquipmentDetail() {
         <form onSubmit={submit} className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Date de début *</label>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Date de début *</label>
               <input required type="date" className={input} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Date de fin *</label>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Date de fin *</label>
               <input required type="date" className={input} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">Lieu d'utilisation *</label>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Lieu d'utilisation *</label>
             <input required className={input} placeholder="ex : Chantier Abidjan Nord" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
           </div>
           <div className="flex gap-6 text-sm">
@@ -152,21 +152,21 @@ export default function EquipmentDetail() {
             </label>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">Commentaire</label>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Commentaire</label>
             <textarea className={input} rows={2} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Nom *</label>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Nom *</label>
               <input required className={input} value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Téléphone *</label>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Téléphone *</label>
               <input required className={input} value={form.clientPhone} onChange={(e) => setForm({ ...form, clientPhone: e.target.value })} />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">Email *</label>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Email *</label>
             <input required type="email" className={input} value={form.clientEmail} onChange={(e) => setForm({ ...form, clientEmail: e.target.value })} />
           </div>
           <button

@@ -195,7 +195,7 @@ export default function Pricing() {
                         )}
                         <span
                           className={`text-sm ${
-                            feature.included ? 'text-slate-700 font-medium' : 'text-slate-400'
+                            feature.included ? 'text-slate-700 font-medium' : 'text-slate-600'
                           }`}
                         >
                           {feature.text}

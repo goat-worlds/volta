@@ -54,14 +54,14 @@ export default function SupplierEquipment() {
                   <StatusBadge status={e.status} />
                   <LevelBadge level={e.level} />
                 </div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-1 text-xs text-slate-700">
                   {e.brand} {e.model} · {e.year} · {fmtPrice(e.pricePerDay)} / jour
                 </div>
                 <div className="mt-2 flex items-center gap-3">
                   <div className="w-full max-w-xs">
                     <ProgressBar value={PROGRESS[e.status] ?? 0} />
                   </div>
-                  <span className="text-xs text-slate-500">Dossier : {PROGRESS[e.status] ?? 0}%</span>
+                  <span className="text-xs text-slate-700">Dossier : {PROGRESS[e.status] ?? 0}%</span>
                 </div>
               </div>
               <div>
@@ -73,7 +73,7 @@ export default function SupplierEquipment() {
                     Soumettre
                   </button>
                 ) : (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-600">
                     {e.status === 'PUBLISHED' ? 'Visible au catalogue' : 'En traitement par VOLTA'}
                   </span>
                 )}

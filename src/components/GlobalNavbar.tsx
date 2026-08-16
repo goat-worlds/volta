@@ -68,7 +68,7 @@ export default function GlobalNavbar() {
           </div>
           <div>
             <div className={`font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent ${!isDashboard && 'md:block'}`}>VOLTA</div>
-            <div className={`text-xs ${isDashboard ? 'text-slate-400' : 'text-slate-500'}`}>Équipements</div>
+            <div className={`text-xs ${isDashboard ? 'text-slate-600' : 'text-slate-700'}`}>Équipements</div>
           </div>
         </Link>
 
@@ -135,8 +135,8 @@ export default function GlobalNavbar() {
                   <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-2xl border border-slate-200 animate-in fade-in scale-in-95 duration-200 z-50">
                     <div className="p-4 border-b border-slate-200">
                       <div className="font-semibold text-slate-900">{user.company}</div>
-                      <div className="text-xs text-slate-500 mt-1">{user.email}</div>
-                      <div className="text-xs text-slate-500 mt-1" style={{ color: '#FF8C00' }}>
+                      <div className="text-xs text-slate-700 mt-1">{user.email}</div>
+                      <div className="text-xs text-slate-700 mt-1" style={{ color: '#FF8C00' }}>
                         {user.role === 'CLIENT' && '👤 Client'}
                         {user.role === 'SUPPLIER' && '🏭 Fournisseur'}
                         {user.role === 'TECHNICAL' && '🔧 Technique'}

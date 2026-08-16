@@ -28,7 +28,7 @@ export default function SupplierEquipmentNew() {
   const [documents, setDocuments] = useState<{ name: string; type: string }[]>([])
 
   const input = 'w-full rounded-lg border border-slate-300 p-2 text-sm'
-  const label = 'mb-1 block text-xs font-medium text-slate-500'
+  const label = 'mb-1 block text-xs font-medium text-slate-700'
 
   const addPhoto = () =>
     setPhotos((p) => [...p, `https://picsum.photos/seed/new-${Date.now()}-${p.length}/640/420`])
@@ -53,7 +53,7 @@ export default function SupplierEquipmentNew() {
       <PageTitle title="Ajouter un engin" subtitle={`Étape ${step} sur 4`} />
       <div className="mb-6">
         <ProgressBar value={step * 25} />
-        <div className="mt-2 flex justify-between text-xs text-slate-500">
+        <div className="mt-2 flex justify-between text-xs text-slate-700">
           <span className={step >= 1 ? 'font-semibold text-blue-600' : ''}>1. Identification</span>
           <span className={step >= 2 ? 'font-semibold text-blue-600' : ''}>2. Spécifications</span>
           <span className={step >= 3 ? 'font-semibold text-blue-600' : ''}>3. Photos & documents</span>
@@ -155,7 +155,7 @@ export default function SupplierEquipmentNew() {
                 </button>
               </div>
               {photos.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400">Aucune photo ajoutée</div>
+                <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">Aucune photo ajoutée</div>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {photos.map((p, i) => (
@@ -173,11 +173,11 @@ export default function SupplierEquipmentNew() {
                 </div>
               </div>
               {documents.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400">Aucun document ajouté</div>
+                <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">Aucun document ajouté</div>
               ) : (
                 <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
                   {documents.map((d, i) => (
-                    <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">📄 {d.name} <span className="text-xs text-slate-400">({d.type})</span></li>
+                    <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">📄 {d.name} <span className="text-xs text-slate-600">({d.type})</span></li>
                   ))}
                 </ul>
               )}
@@ -193,14 +193,14 @@ export default function SupplierEquipmentNew() {
           <div className="grid gap-4">
             <h3 className="font-semibold">Revue du dossier</h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-              <div><span className="text-slate-500">Nom :</span> {form.name}</div>
-              <div><span className="text-slate-500">Catégorie :</span> {categories.find((c) => c.id === form.categoryId)?.name}</div>
-              <div><span className="text-slate-500">Marque / modèle :</span> {form.brand} {form.model}</div>
-              <div><span className="text-slate-500">Année :</span> {form.year}</div>
-              <div><span className="text-slate-500">Heures :</span> {form.hours}</div>
-              <div><span className="text-slate-500">Prix / jour :</span> {form.pricePerDay.toLocaleString('fr-FR')} FCFA</div>
-              <div><span className="text-slate-500">Photos :</span> {photos.length}</div>
-              <div><span className="text-slate-500">Documents :</span> {documents.length}</div>
+              <div><span className="text-slate-700">Nom :</span> {form.name}</div>
+              <div><span className="text-slate-700">Catégorie :</span> {categories.find((c) => c.id === form.categoryId)?.name}</div>
+              <div><span className="text-slate-700">Marque / modèle :</span> {form.brand} {form.model}</div>
+              <div><span className="text-slate-700">Année :</span> {form.year}</div>
+              <div><span className="text-slate-700">Heures :</span> {form.hours}</div>
+              <div><span className="text-slate-700">Prix / jour :</span> {form.pricePerDay.toLocaleString('fr-FR')} FCFA</div>
+              <div><span className="text-slate-700">Photos :</span> {photos.length}</div>
+              <div><span className="text-slate-700">Documents :</span> {documents.length}</div>
             </div>
             <div className="flex justify-between">
               <button onClick={() => setStep(3)} className="rounded-lg border border-slate-300 px-5 py-2 text-sm font-semibold hover:bg-slate-50">Retour</button>

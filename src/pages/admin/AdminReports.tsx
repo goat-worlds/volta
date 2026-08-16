@@ -22,7 +22,7 @@ export default function AdminReports() {
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-700">
               <tr>
                 <th className="px-4 py-3">Engin</th>
                 <th className="px-4 py-3">Équipe technique</th>
@@ -62,14 +62,14 @@ export default function AdminReports() {
               {report.checklist.map((c) => (
                 <div key={`${c.section}-${c.label}`} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span>
-                    <span className="text-xs text-slate-400">{c.section} · </span>
+                    <span className="text-xs text-slate-600">{c.section} · </span>
                     {c.label}
                   </span>
                   {c.result && <span className={`text-xs font-semibold ${RESULT_LABEL[c.result].cls}`}>{RESULT_LABEL[c.result].label}</span>}
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600">
               Pour référencer ou refuser cet engin, ouvrez-le depuis la page Engins.
             </p>
           </div>

@@ -58,7 +58,7 @@ export function StatCard({ label, value, accent = 'text-blue-700' }: { label: st
   return (
     <Card className="p-4">
       <div className={`text-2xl font-bold ${accent}`}>{value}</div>
-      <div className="mt-1 text-sm text-slate-500">{label}</div>
+      <div className="mt-1 text-sm text-slate-700">{label}</div>
     </Card>
   )
 }
@@ -68,7 +68,7 @@ export function EmptyState({ title, subtitle }: { title: string; subtitle?: stri
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
       <div className="text-3xl">📭</div>
       <div className="mt-2 font-semibold text-slate-700">{title}</div>
-      {subtitle && <div className="mt-1 text-sm text-slate-500">{subtitle}</div>}
+      {subtitle && <div className="mt-1 text-sm text-slate-700">{subtitle}</div>}
     </div>
   )
 }
@@ -78,7 +78,7 @@ export function PageTitle({ title, subtitle, actions }: { title: string; subtitl
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+        {subtitle && <p className="mt-1 text-sm text-slate-700">{subtitle}</p>}
       </div>
       {actions}
     </div>
@@ -110,7 +110,7 @@ export function Modal({
       <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-bold">{title}</h3>
-          <button onClick={onClose} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+          <button onClick={onClose} className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-600">
             ✕
           </button>
         </div>

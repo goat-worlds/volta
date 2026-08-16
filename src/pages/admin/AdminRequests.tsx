@@ -12,7 +12,7 @@ export default function AdminRequests() {
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-700">
               <tr>
                 <th className="px-4 py-3">Référence</th>
                 <th className="px-4 py-3">Engin</th>
@@ -31,10 +31,10 @@ export default function AdminRequests() {
                   <td className="px-4 py-3">{users.find((u) => u.id === r.supplierId)?.company}</td>
                   <td className="px-4 py-3">
                     <div>{r.clientName}</div>
-                    <div className="text-xs text-slate-400">{r.clientEmail}</div>
+                    <div className="text-xs text-slate-600">{r.clientEmail}</div>
                   </td>
                   <td className="px-4 py-3">{r.startDate} → {r.endDate}</td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3 text-xs text-slate-700">
                     {r.withOperator ? 'Opérateur' : '—'} · {r.transport ? 'Transport' : '—'}
                   </td>
                   <td className="px-4 py-3">

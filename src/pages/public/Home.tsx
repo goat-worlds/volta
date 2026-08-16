@@ -159,7 +159,7 @@ export default function Home() {
                   className="block px-4 py-3 hover:bg-slate-100 border-b last:border-b-0 transition"
                 >
                   <div className="font-semibold text-slate-900">{e.name}</div>
-                  <div className="text-xs text-slate-500 mt-1">
+                  <div className="text-xs text-slate-700 mt-1">
                     {e.brand} • {e.location}
                   </div>
                   <div className="text-sm font-bold mt-1" style={{ color: '#FF8C00' }}>
@@ -321,7 +321,7 @@ export default function Home() {
         <Link to="/pricing" className="block">
           <Card className="p-12 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
             <h3 className="text-3xl font-bold mb-4">Découvrez nos tarifs</h3>
-            <p className="text-slate-300 mb-6 max-w-2xl">
+            <p className="text-slate-600 mb-6 max-w-2xl">
               Trois plans adaptés à tous les budgets. Commencez gratuitement ou passez premium pour plus d'avantages.
             </p>
             <div className="flex items-center gap-2 text-slate-200 font-semibold hover:gap-3 transition-all">
@@ -342,7 +342,7 @@ export default function Home() {
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-3xl text-slate-400 hover:text-slate-600"
+                className="text-3xl text-slate-600 hover:text-slate-600"
               >
                 ✕
               </button>

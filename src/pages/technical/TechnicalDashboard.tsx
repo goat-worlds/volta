@@ -35,13 +35,13 @@ export default function TechnicalDashboard() {
                 <Link key={i.id} to={`/technical/inspection/${i.id}`} className="flex items-center justify-between py-2.5 hover:bg-slate-50">
                   <div>
                     <div className="text-sm font-medium">{eq?.name}</div>
-                    <div className="text-xs text-slate-500">Assignée le {i.assignedAt}</div>
+                    <div className="text-xs text-slate-700">Assignée le {i.assignedAt}</div>
                   </div>
                   {eq && <StatusBadge status={eq.status} />}
                 </Link>
               )
             })}
-            {mine.length === 0 && <div className="py-4 text-sm text-slate-500">Aucune mission assignée.</div>}
+            {mine.length === 0 && <div className="py-4 text-sm text-slate-700">Aucune mission assignée.</div>}
           </div>
         </Card>
         <Card className="p-5">
@@ -50,10 +50,10 @@ export default function TechnicalDashboard() {
             {notifs.slice(0, 6).map((n) => (
               <div key={n.id} className="py-2.5 text-sm">
                 <div className="text-slate-700">{n.message}</div>
-                <div className="text-xs text-slate-400">{n.date}</div>
+                <div className="text-xs text-slate-600">{n.date}</div>
               </div>
             ))}
-            {notifs.length === 0 && <div className="py-4 text-sm text-slate-500">Aucune notification.</div>}
+            {notifs.length === 0 && <div className="py-4 text-sm text-slate-700">Aucune notification.</div>}
           </div>
         </Card>
       </div>

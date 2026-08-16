@@ -35,7 +35,7 @@ export default function TechnicalMissions() {
                       {INSPECTION_LABEL[i.status]}
                     </span>
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-slate-700">
                     Propriétaire : {supplier?.company} · Assignée le {i.assignedAt}
                   </div>
                 </div>

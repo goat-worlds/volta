@@ -224,19 +224,19 @@ export default function Suppliers() {
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                         <div className="text-sm">
-                          <div className="text-slate-500">📍 Région</div>
+                          <div className="text-slate-700">📍 Région</div>
                           <div className="font-semibold text-slate-800">{s.city}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-500">🚜 Équipements</div>
+                          <div className="text-slate-700">🚜 Équipements</div>
                           <div className="font-semibold text-slate-800">{count}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-500">📞 Contact</div>
+                          <div className="text-slate-700">📞 Contact</div>
                           <div className="font-semibold text-slate-800">{s.phone}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-500">📧 Email</div>
+                          <div className="text-slate-700">📧 Email</div>
                           <div className="font-semibold text-slate-800 truncate">{s.email}</div>
                         </div>
                       </div>
@@ -291,7 +291,7 @@ export default function Suppliers() {
                             .map((e) => (
                               <div key={e.id} className="p-3 rounded bg-slate-50 border border-slate-200">
                                 <div className="font-semibold text-slate-800">{e.name}</div>
-                                <div className="text-xs text-slate-500 mt-1">
+                                <div className="text-xs text-slate-700 mt-1">
                                   {e.brand} {e.model} • {e.year}
                                 </div>
                                 <div className="text-sm font-bold mt-2" style={{ color: '#FF8C00' }}>
@@ -341,7 +341,7 @@ export default function Suppliers() {
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-3xl text-slate-400 hover:text-slate-600 transition"
+                className="text-3xl text-slate-600 hover:text-slate-600 transition"
               >
                 ✕
               </button>

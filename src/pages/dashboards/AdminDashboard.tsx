@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">👨‍💼 Administration VOLTA</h1>
-          <p className="text-slate-400 mt-1">Contrôle et statistiques plateforme</p>
+          <p className="text-slate-600 mt-1">Contrôle et statistiques plateforme</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
                         <span className="text-2xl">{item.icon}</span>
                         <div>
                           <div className="font-semibold text-white">{item.type}</div>
-                          <div className="text-xs text-slate-400">{item.count} utilisateurs actifs</div>
+                          <div className="text-xs text-slate-600">{item.count} utilisateurs actifs</div>
                         </div>
                       </div>
                       <button className="px-3 py-1 rounded text-white text-sm font-bold hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">Paiement #{i}000{i}</div>
-                        <div className="text-sm text-slate-400 mt-1">Client: Acme • Montant: {25000000 * i} FCFA</div>
+                        <div className="text-sm text-slate-600 mt-1">Client: Acme • Montant: {25000000 * i} FCFA</div>
                       </div>
                       <div className="text-right">
                         <div style={{ color: '#FF8C00' }} className="font-bold">{25000000 * i / 1000000}M FCFA</div>
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">Utilisateur #{100 + i}</div>
-                        <div className="text-sm text-slate-400 mt-1">user{i}@volta.ci • Rôle: {['Client', 'Supplier', 'Technical', 'Admin'][i - 1]}</div>
+                        <div className="text-sm text-slate-600 mt-1">user{i}@volta.ci • Rôle: {['Client', 'Supplier', 'Technical', 'Admin'][i - 1]}</div>
                         <div className="text-xs text-green-400 mt-2">✓ Actif</div>
                       </div>
                       <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">Équipement #{5000 + i}</div>
-                        <div className="text-sm text-slate-400 mt-1">Pelle • BTP Solutions • {150000 * i} FCFA/jour</div>
+                        <div className="text-sm text-slate-600 mt-1">Pelle • BTP Solutions • {150000 * i} FCFA/jour</div>
                         <div className="text-xs text-green-400 mt-2">✓ Approuvé</div>
                       </div>
                       <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
@@ -240,22 +240,22 @@ export default function AdminDashboard() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-400 mb-2">Revenus ce mois</div>
+                  <div className="text-sm text-slate-600 mb-2">Revenus ce mois</div>
                   <div className="text-2xl font-bold text-white">45.6M FCFA</div>
                   <div className="text-xs text-green-400 mt-2">↑ 8% vs mois précédent</div>
                 </div>
                 <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-400 mb-2">Commissions prélevées</div>
+                  <div className="text-sm text-slate-600 mb-2">Commissions prélevées</div>
                   <div className="text-2xl font-bold text-white">4.56M FCFA</div>
-                  <div className="text-xs text-slate-400 mt-2">10% du total</div>
+                  <div className="text-xs text-slate-600 mt-2">10% du total</div>
                 </div>
                 <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-400 mb-2">Paiements effectués</div>
+                  <div className="text-sm text-slate-600 mb-2">Paiements effectués</div>
                   <div className="text-2xl font-bold text-white">41.04M FCFA</div>
                   <div className="text-xs text-green-400 mt-2">Aux fournisseurs</div>
                 </div>
                 <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-400 mb-2">Solde en attente</div>
+                  <div className="text-sm text-slate-600 mb-2">Solde en attente</div>
                   <div className="text-2xl font-bold text-white">1.2M FCFA</div>
                   <div className="text-xs text-yellow-400 mt-2">Vérification en cours</div>
                 </div>
@@ -273,16 +273,16 @@ export default function AdminDashboard() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-400 mb-2">Taux d'utilisation</div>
+                  <div className="text-sm text-slate-600 mb-2">Taux d'utilisation</div>
                   <div className="text-3xl font-bold text-white mb-2">82%</div>
                   <div className="w-full bg-slate-600 rounded-full h-2">
                     <div className="bg-green-500 h-2 rounded-full" style={{ width: '82%' }}></div>
                   </div>
                 </div>
                 <div className="p-4 rounded-lg bg-slate-700">
-                  <div className="text-sm text-slate-400 mb-2">Satisfaction client</div>
+                  <div className="text-sm text-slate-600 mb-2">Satisfaction client</div>
                   <div className="text-3xl font-bold text-white">4.7/5</div>
-                  <div className="text-xs text-slate-400 mt-2">Basé sur 234 avis</div>
+                  <div className="text-xs text-slate-600 mt-2">Basé sur 234 avis</div>
                 </div>
               </div>
             </Card>
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-white">Commission plateforme</div>
-                      <div className="text-sm text-slate-400 mt-1">Taux appliqué aux fournisseurs</div>
+                      <div className="text-sm text-slate-600 mt-1">Taux appliqué aux fournisseurs</div>
                     </div>
                     <input type="text" value="10%" className="px-4 py-2 rounded-lg bg-slate-600 text-white w-24 text-center border border-slate-500" readOnly />
                   </div>
@@ -311,7 +311,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-white">Temps de réponse max</div>
-                      <div className="text-sm text-slate-400 mt-1">Pour les demandes de remplacement</div>
+                      <div className="text-sm text-slate-600 mt-1">Pour les demandes de remplacement</div>
                     </div>
                     <input type="text" value="24h" className="px-4 py-2 rounded-lg bg-slate-600 text-white w-24 text-center border border-slate-500" readOnly />
                   </div>
@@ -321,7 +321,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-white">Mode maintenance</div>
-                      <div className="text-sm text-slate-400 mt-1">Désactiver la plateforme temporairement</div>
+                      <div className="text-sm text-slate-600 mt-1">Désactiver la plateforme temporairement</div>
                     </div>
                     <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
                       Désactivé

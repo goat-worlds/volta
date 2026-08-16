@@ -43,7 +43,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
             {equipment.filter((e) => ['SUBMITTED', 'PENDING_ADMIN_REVIEW', 'REFERENCED'].includes(e.status)).length === 0 && (
-              <div className="py-4 text-sm text-slate-500">Aucun engin en attente d'action.</div>
+              <div className="py-4 text-sm text-slate-700">Aucun engin en attente d'action.</div>
             )}
           </div>
         </Card>
@@ -53,10 +53,10 @@ export default function AdminDashboard() {
             {notifs.slice(0, 6).map((n) => (
               <div key={n.id} className="py-2.5 text-sm">
                 <div className="text-slate-700">{n.message}</div>
-                <div className="text-xs text-slate-400">{n.date}</div>
+                <div className="text-xs text-slate-600">{n.date}</div>
               </div>
             ))}
-            {notifs.length === 0 && <div className="py-4 text-sm text-slate-500">Aucune notification.</div>}
+            {notifs.length === 0 && <div className="py-4 text-sm text-slate-700">Aucune notification.</div>}
           </div>
         </Card>
       </div>

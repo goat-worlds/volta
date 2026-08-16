@@ -17,7 +17,7 @@ export default function AdminUsers() {
       <PageTitle title="Utilisateurs" subtitle="Comptes de la plateforme VOLTA." />
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-700">
             <tr>
               <th className="px-4 py-3">Nom</th>
               <th className="px-4 py-3">Société</th>

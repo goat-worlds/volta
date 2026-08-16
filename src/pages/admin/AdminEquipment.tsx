@@ -57,7 +57,7 @@ export default function AdminEquipment() {
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-700">
               <tr>
                 <th className="px-4 py-3">Engin</th>
                 <th className="px-4 py-3">Fournisseur</th>
@@ -75,14 +75,14 @@ export default function AdminEquipment() {
                       <img src={e.photos[0]} alt="" className="h-10 w-14 rounded object-cover" />
                       <div>
                         <div className="font-medium">{e.name}</div>
-                        <div className="text-xs text-slate-400">{categories.find((c) => c.id === e.categoryId)?.name}</div>
+                        <div className="text-xs text-slate-600">{categories.find((c) => c.id === e.categoryId)?.name}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">{users.find((u) => u.id === e.supplierId)?.company}</td>
                   <td className="px-4 py-3">{fmtPrice(e.pricePerDay)}</td>
                   <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
-                  <td className="px-4 py-3"><LevelBadge level={e.level} />{!e.level && <span className="text-xs text-slate-400">—</span>}</td>
+                  <td className="px-4 py-3"><LevelBadge level={e.level} />{!e.level && <span className="text-xs text-slate-600">—</span>}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => setSelectedId(e.id)} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
                       Ouvrir
@@ -104,17 +104,17 @@ export default function AdminEquipment() {
               ))}
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-              <div><span className="text-slate-500">Statut :</span> <StatusBadge status={selected.status} /></div>
-              <div><span className="text-slate-500">Niveau :</span> <LevelBadge level={selected.level} />{!selected.level && '—'}</div>
-              <div><span className="text-slate-500">Propriétaire :</span> {users.find((u) => u.id === selected.supplierId)?.company}</div>
-              <div><span className="text-slate-500">Localisation :</span> {selected.location}</div>
-              <div><span className="text-slate-500">Marque / modèle :</span> {selected.brand} {selected.model}</div>
-              <div><span className="text-slate-500">Année :</span> {selected.year}</div>
-              <div><span className="text-slate-500">État déclaré :</span> {selected.declaredCondition}</div>
-              <div><span className="text-slate-500">Prix / jour :</span> {fmtPrice(selected.pricePerDay)}</div>
+              <div><span className="text-slate-700">Statut :</span> <StatusBadge status={selected.status} /></div>
+              <div><span className="text-slate-700">Niveau :</span> <LevelBadge level={selected.level} />{!selected.level && '—'}</div>
+              <div><span className="text-slate-700">Propriétaire :</span> {users.find((u) => u.id === selected.supplierId)?.company}</div>
+              <div><span className="text-slate-700">Localisation :</span> {selected.location}</div>
+              <div><span className="text-slate-700">Marque / modèle :</span> {selected.brand} {selected.model}</div>
+              <div><span className="text-slate-700">Année :</span> {selected.year}</div>
+              <div><span className="text-slate-700">État déclaré :</span> {selected.declaredCondition}</div>
+              <div><span className="text-slate-700">Prix / jour :</span> {fmtPrice(selected.pricePerDay)}</div>
             </div>
             <div className="text-sm">
-              <span className="text-slate-500">Documents :</span>{' '}
+              <span className="text-slate-700">Documents :</span>{' '}
               {selected.documents.length ? selected.documents.map((d) => d.name).join(', ') : 'Aucun'}
             </div>
 
@@ -145,10 +145,10 @@ export default function AdminEquipment() {
                 {report ? (
                   <p className="mb-3 text-xs text-slate-600">Rapport du {report.submittedAt} : {report.summary}</p>
                 ) : (
-                  <p className="mb-3 text-xs text-slate-500">Rapport disponible dans l'onglet Rapports.</p>
+                  <p className="mb-3 text-xs text-slate-700">Rapport disponible dans l'onglet Rapports.</p>
                 )}
                 <div className="mb-3 flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">Niveau :</span>
+                  <span className="text-slate-700">Niveau :</span>
                   {(['BASIC', 'SILVER', 'GOLD'] as Level[]).map((l) => (
                     <button
                       key={l}
@@ -215,7 +215,7 @@ export default function AdminEquipment() {
               </p>
             )}
             {selected.status === 'DRAFT' && (
-              <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Brouillon non soumis par le fournisseur.</p>
+              <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700">Brouillon non soumis par le fournisseur.</p>
             )}
             {selected.status === 'REJECTED' && (
               <p className="rounded-lg bg-red-50 p-3 text-xs text-red-600">Engin refusé après vérification.</p>

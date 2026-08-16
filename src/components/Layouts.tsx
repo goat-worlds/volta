@@ -4,7 +4,7 @@ import type { Role } from '../store/types'
 
 function navClass({ isActive }: { isActive: boolean }) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-    isActive ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+    isActive ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-800 hover:text-white'
   }`
 }
 
@@ -27,7 +27,7 @@ function Sidebar({
         <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${color} font-bold text-white`}>V</span>
         <div>
           <div className="font-bold text-white">VOLTA</div>
-          <div className="text-xs text-slate-400">{title}</div>
+          <div className="text-xs text-slate-600">{title}</div>
         </div>
       </Link>
       <nav className="flex flex-col gap-1">
@@ -37,7 +37,7 @@ function Sidebar({
           </NavLink>
         ))}
       </nav>
-      <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-300">
+      <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-600">
         🔔 {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
       </div>
     </aside>
@@ -127,14 +127,14 @@ export function PublicLayout() {
           <NavLink to="/fournisseurs" className={publicNavClass}>🏢 Fournisseurs</NavLink>
         </nav>
         <div className="mt-6 border-t border-slate-200 pt-4">
-          <div className="mb-2 px-3 text-xs font-semibold uppercase text-slate-400">Espaces</div>
+          <div className="mb-2 px-3 text-xs font-semibold uppercase text-slate-600">Espaces</div>
           <nav className="flex flex-col gap-1">
             <NavLink to="/supplier" className={publicNavClass}>👷 Fournisseur</NavLink>
             <NavLink to="/technical" className={publicNavClass}>🔧 Équipe technique</NavLink>
             <NavLink to="/admin" className={publicNavClass}>🛡️ Admin</NavLink>
           </nav>
         </div>
-        <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
+        <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-700">
           Des milliers d'équipements vérifiés par VOLTA pour vos projets.
         </div>
       </aside>
@@ -154,7 +154,7 @@ export function PublicLayout() {
         <main className="flex-1">
           <Outlet />
         </main>
-        <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-500">
+        <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-700">
           © 2026 VOLTA — Équipements de chantier vérifiés en Côte d'Ivoire
         </footer>
       </div>

@@ -15,7 +15,7 @@ export default function SupplierRequests() {
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-700">
               <tr>
                 <th className="px-4 py-3">Référence</th>
                 <th className="px-4 py-3">Engin</th>
@@ -32,7 +32,7 @@ export default function SupplierRequests() {
                   <td className="px-4 py-3">{equipment.find((e) => e.id === r.equipmentId)?.name}</td>
                   <td className="px-4 py-3">
                     <div>{r.clientName}</div>
-                    <div className="text-xs text-slate-400">{r.clientPhone}</div>
+                    <div className="text-xs text-slate-600">{r.clientPhone}</div>
                   </td>
                   <td className="px-4 py-3">{r.startDate} → {r.endDate}</td>
                   <td className="px-4 py-3">{r.location}</td>

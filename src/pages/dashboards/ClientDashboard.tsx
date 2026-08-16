@@ -26,7 +26,7 @@ export default function ClientDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">👤 Tableau de bord Client</h1>
-          <p className="text-slate-400 mt-1">Bienvenue, {user.company}</p>
+          <p className="text-slate-600 mt-1">Bienvenue, {user.company}</p>
         </div>
 
         {/* Stats Grid */}
@@ -58,7 +58,7 @@ export default function ClientDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">Pelle hydraulique CAT 320</div>
-                        <div className="text-sm text-slate-400 mt-1">📍 Abidjan • Fournisseur: BTP Solutions</div>
+                        <div className="text-sm text-slate-600 mt-1">📍 Abidjan • Fournisseur: BTP Solutions</div>
                       </div>
                       <div className="text-right">
                         <div style={{ color: '#FF8C00' }} className="font-bold">150 000 FCFA/jour</div>
@@ -80,7 +80,7 @@ export default function ClientDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">Demande #000{i}</div>
-                        <div className="text-sm text-slate-400 mt-1">Camion benne • 2 jours</div>
+                        <div className="text-sm text-slate-600 mt-1">Camion benne • 2 jours</div>
                       </div>
                       <div className="text-xs font-bold px-3 py-1 rounded-full" style={{ backgroundColor: '#FF8C00', color: 'white' }}>
                         {i === 1 ? 'En attente' : 'Approuvée'}
@@ -126,7 +126,7 @@ export default function ClientDashboard() {
               <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
                 Informations de compte
               </h2>
-              <div className="space-y-3 text-sm text-slate-400">
+              <div className="space-y-3 text-sm text-slate-600">
                 <div>
                   <div className="font-semibold text-white">Email</div>
                   <div>{user.email}</div>
@@ -174,7 +174,7 @@ export default function ClientDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">Location #LOC{5000 + i}</div>
-                        <div className="text-sm text-slate-400 mt-1">Pelle hydraulique • {7 - i} jours • {150000 * (7 - i)} FCFA</div>
+                        <div className="text-sm text-slate-600 mt-1">Pelle hydraulique • {7 - i} jours • {150000 * (7 - i)} FCFA</div>
                         <div className="text-xs text-green-400 mt-2">✓ Complétée</div>
                       </div>
                       <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
@@ -201,8 +201,8 @@ export default function ClientDashboard() {
                     <div className="text-3xl">📞</div>
                     <div>
                       <div className="font-semibold text-white">Support téléphonique</div>
-                      <div className="text-slate-400 text-sm mt-1">+225 27 22 50 50 50</div>
-                      <div className="text-xs text-slate-500 mt-1">Disponible 24/7</div>
+                      <div className="text-slate-600 text-sm mt-1">+225 27 22 50 50 50</div>
+                      <div className="text-xs text-slate-700 mt-1">Disponible 24/7</div>
                     </div>
                   </div>
                 </div>
@@ -212,8 +212,8 @@ export default function ClientDashboard() {
                     <div className="text-3xl">📧</div>
                     <div>
                       <div className="font-semibold text-white">Support par email</div>
-                      <div className="text-slate-400 text-sm mt-1">support@volta.ci</div>
-                      <div className="text-xs text-slate-500 mt-1">Réponse en moins de 2 heures</div>
+                      <div className="text-slate-600 text-sm mt-1">support@volta.ci</div>
+                      <div className="text-xs text-slate-700 mt-1">Réponse en moins de 2 heures</div>
                     </div>
                   </div>
                 </div>
@@ -223,8 +223,8 @@ export default function ClientDashboard() {
                     <div className="text-3xl">💬</div>
                     <div>
                       <div className="font-semibold text-white">Chat en direct</div>
-                      <div className="text-slate-400 text-sm mt-1">Disponible sur le site</div>
-                      <div className="text-xs text-slate-500 mt-1">Réponse immédiate</div>
+                      <div className="text-slate-600 text-sm mt-1">Disponible sur le site</div>
+                      <div className="text-xs text-slate-700 mt-1">Réponse immédiate</div>
                       <button className="mt-3 px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
                         Ouvrir le chat
                       </button>
@@ -246,7 +246,7 @@ export default function ClientDashboard() {
                 </h2>
                 <button
                   onClick={() => setShowNewModal(false)}
-                  className="text-3xl text-slate-400 hover:text-slate-600 transition"
+                  className="text-3xl text-slate-600 hover:text-slate-600 transition"
                 >
                   ✕
                 </button>

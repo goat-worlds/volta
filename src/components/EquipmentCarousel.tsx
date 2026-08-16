@@ -73,7 +73,7 @@ export default function EquipmentCarousel({ equipment, title, showArrows = true 
       {title && (
         <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           {title}
-          <span className="text-sm font-normal text-slate-500">({equipment.length} équipements)</span>
+          <span className="text-sm font-normal text-slate-700">({equipment.length} équipements)</span>
         </h3>
       )}
 
@@ -134,7 +134,7 @@ export default function EquipmentCarousel({ equipment, title, showArrows = true 
                       </h4>
                     </div>
 
-                    <div className="text-xs text-slate-500 mb-3 line-clamp-1">
+                    <div className="text-xs text-slate-700 mb-3 line-clamp-1">
                       {item.brand} {item.model} • {item.year}
                     </div>
 
@@ -145,7 +145,7 @@ export default function EquipmentCarousel({ equipment, title, showArrows = true 
                     {/* Price & CTA */}
                     <div className="flex items-center justify-between pt-4 border-t border-slate-200">
                       <div>
-                        <div className="text-xs text-slate-500">Prix/jour</div>
+                        <div className="text-xs text-slate-700">Prix/jour</div>
                         <div className="font-bold text-slate-900">
                           {fmtPrice(item.pricePerDay)}
                         </div>
