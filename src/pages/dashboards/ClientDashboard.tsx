@@ -5,6 +5,8 @@ import { Card } from '../../components/ui'
 export default function ClientDashboard() {
   const navigate = useNavigate()
   const [user, setUser] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'support'>('dashboard')
+  const [showNewModal, setShowNewModal] = useState(false)
   const stats = { active: 3, pending: 2, completed: 12 }
 
   useEffect(() => {
@@ -96,13 +98,25 @@ export default function ClientDashboard() {
                 Raccourcis rapides
               </h2>
               <div className="space-y-2">
-                <button className="w-full p-3 rounded-lg text-white transition hover:scale-105 transform" style={{ backgroundColor: '#FF8C00' }}>
+                <button
+                  onClick={() => setShowNewModal(true)}
+                  className="w-full p-3 rounded-lg text-white transition hover:scale-105 transform"
+                  style={{ backgroundColor: '#FF8C00' }}
+                >
                   ➕ Nouvelle location
                 </button>
-                <button className="w-full p-3 rounded-lg bg-slate-700 text-white transition hover:bg-slate-600">
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'history' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'history' ? '#FF8C00' : undefined }}
+                >
                   📋 Voir historique
                 </button>
-                <button className="w-full p-3 rounded-lg bg-slate-700 text-white transition hover:bg-slate-600">
+                <button
+                  onClick={() => setActiveTab('support')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'support' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'support' ? '#FF8C00' : undefined }}
+                >
                   💬 Support
                 </button>
               </div>
@@ -146,6 +160,141 @@ export default function ClientDashboard() {
             </Card>
           </div>
         </div>
+
+        {/* Historique Section */}
+        {activeTab === 'history' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                📋 Historique des locations
+              </h2>
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-white">Location #LOC{5000 + i}</div>
+                        <div className="text-sm text-slate-400 mt-1">Pelle hydraulique • {7 - i} jours • {150000 * (7 - i)} FCFA</div>
+                        <div className="text-xs text-green-400 mt-2">✓ Complétée</div>
+                      </div>
+                      <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
+                        👁️ Détails
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Support Section */}
+        {activeTab === 'support' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                💬 Support
+              </h2>
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="flex items-start gap-4">
+                    <div className="text-3xl">📞</div>
+                    <div>
+                      <div className="font-semibold text-white">Support téléphonique</div>
+                      <div className="text-slate-400 text-sm mt-1">+225 27 22 50 50 50</div>
+                      <div className="text-xs text-slate-500 mt-1">Disponible 24/7</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="flex items-start gap-4">
+                    <div className="text-3xl">📧</div>
+                    <div>
+                      <div className="font-semibold text-white">Support par email</div>
+                      <div className="text-slate-400 text-sm mt-1">support@volta.ci</div>
+                      <div className="text-xs text-slate-500 mt-1">Réponse en moins de 2 heures</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="flex items-start gap-4">
+                    <div className="text-3xl">💬</div>
+                    <div>
+                      <div className="font-semibold text-white">Chat en direct</div>
+                      <div className="text-slate-400 text-sm mt-1">Disponible sur le site</div>
+                      <div className="text-xs text-slate-500 mt-1">Réponse immédiate</div>
+                      <button className="mt-3 px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
+                        Ouvrir le chat
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Modale - Nouvelle Location */}
+        {showNewModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+            <Card className="w-full max-w-md p-8 animate-in scale-in-95 duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
+                  ➕ Nouvelle location
+                </h2>
+                <button
+                  onClick={() => setShowNewModal(false)}
+                  className="text-3xl text-slate-400 hover:text-slate-600 transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  alert('Location créée et en attente d\'approbation!')
+                  setShowNewModal(false)
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Équipement</label>
+                  <input type="text" placeholder="Chercher un équipement..." className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Date de début</label>
+                  <input type="date" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Date de fin</label>
+                  <input type="date" className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition" required />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Notes spéciales</label>
+                  <textarea
+                    placeholder="Besoins particuliers..."
+                    rows={3}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition resize-none"
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95"
+                  style={{ backgroundColor: '#FF8C00' }}
+                >
+                  ✓ Demander la location
+                </button>
+              </form>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )

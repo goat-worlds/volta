@@ -5,6 +5,7 @@ import { Card } from '../../components/ui'
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const [user, setUser] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'users' | 'equipment' | 'reports' | 'stats' | 'settings'>('users')
   const [stats] = useState({ users: 156, equipment: 489, transactions: 2340, revenue: 45600000 })
 
   useEffect(() => {
@@ -102,19 +103,39 @@ export default function AdminDashboard() {
                 Actions d'administration
               </h2>
               <div className="space-y-2">
-                <button className="w-full p-3 rounded-lg text-white transition hover:scale-105 transform" style={{ backgroundColor: '#FF8C00' }}>
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'users' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'users' ? '#FF8C00' : undefined }}
+                >
                   👤 Gérer utilisateurs
                 </button>
-                <button className="w-full p-3 rounded-lg bg-slate-700 text-white transition hover:bg-slate-600">
+                <button
+                  onClick={() => setActiveTab('equipment')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'equipment' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'equipment' ? '#FF8C00' : undefined }}
+                >
                   🚜 Gérer équipements
                 </button>
-                <button className="w-full p-3 rounded-lg bg-slate-700 text-white transition hover:bg-slate-600">
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'reports' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'reports' ? '#FF8C00' : undefined }}
+                >
                   💰 Rapports financiers
                 </button>
-                <button className="w-full p-3 rounded-lg bg-slate-700 text-white transition hover:bg-slate-600">
+                <button
+                  onClick={() => setActiveTab('stats')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'stats' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'stats' ? '#FF8C00' : undefined }}
+                >
                   📊 Statistiques
                 </button>
-                <button className="w-full p-3 rounded-lg bg-slate-700 text-white transition hover:bg-slate-600">
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`w-full p-3 rounded-lg transition ${activeTab === 'settings' ? 'text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  style={{ backgroundColor: activeTab === 'settings' ? '#FF8C00' : undefined }}
+                >
                   ⚙️ Paramètres
                 </button>
               </div>
@@ -155,6 +176,166 @@ export default function AdminDashboard() {
             </Card>
           </div>
         </div>
+
+        {/* Utilisateurs Section */}
+        {activeTab === 'users' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                👤 Gestion des utilisateurs
+              </h2>
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="p-4 rounded-lg bg-slate-700">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-white">Utilisateur #{100 + i}</div>
+                        <div className="text-sm text-slate-400 mt-1">user{i}@volta.ci • Rôle: {['Client', 'Supplier', 'Technical', 'Admin'][i - 1]}</div>
+                        <div className="text-xs text-green-400 mt-2">✓ Actif</div>
+                      </div>
+                      <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
+                        ⚙️ Gérer
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Équipements Section */}
+        {activeTab === 'equipment' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                🚜 Gestion des équipements
+              </h2>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 rounded-lg bg-slate-700">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-white">Équipement #{5000 + i}</div>
+                        <div className="text-sm text-slate-400 mt-1">Pelle • BTP Solutions • {150000 * i} FCFA/jour</div>
+                        <div className="text-xs text-green-400 mt-2">✓ Approuvé</div>
+                      </div>
+                      <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
+                        👁️ Voir
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Rapports Financiers Section */}
+        {activeTab === 'reports' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                💰 Rapports financiers
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="text-sm text-slate-400 mb-2">Revenus ce mois</div>
+                  <div className="text-2xl font-bold text-white">45.6M FCFA</div>
+                  <div className="text-xs text-green-400 mt-2">↑ 8% vs mois précédent</div>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="text-sm text-slate-400 mb-2">Commissions prélevées</div>
+                  <div className="text-2xl font-bold text-white">4.56M FCFA</div>
+                  <div className="text-xs text-slate-400 mt-2">10% du total</div>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="text-sm text-slate-400 mb-2">Paiements effectués</div>
+                  <div className="text-2xl font-bold text-white">41.04M FCFA</div>
+                  <div className="text-xs text-green-400 mt-2">Aux fournisseurs</div>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="text-sm text-slate-400 mb-2">Solde en attente</div>
+                  <div className="text-2xl font-bold text-white">1.2M FCFA</div>
+                  <div className="text-xs text-yellow-400 mt-2">Vérification en cours</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Statistiques Section */}
+        {activeTab === 'stats' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                📊 Statistiques globales
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="text-sm text-slate-400 mb-2">Taux d'utilisation</div>
+                  <div className="text-3xl font-bold text-white mb-2">82%</div>
+                  <div className="w-full bg-slate-600 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '82%' }}></div>
+                  </div>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="text-sm text-slate-400 mb-2">Satisfaction client</div>
+                  <div className="text-3xl font-bold text-white">4.7/5</div>
+                  <div className="text-xs text-slate-400 mt-2">Basé sur 234 avis</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Paramètres Section */}
+        {activeTab === 'settings' && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold text-white mb-6" style={{ color: '#FF8C00' }}>
+                ⚙️ Paramètres
+              </h2>
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-white">Commission plateforme</div>
+                      <div className="text-sm text-slate-400 mt-1">Taux appliqué aux fournisseurs</div>
+                    </div>
+                    <input type="text" value="10%" className="px-4 py-2 rounded-lg bg-slate-600 text-white w-24 text-center border border-slate-500" readOnly />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-white">Temps de réponse max</div>
+                      <div className="text-sm text-slate-400 mt-1">Pour les demandes de remplacement</div>
+                    </div>
+                    <input type="text" value="24h" className="px-4 py-2 rounded-lg bg-slate-600 text-white w-24 text-center border border-slate-500" readOnly />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg bg-slate-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-white">Mode maintenance</div>
+                      <div className="text-sm text-slate-400 mt-1">Désactiver la plateforme temporairement</div>
+                    </div>
+                    <button className="px-4 py-2 rounded-lg text-white transition hover:scale-105" style={{ backgroundColor: '#FF8C00' }}>
+                      Désactivé
+                    </button>
+                  </div>
+                </div>
+
+                <button className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95" style={{ backgroundColor: '#FF8C00' }}>
+                  💾 Sauvegarder les paramètres
+                </button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )
