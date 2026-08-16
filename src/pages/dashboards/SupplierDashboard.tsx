@@ -59,7 +59,7 @@ export default function SupplierDashboard() {
                   {newRequests.map((qr) => {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     return (
-                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition cursor-pointer">
+                      <Link key={qr.id} to="/supplier/equipment" className="block p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-white">{qr.reference} • {qr.clientName}</div>
@@ -71,7 +71,7 @@ export default function SupplierDashboard() {
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
@@ -90,7 +90,7 @@ export default function SupplierDashboard() {
                   {myRequests.map((qr) => {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     return (
-                      <div key={qr.id} className="p-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                      <Link key={qr.id} to="/supplier/equipment" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-white text-sm">{qr.reference}</div>
@@ -98,7 +98,7 @@ export default function SupplierDashboard() {
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>

@@ -64,7 +64,7 @@ export default function ClientDashboard() {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     const supplier = users.find((u) => u.id === qr.supplierId)
                     return (
-                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition cursor-pointer">
+                      <Link key={qr.id} to={`/equipment/${qr.equipmentId}`} className="block p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-white">{qr.reference}</div>
@@ -75,7 +75,7 @@ export default function ClientDashboard() {
                             <QuoteStatusBadge status={qr.status} />
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
@@ -95,7 +95,7 @@ export default function ClientDashboard() {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     const supplier = users.find((u) => u.id === qr.supplierId)
                     return (
-                      <div key={qr.id} className="p-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                      <Link key={qr.id} to={`/equipment/${qr.equipmentId}`} className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-white text-sm">{qr.reference}</div>
@@ -103,7 +103,7 @@ export default function ClientDashboard() {
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
