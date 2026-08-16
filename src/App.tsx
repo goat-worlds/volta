@@ -18,6 +18,7 @@ import AdminValidate from './pages/admin/AdminValidate'
 import TechnicalMissions from './pages/technical/TechnicalMissions'
 import TechnicalInspection from './pages/technical/TechnicalInspection'
 import SupplierEquipment from './pages/supplier/SupplierEquipment'
+import SupplierAddEquipment from './pages/supplier/SupplierAddEquipment'
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
           {/* Supplier workspace */}
           <Route path="/supplier" element={<Navigate to="/supplier-dashboard" replace />} />
           <Route path="/supplier/equipment" element={<SupplierEquipment />} />
+          <Route path="/supplier/equipment/new" element={<SupplierAddEquipment />} />
         </Routes>
       </BrowserRouter>
     </StoreProvider>
