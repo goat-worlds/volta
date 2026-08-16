@@ -22,21 +22,9 @@ export default function ClientDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Tableau de bord Client</h1>
-            <p className="text-slate-400 mt-1">Bienvenue, {user.company}</p>
-          </div>
-          <button
-            onClick={() => {
-              localStorage.removeItem('volta_user')
-              navigate('/')
-            }}
-            className="px-4 py-2 rounded-lg text-white transition hover:bg-red-600"
-            style={{ backgroundColor: '#FF8C00' }}
-          >
-            Déconnexion
-          </button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">👤 Tableau de bord Client</h1>
+          <p className="text-slate-400 mt-1">Bienvenue, {user.company}</p>
         </div>
 
         {/* Stats Grid */}
