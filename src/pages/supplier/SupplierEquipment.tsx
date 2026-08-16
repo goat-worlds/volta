@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
 
@@ -8,7 +9,7 @@ export default function SupplierEquipment() {
   const myRequests = quoteRequests.filter((qr) => qr.supplierId === SUPPLIER_ID)
 
   return (
-    <div className="max-w-4xl">
+    <div className="mx-auto max-w-4xl p-6 lg:p-8">
       <PageTitle
         title="Demandes de devis reçues"
         subtitle={`${myRequests.length} demande(s)`}
@@ -32,7 +33,10 @@ export default function SupplierEquipment() {
                       <QuoteStatusBadge status={qr.status} />
                     </div>
                     <p className="text-sm text-slate-600 mt-1">
-                      Équipement: <span className="font-semibold">{eq?.name}</span>
+                      Équipement:{' '}
+                      <Link to={`/equipment/${qr.equipmentId}`} className="font-semibold text-brand-600 hover:underline">
+                        {eq?.name} →
+                      </Link>
                     </p>
                   </div>
                 </div>

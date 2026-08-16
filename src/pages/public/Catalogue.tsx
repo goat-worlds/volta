@@ -82,7 +82,7 @@ export default function Catalogue() {
             return (
               <Card key={e.id} className="overflow-hidden flex flex-col transition hover:shadow-lg">
                 {/* Image */}
-                <div className="relative h-40 w-full overflow-hidden bg-slate-100">
+                <Link to={`/equipment/${e.id}`} className="relative block h-40 w-full overflow-hidden bg-slate-100">
                   <img
                     src={e.photos[0]}
                     alt={e.name}
@@ -91,13 +91,15 @@ export default function Catalogue() {
                       (img.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22%2364748b%22%3EÉquipement%3C/text%3E%3C/svg%3E'
                     }}
                   />
-                </div>
+                </Link>
 
                 {/* Content */}
                 <div className="flex flex-1 flex-col p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <h3 className="font-bold text-slate-900">{e.name}</h3>
+                      <h3 className="font-bold text-slate-900">
+                        <Link to={`/equipment/${e.id}`} className="hover:text-brand-600 hover:underline">{e.name}</Link>
+                      </h3>
                       <p className="text-xs text-slate-600 mt-1">
                         {cat?.name} · {e.brand} {e.model}
                       </p>
@@ -130,7 +132,13 @@ export default function Catalogue() {
                     {e.description}
                   </p>
 
-                  {/* CTA Button */}
+                  {/* CTA Buttons */}
+                  <Link
+                    to={`/equipment/${e.id}`}
+                    className="mb-2 w-full rounded-lg border border-brand-200 py-2 text-center text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+                  >
+                    👁 Consulter la fiche
+                  </Link>
                   <button
                     onClick={() => setQuoteFormOpen(e.id)}
                     className="w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95 bg-accent-500"

@@ -69,7 +69,7 @@ export default function AdminDashboard() {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     const supplier = users.find((u) => u.id === qr.supplierId)
                     return (
-                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                      <Link key={qr.id} to="/admin/quotes" className="block p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-white">{qr.reference}</div>
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     const insp = inspections.find((i) => i.quoteRequestId === qr.id)
                     return (
-                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                      <Link key={qr.id} to="/admin/inspections" className="block p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="font-semibold text-white">{qr.reference}</div>
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>

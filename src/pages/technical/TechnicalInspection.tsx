@@ -26,7 +26,7 @@ export default function TechnicalInspection() {
 
   if (!inspection || !eq) {
     return (
-      <div>
+      <div className="mx-auto max-w-4xl p-6 lg:p-8">
         <EmptyState title="Inspection introuvable" />
         <div className="mt-4">
           <Link to="/technical/missions" className="font-medium text-brand-600 hover:underline">← Retour aux missions</Link>
@@ -63,7 +63,7 @@ export default function TechnicalInspection() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="mx-auto max-w-4xl p-6 lg:p-8">
       <Link to="/technical/missions" className="text-sm font-medium text-brand-600 hover:underline">← Retour aux missions</Link>
       <div className="mt-2">
         <PageTitle
