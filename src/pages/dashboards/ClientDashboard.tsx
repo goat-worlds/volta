@@ -108,7 +108,7 @@ export default function ClientDashboard() {
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className="p-6 mb-6">
               <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
                 Informations de compte
               </h2>
@@ -125,6 +125,23 @@ export default function ClientDashboard() {
                   <div className="font-semibold text-white">Rôle</div>
                   <div>👤 Client</div>
                 </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+                🌐 Site Vitrine
+              </h2>
+              <div className="space-y-2">
+                <a href="/" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
+                  🏠 Accueil
+                </a>
+                <a href="/catalogue" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
+                  🚜 Catalogue
+                </a>
+                <a href="/fournisseurs" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
+                  🏢 Fournisseurs
+                </a>
               </div>
             </Card>
           </div>
