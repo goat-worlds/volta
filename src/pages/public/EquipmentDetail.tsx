@@ -1,25 +1,14 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, CategoryBadge, StatusBadge, Toast } from '../../components/ui'
+import { Card, EmptyState, CategoryBadge, StatusBadge } from '../../components/ui'
+import QuoteRequestForm from '../../components/QuoteRequestForm'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
-  const { equipment, categories, users, createQuoteRequest } = useStore()
+  const { equipment, categories, users } = useStore()
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
-  const [sending, setSending] = useState(false)
-  const [form, setForm] = useState({
-    clientName: '',
-    clientCompany: '',
-    clientPhone: '',
-    clientEmail: '',
-    duration: '',
-    requestedDate: '',
-    location: '',
-    message: '',
-  })
 
   if (!eq) {
     return (
@@ -35,28 +24,6 @@ export default function EquipmentDetail() {
   const cat = categories.find((c) => c.id === eq.categoryId)
   const supplier = users.find((u) => u.id === eq.supplierId)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.clientName || !form.clientPhone || !form.clientEmail) {
-      setToast('Veuillez remplir tous les champs obligatoires')
-      return
-    }
-
-    setSending(true)
-    setTimeout(() => {
-      const quote = createQuoteRequest({
-        ...form,
-        equipmentId: eq.id,
-        supplierId: eq.supplierId,
-      })
-      setSending(false)
-      setModalOpen(false)
-      setToast(`✓ Demande de devis ${quote.reference} créée ! Vous allez être contacté par le fournisseur.`)
-      setTimeout(() => setToast(null), 6000)
-    }, 600)
-  }
-
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-8 pb-16">
@@ -164,8 +131,8 @@ export default function EquipmentDetail() {
       {/* Quote Request Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-md p-6 animate-in scale-in-95 duration-300">
-            <div className="flex items-center justify-between mb-4">
+          <Card className="w-full max-w-md p-6 animate-in scale-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-4 border-b">
               <h2 className="text-xl font-bold">Demander un devis</h2>
               <button
                 onClick={() => setModalOpen(false)}
@@ -175,101 +142,18 @@ export default function EquipmentDetail() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Nom *</label>
-                <input
-                  type="text"
-                  required
-                  value={form.clientName}
-                  onChange={(e) => setForm({ ...form, clientName: e.target.value })}
-                  className={inputClass}
-                  placeholder="Jean Dupont"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Entreprise</label>
-                <input
-                  type="text"
-                  value={form.clientCompany}
-                  onChange={(e) => setForm({ ...form, clientCompany: e.target.value })}
-                  className={inputClass}
-                  placeholder="Acme Corp"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Téléphone *</label>
-                <input
-                  type="tel"
-                  required
-                  value={form.clientPhone}
-                  onChange={(e) => setForm({ ...form, clientPhone: e.target.value })}
-                  className={inputClass}
-                  placeholder="+225 07 XX XX XX"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Email *</label>
-                <input
-                  type="email"
-                  required
-                  value={form.clientEmail}
-                  onChange={(e) => setForm({ ...form, clientEmail: e.target.value })}
-                  className={inputClass}
-                  placeholder="contact@acme.ci"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Durée souhaitée</label>
-                <input
-                  type="text"
-                  value={form.duration}
-                  onChange={(e) => setForm({ ...form, duration: e.target.value })}
-                  className={inputClass}
-                  placeholder="ex: 5 jours, 2 semaines..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Localisation du chantier</label>
-                <input
-                  type="text"
-                  value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  className={inputClass}
-                  placeholder="ex: Abidjan Nord"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Message / Besoin particulier</label>
-                <textarea
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  className={inputClass}
-                  placeholder="Décrivez vos besoins..."
-                  rows={3}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={sending}
-                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95 disabled:opacity-50"
-                style={{ backgroundColor: '#FF8C00' }}
-              >
-                {sending ? '⏳ Envoi...' : '✓ Envoyer ma demande'}
-              </button>
-            </form>
+            <QuoteRequestForm
+              equipmentId={eq.id}
+              equipmentName={eq.name}
+              onSuccess={() => {
+                setModalOpen(false)
+              }}
+              onClose={() => setModalOpen(false)}
+              autoClose={true}
+            />
           </Card>
         </div>
       )}
-
-      <Toast message={toast} />
     </div>
   )
 }
