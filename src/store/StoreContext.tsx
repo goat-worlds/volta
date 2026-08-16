@@ -4,6 +4,7 @@ import type {
   Equipment,
   EquipmentStatus,
   EquipmentCategory,
+  EquipmentRating,
   Inspection,
   InspectionStatus,
   Report,
@@ -34,6 +35,7 @@ interface Store {
   updateChecklist: (inspectionId: string, checklist: ChecklistItem[]) => void
   submitReport: (inspectionId: string, summary: string, checklist: ChecklistItem[]) => void
   categorizeEquipment: (equipmentId: string, category: EquipmentCategory) => void
+  rateEquipment: (equipmentId: string, rating: EquipmentRating) => void
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -159,6 +161,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const quote = quoteRequests.find((r) => r.equipmentId === equipmentId)
         if (quote) this.updateQuoteRequestStatus(quote.id, 'CATEGORISEE')
         notify('ADMIN', `${eq?.name} catégorisé en ${category}`)
+      },
+
+      rateEquipment(equipmentId: string, rating: EquipmentRating) {
+        setEquipment((prev) =>
+          prev.map((e) => (e.id === equipmentId ? { ...e, rating } : e)),
+        )
+        const eq = equipment.find((e) => e.id === equipmentId)
+        notify('SUPPLIER', `${eq?.name} notée ${rating} sur VOLTA`)
       },
     }
   }, [equipment, inspections, reports, quoteRequests, notifications])
