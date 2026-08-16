@@ -62,13 +62,13 @@ export default function GlobalNavbar() {
     <nav className={`sticky top-0 z-40 transition duration-300 ${isScrolled ? 'shadow-lg' : ''} bg-gradient-to-r ${dashboardColor}`}>
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg font-bold text-white text-lg" style={{ backgroundColor: '#FF8C00' }}>
-            V
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg font-bold text-white">
+            <img src="/volta-logo.svg" alt="VOLTA" className="w-8 h-8" />
           </div>
           <div>
-            <div className={`font-bold text-lg ${isDashboard ? 'text-white' : 'text-blue-900'}`}>VOLTA</div>
-            <div className={`text-xs ${isDashboard ? 'text-slate-400' : 'text-blue-600'}`}>Plateforme d'équipements</div>
+            <div className={`font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent ${!isDashboard && 'md:block'}`}>VOLTA</div>
+            <div className={`text-xs ${isDashboard ? 'text-slate-400' : 'text-slate-500'}`}>Équipements</div>
           </div>
         </Link>
 
@@ -111,8 +111,7 @@ export default function GlobalNavbar() {
               {!isDashboard && (
                 <Link
                   to={getDashboardLink()}
-                  className="hidden sm:inline-block px-4 py-2 rounded-lg text-white transition hover:scale-105 transform"
-                  style={{ backgroundColor: '#FF8C00' }}
+                  className="hidden sm:inline-block px-4 py-2 rounded-lg text-white transition hover:scale-105 transform bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                 >
                   {getRoleIcon()} Mon Espace
                 </Link>
@@ -123,7 +122,7 @@ export default function GlobalNavbar() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg transition hover:opacity-70"
                   style={{
-                    backgroundColor: isDashboard ? '#FF8C00' : '#E5E7EB',
+                    backgroundColor: isDashboard ? 'linear-gradient(to right, #4f46e5, #9333ea)' : '#E5E7EB',
                     color: isDashboard ? 'white' : '#1F2937',
                   }}
                 >
@@ -180,8 +179,7 @@ export default function GlobalNavbar() {
             <>
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-lg text-white transition hover:scale-105 transform"
-                style={{ backgroundColor: '#FF8C00' }}
+                className="px-4 py-2 rounded-lg text-white transition hover:scale-105 transform bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               >
                 🔓 Connexion
               </Link>
