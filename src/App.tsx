@@ -6,6 +6,7 @@ import Home from './pages/public/Home'
 import Catalogue from './pages/public/Catalogue'
 import EquipmentDetail from './pages/public/EquipmentDetail'
 import Suppliers from './pages/public/Suppliers'
+import Pricing from './pages/public/Pricing'
 import Login from './pages/public/Login'
 import ClientDashboard from './pages/dashboards/ClientDashboard'
 import SupplierDashboard from './pages/dashboards/SupplierDashboard'
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
             <Route path="/fournisseurs" element={<Suppliers />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Route>
 
           {/* Dashboard Routes */}

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import { Card, LevelBadge, fmtPrice } from '../../components/ui'
+import { Card, fmtPrice } from '../../components/ui'
+import EquipmentCarousel from '../../components/EquipmentCarousel'
 
 interface CounterStats {
   users: number
@@ -302,50 +303,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Equipment Section */}
-      <section className="mt-12 mb-12">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold" style={{ color: '#FF8C00' }}>
-              Équipements en vedette
-            </h2>
-            <p className="mt-2 text-slate-600">
-              Découvrez une sélection d'équipements populaires et disponibles immédiatement.
+      {/* Featured Equipment Carousel Section */}
+      <section className="mt-20 mb-20 px-4">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            🚜 Équipements populaires
+          </h2>
+          <p className="text-slate-600">
+            Découvrez les équipements les plus loués. Défilez latéralement pour explorer plus d'options.
+          </p>
+        </div>
+        <EquipmentCarousel equipment={published.slice(0, 12)} showArrows={true} />
+      </section>
+
+      {/* Call to Action - Pricing */}
+      <section className="mt-16 mb-12 px-4">
+        <Link to="/pricing" className="block">
+          <Card className="p-12 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+            <h3 className="text-3xl font-bold mb-4">Découvrez nos tarifs</h3>
+            <p className="text-slate-300 mb-6 max-w-2xl">
+              Trois plans adaptés à tous les budgets. Commencez gratuitement ou passez premium pour plus d'avantages.
             </p>
-          </div>
-          <Link to="/catalogue" className="text-sm font-medium hover:underline whitespace-nowrap transition" style={{ color: '#FF8C00' }}>
-            Voir tout →
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {published.slice(0, 4).map((e) => (
-            <Link key={e.id} to={`/equipment/${e.id}`}>
-              <Card className="overflow-hidden transition hover:shadow-lg h-full flex flex-col transform hover:scale-105" >
-                <div className="relative h-40 overflow-hidden bg-slate-200 group">
-                  <img src={e.photos[0]} alt={e.name} className="h-full w-full object-cover transition transform group-hover:scale-120" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
-                  <div className="absolute top-2 right-2 transform transition group-hover:scale-110">
-                    <LevelBadge level={e.level} />
-                  </div>
-                </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="font-semibold text-slate-800 flex-1">{e.name}</div>
-                  </div>
-                  <div className="text-xs text-slate-500 mb-3">📍 {e.location}</div>
-                  <div className="text-xs text-slate-600 mb-3 flex-1">
-                    {e.brand} {e.model} • {e.year}
-                  </div>
-                  <div className="mt-auto pt-3 border-t border-slate-200">
-                    <div className="font-bold text-lg transition" style={{ color: '#FF8C00' }}>
-                      {fmtPrice(e.pricePerDay)} / jour
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
+            <div className="flex items-center gap-2 text-slate-200 font-semibold hover:gap-3 transition-all">
+              Voir les tarifs
+              <span>→</span>
+            </div>
+          </Card>
+        </Link>
       </section>
 
       {/* Contact Modal */}
