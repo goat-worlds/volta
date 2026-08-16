@@ -5,56 +5,159 @@ import { Card, LevelBadge, fmtPrice } from '../../components/ui'
 export default function Home() {
   const { equipment, categories } = useStore()
   const published = equipment.filter((e) => e.status === 'PUBLISHED')
+
+  const criteria = [
+    {
+      icon: '🔧',
+      title: 'Mécanicien qualifié',
+      description: 'Chaque fournisseur dispose d\'un mécanicien certifié pour la maintenance et réparations urgentes.',
+    },
+    {
+      icon: '⚡',
+      title: 'Remplacement 24h',
+      description: 'En cas de panne, un équipement de remplacement est garanti en moins de 24 heures.',
+    },
+    {
+      icon: '🏭',
+      title: 'Entrepôt équipé',
+      description: 'Nos fournisseurs possèdent un entrepôt avec pièces de rechange et outils nécessaires.',
+    },
+  ]
+
+  const benefits = [
+    {
+      icon: '✅',
+      title: 'Vérification complète',
+      description: 'Tous les équipements sont inspectés par notre équipe technique avant publication.',
+    },
+    {
+      icon: '💰',
+      title: 'Tarifs transparents',
+      description: 'Pas de frais cachés. Prix fixes et connus à l\'avance pour votre budget.',
+    },
+    {
+      icon: '🤝',
+      title: 'Support dédié',
+      description: 'Une équipe VOLTA disponible pour répondre à vos questions et résoudre les problèmes.',
+    },
+  ]
+
   return (
     <div className="mx-auto max-w-6xl px-4">
+      {/* Hero Section */}
       <section className="mt-8 rounded-2xl bg-gradient-to-r from-blue-800 to-blue-600 p-10 text-white">
-        <h1 className="max-w-xl text-3xl font-bold leading-tight md:text-4xl">
+        <h1 className="max-w-2xl text-3xl font-bold leading-tight md:text-4xl">
           Trouvez le bon équipement. Au bon moment.
         </h1>
-        <p className="mt-3 max-w-lg text-blue-100">
-          Des engins de chantier vérifiés par VOLTA pour vos projets en Côte d'Ivoire.
+        <p className="mt-4 max-w-2xl text-blue-100 leading-relaxed">
+          VOLTA est la plateforme de référence pour la location d'équipements de chantier en Côte d'Ivoire.
+          Nous connectons les entreprises de construction avec des fournisseurs vérifiés et fiables.
+          Tous nos partenaires sont certifiés et disposent des ressources nécessaires pour assurer votre succès.
         </p>
-        <Link
-          to="/catalogue"
-          className="mt-6 inline-block rounded-lg bg-white px-5 py-2.5 font-semibold text-blue-700 hover:bg-blue-50"
-        >
-          Voir le catalogue
-        </Link>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link
+            to="/catalogue"
+            className="inline-block rounded-lg bg-white px-6 py-2.5 font-semibold text-blue-700 hover:bg-blue-50 text-center"
+          >
+            Parcourir le catalogue
+          </Link>
+          <Link
+            to="/fournisseurs"
+            className="inline-block rounded-lg border-2 border-white px-6 py-2.5 font-semibold text-white hover:bg-blue-700 text-center"
+          >
+            Nos fournisseurs
+          </Link>
+        </div>
       </section>
 
-      <section className="mt-10">
-        <h2 className="mb-4 text-xl font-bold">Catégories populaires</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+      {/* Categories Section */}
+      <section className="mt-12">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold">Catégories populaires</h2>
+          <p className="mt-2 text-slate-600">
+            Explorez nos différentes catégories d'équipements disponibles en location.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
           {categories.map((c) => (
             <Link key={c.id} to={`/catalogue?categorie=${c.id}`}>
-              <Card className="p-4 text-center transition hover:shadow-md">
-                <div className="text-2xl">{c.icon}</div>
-                <div className="mt-2 text-sm font-medium text-slate-700">{c.name}</div>
+              <Card className="p-5 text-center transition hover:shadow-md h-full flex flex-col items-center justify-center">
+                <div className="text-3xl mb-2">{c.icon}</div>
+                <div className="text-sm font-semibold text-slate-800">{c.name}</div>
               </Card>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="mt-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold">Équipements en vedette</h2>
-          <Link to="/catalogue" className="text-sm font-medium text-blue-600 hover:underline">
-            Voir tout
+      {/* Technical Verification Criteria */}
+      <section className="mt-12">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold">Critères de vérification technique</h2>
+          <p className="mt-2 text-slate-600">
+            Nos techniciens vérifient chaque fournisseur selon des critères stricts pour garantir votre tranquillité d'esprit.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {criteria.map((item, idx) => (
+            <Card key={idx} className="p-6 h-full flex flex-col">
+              <div className="text-4xl mb-3">{item.icon}</div>
+              <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Why VOLTA Section */}
+      <section className="mt-12">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold">Pourquoi choisir VOLTA ?</h2>
+          <p className="mt-2 text-slate-600">
+            VOLTA vous offre une solution complète, transparente et sécurisée pour vos besoins en équipements.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {benefits.map((item, idx) => (
+            <Card key={idx} className="p-6 h-full flex flex-col">
+              <div className="text-4xl mb-3">{item.icon}</div>
+              <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Featured Equipment Section */}
+      <section className="mt-12 mb-12">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Équipements en vedette</h2>
+            <p className="mt-2 text-slate-600">
+              Découvrez une sélection d'équipements populaires et disponibles immédiatement.
+            </p>
+          </div>
+          <Link to="/catalogue" className="text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">
+            Voir tout →
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {published.slice(0, 4).map((e) => (
             <Link key={e.id} to={`/equipment/${e.id}`}>
-              <Card className="overflow-hidden transition hover:shadow-md">
-                <img src={e.photos[0]} alt={e.name} className="h-36 w-full object-cover" />
-                <div className="p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-semibold">{e.name}</div>
+              <Card className="overflow-hidden transition hover:shadow-md h-full flex flex-col">
+                <img src={e.photos[0]} alt={e.name} className="h-40 w-full object-cover" />
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="font-semibold text-slate-800 flex-1">{e.name}</div>
                     <LevelBadge level={e.level} />
                   </div>
-                  <div className="text-xs text-slate-500">{e.location}</div>
-                  <div className="mt-2 font-bold text-blue-700">{fmtPrice(e.pricePerDay)} / jour</div>
+                  <div className="text-xs text-slate-500 mb-3">{e.location}</div>
+                  <div className="text-xs text-slate-600 mb-3 flex-1">
+                    {e.brand} {e.model} • {e.year}
+                  </div>
+                  <div className="mt-auto pt-3 border-t border-slate-200">
+                    <div className="font-bold text-blue-700">{fmtPrice(e.pricePerDay)} / jour</div>
+                  </div>
                 </div>
               </Card>
             </Link>
