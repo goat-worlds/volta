@@ -1,30 +1,18 @@
 import type { ReactNode } from 'react'
-import type { EquipmentStatus, Level } from '../store/types'
+import type { EquipmentStatus, EquipmentCategory } from '../store/types'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
-  DRAFT: 'Brouillon',
-  SUBMITTED: 'Soumis',
-  PENDING_INSPECTION: 'À vérifier',
-  INSPECTION_IN_PROGRESS: 'Vérification en cours',
-  REPORT_SUBMITTED: 'Rapport transmis',
-  PENDING_ADMIN_REVIEW: 'En attente de décision',
-  REJECTED: 'Refusé',
-  REFERENCED: 'Référencé',
-  PUBLISHED: 'Publié',
-  UNPUBLISHED: 'Dépublié',
+  DISPONIBLE: 'Disponible',
+  EN_INSPECTION: 'En inspection',
+  CATEGORISE: 'Catégorisé',
+  INDISPONIBLE: 'Indisponible',
 }
 
 const STATUS_COLORS: Record<EquipmentStatus, string> = {
-  DRAFT: 'bg-slate-100 text-slate-700',
-  SUBMITTED: 'bg-blue-100 text-blue-700',
-  PENDING_INSPECTION: 'bg-amber-100 text-amber-700',
-  INSPECTION_IN_PROGRESS: 'bg-orange-100 text-orange-700',
-  REPORT_SUBMITTED: 'bg-indigo-100 text-indigo-700',
-  PENDING_ADMIN_REVIEW: 'bg-purple-100 text-purple-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  REFERENCED: 'bg-cyan-100 text-cyan-700',
-  PUBLISHED: 'bg-emerald-100 text-emerald-700',
-  UNPUBLISHED: 'bg-slate-200 text-slate-600',
+  DISPONIBLE: 'bg-emerald-100 text-emerald-700',
+  EN_INSPECTION: 'bg-amber-100 text-amber-700',
+  CATEGORISE: 'bg-blue-100 text-blue-700',
+  INDISPONIBLE: 'bg-red-100 text-red-700',
 }
 
 export function StatusBadge({ status }: { status: EquipmentStatus }) {
@@ -35,17 +23,27 @@ export function StatusBadge({ status }: { status: EquipmentStatus }) {
   )
 }
 
-const LEVEL_COLORS: Record<Level, string> = {
-  BASIC: 'bg-slate-200 text-slate-700',
-  SILVER: 'bg-gray-300 text-gray-800',
-  GOLD: 'bg-yellow-200 text-yellow-800',
+const CATEGORY_COLORS: Record<EquipmentCategory, string> = {
+  A: 'bg-emerald-200 text-emerald-800',
+  B: 'bg-blue-200 text-blue-800',
+  C: 'bg-yellow-200 text-yellow-800',
+  D: 'bg-orange-200 text-orange-800',
+  E: 'bg-red-200 text-red-800',
 }
 
-export function LevelBadge({ level }: { level: Level | null }) {
-  if (!level) return null
+const CATEGORY_LABELS: Record<EquipmentCategory, string> = {
+  A: 'Excellent',
+  B: 'Bon',
+  C: 'Moyen',
+  D: 'À surveiller',
+  E: 'Non recommandé',
+}
+
+export function CategoryBadge({ category }: { category: EquipmentCategory | null }) {
+  if (!category) return null
   return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${LEVEL_COLORS[level]}`}>
-      {level === 'BASIC' ? 'Basic' : level === 'SILVER' ? 'Silver' : 'Gold'}
+    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${CATEGORY_COLORS[category]}`}>
+      {category} — {CATEGORY_LABELS[category]}
     </span>
   )
 }
@@ -128,5 +126,3 @@ export function Toast({ message }: { message: string | null }) {
     </div>
   )
 }
-
-export const fmtPrice = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`

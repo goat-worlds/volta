@@ -57,6 +57,7 @@ export default function Suppliers() {
     return 0
   })
 
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       {/* Hero Section with Image Background */}
@@ -150,7 +151,7 @@ export default function Suppliers() {
           </Card>
           <Card className="p-8 text-center hover:shadow-lg transition transform hover:scale-105">
             <div className="text-5xl font-bold mb-3" style={{ color: '#FF8C00' }}>
-              {equipment.filter((e) => e.status === 'PUBLISHED').length}
+              {equipment.length}
             </div>
             <div className="text-slate-800 font-semibold text-lg">Équipements disponibles</div>
             <p className="text-slate-700 text-sm mt-2">Prêts à la location</p>
@@ -279,7 +280,7 @@ export default function Suppliers() {
         {/* Suppliers Grid */}
         <div className="grid gap-6">
           {sortedSuppliers.map((s) => {
-            const count = equipment.filter((e) => e.supplierId === s.id && e.status === 'PUBLISHED').length
+            const count = equipment.filter((e) => e.supplierId === s.id && e.status !== 'INDISPONIBLE').length
             const isExpanded = expandedSupplier === s.id
 
             return (
@@ -367,7 +368,7 @@ export default function Suppliers() {
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {equipment
-                            .filter((e) => e.supplierId === s.id && e.status === 'PUBLISHED')
+                            .filter((e) => e.supplierId === s.id && e.status !== 'INDISPONIBLE')
                             .slice(0, 2)
                             .map((e) => (
                               <div key={e.id} className="p-3 rounded bg-slate-50 border border-slate-200">
@@ -375,8 +376,8 @@ export default function Suppliers() {
                                 <div className="text-xs text-slate-700 mt-1">
                                   {e.brand} {e.model} • {e.year}
                                 </div>
-                                <div className="text-sm font-bold mt-2" style={{ color: '#FF8C00' }}>
-                                  {e.pricePerDay.toLocaleString()} FCFA/jour
+                                <div className="text-xs text-slate-600 mt-2">
+                                  📊 Catégorie: {e.category || 'À définir'}
                                 </div>
                               </div>
                             ))}

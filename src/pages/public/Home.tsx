@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import { Card, fmtPrice } from '../../components/ui'
+import { Card } from '../../components/ui'
 import EquipmentCarousel from '../../components/EquipmentCarousel'
 
 interface CounterStats {
@@ -58,7 +58,7 @@ export default function Home() {
     }
   }, [searchInput, equipment])
 
-  const published = equipment.filter((e) => e.status === 'PUBLISHED')
+  const published = equipment.filter((e) => e.status !== 'INDISPONIBLE')
 
   const criteria = [
     {
@@ -163,7 +163,7 @@ export default function Home() {
                     {e.brand} • {e.location}
                   </div>
                   <div className="text-sm font-bold mt-1" style={{ color: '#FF8C00' }}>
-                    {fmtPrice(e.pricePerDay)} / jour
+                    {'Demander un devis'} / jour
                   </div>
                 </Link>
               ))}

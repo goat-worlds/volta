@@ -1,16 +1,10 @@
-export type EquipmentStatus =
-  | 'DRAFT'
-  | 'SUBMITTED'
-  | 'PENDING_INSPECTION'
-  | 'INSPECTION_IN_PROGRESS'
-  | 'REPORT_SUBMITTED'
-  | 'PENDING_ADMIN_REVIEW'
-  | 'REJECTED'
-  | 'REFERENCED'
-  | 'PUBLISHED'
-  | 'UNPUBLISHED'
+export type EquipmentStatus = 'DISPONIBLE' | 'EN_INSPECTION' | 'CATEGORISE' | 'INDISPONIBLE'
 
-export type Level = 'BASIC' | 'SILVER' | 'GOLD'
+export type EquipmentCategory = 'A' | 'B' | 'C' | 'D' | 'E'
+
+export type QuoteRequestStatus = 'NOUVELLE' | 'TRANSMISE' | 'EN_INSPECTION' | 'RAPPORT_REÇU' | 'CATEGORISEE' | 'TERMINEE'
+
+export type InspectionStatus = 'A_ASSIGNER' | 'ASSIGNEE' | 'EN_COURS' | 'TERMINEE'
 
 export type Role = 'ADMIN' | 'SUPPLIER' | 'TECHNICAL' | 'CLIENT'
 
@@ -39,15 +33,12 @@ export interface Equipment {
   year: number
   hours: number
   location: string
-  pricePerDay: number
-  available: boolean
-  withOperator: boolean
   description: string
   photos: string[]
   documents: { name: string; type: string }[]
   supplierId: string
   status: EquipmentStatus
-  level: Level | null
+  category: EquipmentCategory | null
   declaredCondition: string
   createdAt: string
 }
@@ -63,10 +54,11 @@ export interface ChecklistItem {
 
 export interface Inspection {
   id: string
+  quoteRequestId: string
   equipmentId: string
   technicalTeamId: string
   assignedAt: string
-  status: 'ASSIGNED' | 'IN_PROGRESS' | 'DONE'
+  status: InspectionStatus
   checklist: ChecklistItem[]
   photos: string[]
   anomalies: string[]
@@ -81,21 +73,20 @@ export interface Report {
   checklist: ChecklistItem[]
 }
 
-export interface RentalRequest {
+export interface QuoteRequest {
   id: string
   reference: string
   equipmentId: string
   supplierId: string
-  startDate: string
-  endDate: string
-  location: string
-  withOperator: boolean
-  transport: boolean
-  comment: string
   clientName: string
+  clientCompany: string
   clientPhone: string
   clientEmail: string
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED'
+  duration: string
+  requestedDate: string
+  location: string
+  message: string
+  status: QuoteRequestStatus
   createdAt: string
 }
 
