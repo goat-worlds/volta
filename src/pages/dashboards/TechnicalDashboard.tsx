@@ -172,20 +172,25 @@ export default function TechnicalDashboard() {
               </div>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
-                🌐 Site Vitrine
+            {/* VOLTA Mission Excellence */}
+            <Card className="p-6 bg-gradient-to-br from-emerald-600/10 to-emerald-500/10 border border-emerald-300/20">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="text-2xl">🎯</span>
+                <span style={{ color: '#FF8C00' }}>Excellence Technique</span>
               </h2>
-              <div className="space-y-2">
-                <a href="/" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
-                  🏠 Accueil
-                </a>
-                <a href="/catalogue" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
-                  🚜 Catalogue
-                </a>
-                <a href="/fournisseurs" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
-                  🏢 Fournisseurs
-                </a>
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
+                  <div className="font-semibold text-white mb-1">✓ Normes Strictes</div>
+                  <p className="text-sm text-slate-400">Inspections selon standards internationaux</p>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
+                  <div className="font-semibold text-white mb-1">🏅 Certifications</div>
+                  <p className="text-sm text-slate-400">Validez les équipements en toute confiance</p>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
+                  <div className="font-semibold text-white mb-1">📊 Traçabilité</div>
+                  <p className="text-sm text-slate-400">Rapports détaillés et audit complets</p>
+                </div>
               </div>
             </Card>
           </div>

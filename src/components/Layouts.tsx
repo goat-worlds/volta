@@ -126,16 +126,57 @@ export function PublicLayout() {
           <NavLink to="/catalogue" className={publicNavClass}>🚜 Équipements</NavLink>
           <NavLink to="/fournisseurs" className={publicNavClass}>🏢 Fournisseurs</NavLink>
         </nav>
-        <div className="mt-6 border-t border-slate-200 pt-4">
-          <div className="mb-2 px-3 text-xs font-semibold uppercase text-slate-600">Espaces</div>
-          <nav className="flex flex-col gap-1">
-            <NavLink to="/supplier" className={publicNavClass}>👷 Fournisseur</NavLink>
-            <NavLink to="/technical" className={publicNavClass}>🔧 Équipe technique</NavLink>
-            <NavLink to="/admin" className={publicNavClass}>🛡️ Admin</NavLink>
-          </nav>
+        <div className="mt-6 border-t border-slate-200 pt-4 flex-1">
+          <div className="space-y-3">
+            {/* Supplier Portal */}
+            <NavLink to="/supplier" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-blue-50 border border-blue-200' : 'hover:bg-slate-50 border border-transparent'}`}>
+              <div className="font-semibold text-slate-900 flex items-center gap-2">
+                <span className="text-xl">📦</span>
+                Espace Fournisseur
+              </div>
+              <p className="text-xs text-slate-600 leading-tight">
+                Proposez vos équipements à des milliers de clients vérifiés
+              </p>
+            </NavLink>
+
+            {/* Technical Portal */}
+            <NavLink to="/technical" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-emerald-50 border border-emerald-200' : 'hover:bg-slate-50 border border-transparent'}`}>
+              <div className="font-semibold text-slate-900 flex items-center gap-2">
+                <span className="text-xl">🔬</span>
+                Équipe Technique
+              </div>
+              <p className="text-xs text-slate-600 leading-tight">
+                Inspectez et certifiez les équipements VOLTA
+              </p>
+            </NavLink>
+
+            {/* Admin Portal */}
+            <NavLink to="/admin" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-slate-50 border border-transparent'}`}>
+              <div className="font-semibold text-slate-900 flex items-center gap-2">
+                <span className="text-xl">⚙️</span>
+                Administration
+              </div>
+              <p className="text-xs text-slate-600 leading-tight">
+                Gérez la plateforme et les certifications
+              </p>
+            </NavLink>
+          </div>
         </div>
-        <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-700">
-          Des milliers d'équipements vérifiés par VOLTA pour vos projets.
+
+        {/* Services Promo */}
+        <div className="mt-auto space-y-3">
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 p-4 border border-blue-200">
+            <div className="font-bold text-slate-900 mb-2">✨ VOLTA Premium</div>
+            <p className="text-xs text-slate-700 leading-snug mb-3">
+              Accédez à des services exclusifs: support VIP 24/7, inspection technique complète, assurance équipements
+            </p>
+            <a href="/pricing" className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition">
+              En savoir plus →
+            </a>
+          </div>
+          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 border border-slate-200">
+            <span className="font-semibold text-slate-900">Des milliers d'équipements</span> vérifiés et certifiés pour vos projets.
+          </div>
         </div>
       </aside>
       <div className="flex flex-1 flex-col">

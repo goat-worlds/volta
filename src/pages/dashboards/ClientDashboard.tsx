@@ -142,20 +142,25 @@ export default function ClientDashboard() {
               </div>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
-                🌐 Site Vitrine
+            {/* VOLTA Services Promo */}
+            <Card className="p-6 bg-gradient-to-br from-orange-600/10 to-orange-500/10 border border-orange-300/20">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="text-2xl">⚡</span>
+                <span style={{ color: '#FF8C00' }}>Services VOLTA</span>
               </h2>
-              <div className="space-y-2">
-                <a href="/" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
-                  🏠 Accueil
-                </a>
-                <a href="/catalogue" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
-                  🚜 Catalogue
-                </a>
-                <a href="/fournisseurs" className="block p-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition text-center font-medium">
-                  🏢 Fournisseurs
-                </a>
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
+                  <div className="font-semibold text-white mb-1">🔐 Sécurisé 100%</div>
+                  <p className="text-sm text-slate-400">Paiement sécurisé et escrow management</p>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
+                  <div className="font-semibold text-white mb-1">✅ Inspection Technique</div>
+                  <p className="text-sm text-slate-400">Tous les équipements vérifiés</p>
+                </div>
+                <div className="p-4 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition">
+                  <div className="font-semibold text-white mb-1">24/7 Support</div>
+                  <p className="text-sm text-slate-400">Aide disponible quand vous en avez besoin</p>
+                </div>
               </div>
             </Card>
           </div>
