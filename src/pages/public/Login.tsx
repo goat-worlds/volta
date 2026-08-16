@@ -17,7 +17,6 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [selectedDemo, setSelectedDemo] = useState<UserRole | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +54,6 @@ export default function Login() {
   }
 
   const handleDemoLogin = (account: typeof demoAccounts[0]) => {
-    setSelectedDemo(account.role)
     setEmail(account.email)
     setPassword(account.password)
   }
@@ -154,11 +152,11 @@ export default function Login() {
         </div>
 
         {/* Info Box */}
-        <Card className="p-4 bg-blue-50 border-l-4" style={{ borderLeftColor: '#FF8C00' }}>
+        <div className="p-4 bg-blue-50 border-l-4 rounded-lg" style={{ borderLeftColor: '#FF8C00' }}>
           <p className="text-xs text-slate-700 leading-relaxed">
             <strong style={{ color: '#FF8C00' }}>💡 Info:</strong> Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.
           </p>
-        </Card>
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { StoreProvider } from './store/StoreContext'
-import { AdminLayout, PublicLayout } from './components/Layouts'
+import { PublicLayout } from './components/Layouts'
 import GlobalNavbar from './components/GlobalNavbar'
 import Home from './pages/public/Home'
 import Catalogue from './pages/public/Catalogue'

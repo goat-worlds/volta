@@ -208,10 +208,12 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
           {categories.map((c) => (
             <Link key={c.id} to={`/catalogue?categorie=${c.id}`}>
-              <Card
-                className="p-5 text-center transition hover:shadow-lg h-full flex flex-col items-center justify-center cursor-pointer transform hover:scale-110"
+              <div
                 onMouseEnter={() => setHoveredCard(c.id)}
                 onMouseLeave={() => setHoveredCard(null)}
+              >
+              <Card
+                className="p-5 text-center transition hover:shadow-lg h-full flex flex-col items-center justify-center cursor-pointer transform hover:scale-110"
               >
                 <div className="text-4xl mb-3 transition transform" style={{
                   transform: hoveredCard === c.id ? 'scale(1.2) rotate(10deg)' : 'scale(1)',
@@ -222,6 +224,7 @@ export default function Home() {
                   {c.name}
                 </div>
               </Card>
+              </div>
             </Link>
           ))}
         </div>
@@ -239,10 +242,9 @@ export default function Home() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           {criteria.map((item, idx) => (
+            <div key={idx} onClick={() => setExpandedCriteria(expandedCriteria === idx ? null : idx)} className="cursor-pointer">
             <Card
-              key={idx}
-              className="p-6 h-full flex flex-col cursor-pointer transition transform hover:shadow-lg hover:scale-105"
-              onClick={() => setExpandedCriteria(expandedCriteria === idx ? null : idx)}
+              className="p-6 h-full flex flex-col transition transform hover:shadow-lg hover:scale-105"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="text-5xl">{item.icon}</div>
@@ -272,6 +274,7 @@ export default function Home() {
                 </div>
               )}
             </Card>
+            </div>
           ))}
         </div>
       </section>
@@ -315,9 +318,9 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {published.slice(0, 4).map((e, idx) => (
+          {published.slice(0, 4).map((e) => (
             <Link key={e.id} to={`/equipment/${e.id}`}>
-              <Card className="overflow-hidden transition hover:shadow-lg h-full flex flex-col transform hover:scale-105 delay-75" style={{ animationDelay: `${idx * 100}ms` }}>
+              <Card className="overflow-hidden transition hover:shadow-lg h-full flex flex-col transform hover:scale-105" >
                 <div className="relative h-40 overflow-hidden bg-slate-200 group">
                   <img src={e.photos[0]} alt={e.name} className="h-full w-full object-cover transition transform group-hover:scale-120" />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>

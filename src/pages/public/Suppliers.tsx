@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
@@ -95,11 +95,9 @@ export default function Suppliers() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {criteria.map((crit) => (
+              <div key={crit.key} onMouseEnter={() => setHoveredCriteria(crit.key)} onMouseLeave={() => setHoveredCriteria(null)}>
               <Card
-                key={crit.key}
                 className="p-6 hover:shadow-lg transition transform hover:scale-105 cursor-pointer"
-                onMouseEnter={() => setHoveredCriteria(crit.key)}
-                onMouseLeave={() => setHoveredCriteria(null)}
               >
                 <div className="text-6xl mb-3 transition transform" style={{
                   transform: hoveredCriteria === crit.key ? 'scale(1.3) rotate(10deg)' : 'scale(1)',
@@ -119,6 +117,7 @@ export default function Suppliers() {
                   )}
                 </p>
               </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -198,16 +197,14 @@ export default function Suppliers() {
 
         {/* Suppliers Grid */}
         <div className="grid gap-6">
-          {sortedSuppliers.map((s, idx) => {
+          {sortedSuppliers.map((s) => {
             const count = equipment.filter((e) => e.supplierId === s.id && e.status === 'PUBLISHED').length
             const isExpanded = expandedSupplier === s.id
 
             return (
+              <div key={s.id} onClick={() => setExpandedSupplier(isExpanded ? null : s.id)}>
               <Card
-                key={s.id}
-                className="p-6 cursor-pointer transition hover:shadow-lg hover:scale-105 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                style={{ animationDelay: `${idx * 50}ms` }}
-                onClick={() => setExpandedSupplier(isExpanded ? null : s.id)}
+                className="p-6 cursor-pointer transition hover:shadow-lg hover:scale-105"
               >
                 {/* Main Info */}
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
@@ -308,6 +305,7 @@ export default function Suppliers() {
                   </div>
                 )}
               </Card>
+              </div>
             )
           })}
         </div>

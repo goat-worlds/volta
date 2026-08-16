@@ -5,7 +5,7 @@ import { Card } from '../../components/ui'
 export default function ClientDashboard() {
   const navigate = useNavigate()
   const [user, setUser] = useState<any>(null)
-  const [stats, setStats] = useState({ active: 3, pending: 2, completed: 12 })
+  const stats = { active: 3, pending: 2, completed: 12 }
 
   useEffect(() => {
     const userStr = localStorage.getItem('volta_user')
