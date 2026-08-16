@@ -1,54 +1,39 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { StoreProvider } from './store/StoreContext'
-import { AdminLayout, PublicLayout, SupplierLayout, TechnicalLayout } from './components/Layouts'
+import { PublicLayout } from './components/Layouts'
+import GlobalNavbar from './components/GlobalNavbar'
 import Home from './pages/public/Home'
 import Catalogue from './pages/public/Catalogue'
 import EquipmentDetail from './pages/public/EquipmentDetail'
 import Suppliers from './pages/public/Suppliers'
-import SupplierDashboard from './pages/supplier/SupplierDashboard'
-import SupplierEquipment from './pages/supplier/SupplierEquipment'
-import SupplierEquipmentNew from './pages/supplier/SupplierEquipmentNew'
-import SupplierRequests from './pages/supplier/SupplierRequests'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminEquipment from './pages/admin/AdminEquipment'
-import AdminInspections from './pages/admin/AdminInspections'
-import AdminReports from './pages/admin/AdminReports'
-import AdminRequests from './pages/admin/AdminRequests'
-import AdminUsers from './pages/admin/AdminUsers'
-import TechnicalDashboard from './pages/technical/TechnicalDashboard'
-import TechnicalMissions from './pages/technical/TechnicalMissions'
-import TechnicalInspection from './pages/technical/TechnicalInspection'
+import Pricing from './pages/public/Pricing'
+import Login from './pages/public/Login'
+import ClientDashboard from './pages/dashboards/ClientDashboard'
+import SupplierDashboard from './pages/dashboards/SupplierDashboard'
+import TechnicalDashboard from './pages/dashboards/TechnicalDashboard'
+import AdminDashboard from './pages/dashboards/AdminDashboard'
 
 export default function App() {
   return (
     <StoreProvider>
       <BrowserRouter>
+        <GlobalNavbar />
         <Routes>
+          {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
             <Route path="/fournisseurs" element={<Suppliers />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Route>
-          <Route element={<SupplierLayout />}>
-            <Route path="/supplier" element={<SupplierDashboard />} />
-            <Route path="/supplier/equipment" element={<SupplierEquipment />} />
-            <Route path="/supplier/equipment/new" element={<SupplierEquipmentNew />} />
-            <Route path="/supplier/requests" element={<SupplierRequests />} />
-          </Route>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/equipment" element={<AdminEquipment />} />
-            <Route path="/admin/inspections" element={<AdminInspections />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/requests" element={<AdminRequests />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-          </Route>
-          <Route element={<TechnicalLayout />}>
-            <Route path="/technical" element={<TechnicalDashboard />} />
-            <Route path="/technical/missions" element={<TechnicalMissions />} />
-            <Route path="/technical/inspection/:id" element={<TechnicalInspection />} />
-          </Route>
+
+          {/* Dashboard Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/client-dashboard" element={<ClientDashboard />} />
+          <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
+          <Route path="/technical-dashboard" element={<TechnicalDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </BrowserRouter>
     </StoreProvider>

@@ -3,11 +3,13 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import type {
   Equipment,
   EquipmentStatus,
+  EquipmentCategory,
   Inspection,
+  InspectionStatus,
   Report,
-  RentalRequest,
+  QuoteRequest,
+  QuoteRequestStatus,
   Notification,
-  Level,
   ChecklistItem,
   User,
   Category,
@@ -21,21 +23,17 @@ interface Store {
   equipment: Equipment[]
   inspections: Inspection[]
   reports: Report[]
-  rentalRequests: RentalRequest[]
+  quoteRequests: QuoteRequest[]
   notifications: Notification[]
-  addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Equipment
-  submitEquipment: (equipmentId: string) => void
-  assignInspection: (equipmentId: string, technicalTeamId: string) => void
+  createQuoteRequest: (data: Omit<QuoteRequest, 'id' | 'reference' | 'status' | 'createdAt'>) => QuoteRequest
+  getQuoteRequestsBySupplier: (supplierId: string) => QuoteRequest[]
+  getQuoteRequestsByEquipment: (equipmentId: string) => QuoteRequest[]
+  updateQuoteRequestStatus: (quoteRequestId: string, status: QuoteRequestStatus) => void
+  assignInspection: (quoteRequestId: string, technicalTeamId: string) => Inspection
   startInspection: (inspectionId: string) => void
   updateChecklist: (inspectionId: string, checklist: ChecklistItem[]) => void
   submitReport: (inspectionId: string, summary: string, checklist: ChecklistItem[]) => void
-  rejectEquipment: (equipmentId: string) => void
-  referenceEquipment: (equipmentId: string, level: Level) => void
-  publishEquipment: (equipmentId: string) => void
-  unpublishEquipment: (equipmentId: string) => void
-  createRentalRequest: (
-    r: Omit<RentalRequest, 'id' | 'reference' | 'status' | 'createdAt' | 'supplierId'>,
-  ) => RentalRequest
+  categorizeEquipment: (equipmentId: string, category: EquipmentCategory) => void
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -46,12 +44,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [equipment, setEquipment] = useState<Equipment[]>(seed.equipment)
   const [inspections, setInspections] = useState<Inspection[]>(seed.inspections)
   const [reports, setReports] = useState<Report[]>(seed.reports)
-  const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>(seed.rentalRequests)
+  const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>(seed.quoteRequests)
   const [notifications, setNotifications] = useState<Notification[]>(seed.notifications)
 
   const store = useMemo<Store>(() => {
-    const setStatus = (equipmentId: string, status: EquipmentStatus) =>
+    const setEquipmentStatus = (equipmentId: string, status: EquipmentStatus) =>
       setEquipment((prev) => prev.map((e) => (e.id === equipmentId ? { ...e, status } : e)))
+
+    const setInspectionStatus = (inspectionId: string, status: InspectionStatus) =>
+      setInspections((prev) => prev.map((i) => (i.id === inspectionId ? { ...i, status } : i)))
 
     const notify = (role: Notification['role'], message: string) =>
       setNotifications((prev) => [
@@ -65,62 +66,76 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       equipment,
       inspections,
       reports,
-      rentalRequests,
+      quoteRequests,
       notifications,
 
-      addEquipment(data) {
-        const eq: Equipment = {
+      createQuoteRequest(data) {
+        const num = 1 + quoteRequests.length
+        const request: QuoteRequest = {
           ...data,
-          id: `eq-${Date.now()}`,
-          status: 'DRAFT',
-          level: null,
+          id: `dv-${Date.now()}`,
+          reference: `DV-2026-${String(num).padStart(3, '0')}`,
+          status: 'NOUVELLE',
           createdAt: today(),
         }
-        setEquipment((prev) => [eq, ...prev])
-        return eq
+        setQuoteRequests((prev) => [request, ...prev])
+        notify('SUPPLIER', `Nouvelle demande de devis ${request.reference}`)
+        notify('ADMIN', `Demande de devis ${request.reference} de ${data.clientName}`)
+        return request
       },
 
-      submitEquipment(equipmentId) {
-        setStatus(equipmentId, 'SUBMITTED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('ADMIN', `${eq?.name ?? 'Un engin'} soumis pour vérification`)
+      getQuoteRequestsBySupplier(supplierId: string) {
+        return quoteRequests.filter((r) => r.supplierId === supplierId)
       },
 
-      assignInspection(equipmentId, technicalTeamId) {
+      getQuoteRequestsByEquipment(equipmentId: string) {
+        return quoteRequests.filter((r) => r.equipmentId === equipmentId)
+      },
+
+      updateQuoteRequestStatus(quoteRequestId: string, status: QuoteRequestStatus) {
+        setQuoteRequests((prev) =>
+          prev.map((r) => (r.id === quoteRequestId ? { ...r, status } : r)),
+        )
+      },
+
+      assignInspection(quoteRequestId: string, technicalTeamId: string) {
+        const quote = quoteRequests.find((r) => r.id === quoteRequestId)
+        if (!quote) throw new Error('Quote not found')
+
         const insp: Inspection = {
           id: `insp-${Date.now()}`,
-          equipmentId,
+          quoteRequestId,
+          equipmentId: quote.equipmentId,
           technicalTeamId,
           assignedAt: today(),
-          status: 'ASSIGNED',
+          status: 'ASSIGNEE',
           checklist: CHECKLIST_TEMPLATE.map((c) => ({ ...c })),
           photos: [],
           anomalies: [],
         }
         setInspections((prev) => [insp, ...prev])
-        setStatus(equipmentId, 'PENDING_INSPECTION')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('TECHNICAL', `Nouvelle mission assignée : ${eq?.name ?? equipmentId}`)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} est en attente d'inspection`)
+        setEquipmentStatus(quote.equipmentId, 'EN_INSPECTION')
+        this.updateQuoteRequestStatus(quoteRequestId, 'EN_INSPECTION')
+        const tech = seed.users.find((u) => u.id === technicalTeamId)
+        notify('TECHNICAL', `Nouvelle mission d'inspection assignée: ${quote.reference}`)
+        notify('ADMIN', `Inspection assignée à ${tech?.name} pour ${quote.reference}`)
+        return insp
       },
 
-      startInspection(inspectionId) {
-        setInspections((prev) =>
-          prev.map((i) => (i.id === inspectionId ? { ...i, status: 'IN_PROGRESS' } : i)),
-        )
-        const insp = inspections.find((i) => i.id === inspectionId)
-        if (insp) setStatus(insp.equipmentId, 'INSPECTION_IN_PROGRESS')
+      startInspection(inspectionId: string) {
+        setInspectionStatus(inspectionId, 'EN_COURS')
       },
 
-      updateChecklist(inspectionId, checklist) {
+      updateChecklist(inspectionId: string, checklist: ChecklistItem[]) {
         setInspections((prev) =>
           prev.map((i) => (i.id === inspectionId ? { ...i, checklist } : i)),
         )
       },
 
-      submitReport(inspectionId, summary, checklist) {
+      submitReport(inspectionId: string, summary: string, checklist: ChecklistItem[]) {
         const insp = inspections.find((i) => i.id === inspectionId)
         if (!insp) return
+
         const report: Report = {
           id: `rep-${Date.now()}`,
           inspectionId,
@@ -130,58 +145,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           checklist,
         }
         setReports((prev) => [report, ...prev])
-        setInspections((prev) =>
-          prev.map((i) => (i.id === inspectionId ? { ...i, status: 'DONE', checklist } : i)),
-        )
-        setStatus(insp.equipmentId, 'PENDING_ADMIN_REVIEW')
-        const eq = equipment.find((e) => e.id === insp.equipmentId)
-        notify('ADMIN', `Rapport d'inspection transmis pour ${eq?.name ?? insp.equipmentId}`)
+        setInspectionStatus(inspectionId, 'TERMINEE')
+        const quote = quoteRequests.find((r) => r.id === insp.quoteRequestId)
+        if (quote) this.updateQuoteRequestStatus(quote.id, 'RAPPORT_REÇU')
+        notify('ADMIN', `Rapport d'inspection reçu pour ${quote?.reference}`)
       },
 
-      rejectEquipment(equipmentId) {
-        setStatus(equipmentId, 'REJECTED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} a été refusé après vérification`)
-      },
-
-      referenceEquipment(equipmentId, level) {
+      categorizeEquipment(equipmentId: string, category: EquipmentCategory) {
         setEquipment((prev) =>
-          prev.map((e) => (e.id === equipmentId ? { ...e, status: 'REFERENCED', level } : e)),
+          prev.map((e) => (e.id === equipmentId ? { ...e, status: 'CATEGORISE', category } : e)),
         )
         const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} a été référencé ${level}`)
-      },
-
-      publishEquipment(equipmentId) {
-        setStatus(equipmentId, 'PUBLISHED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} est publié sur le catalogue`)
-      },
-
-      unpublishEquipment(equipmentId) {
-        setStatus(equipmentId, 'UNPUBLISHED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} a été dépublié du catalogue`)
-      },
-
-      createRentalRequest(data) {
-        const eq = equipment.find((e) => e.id === data.equipmentId)
-        const num = 124 + rentalRequests.length
-        const request: RentalRequest = {
-          ...data,
-          supplierId: eq?.supplierId ?? '',
-          id: `req-${Date.now()}`,
-          reference: `VOL-2026-${String(num).padStart(5, '0')}`,
-          status: 'PENDING',
-          createdAt: today(),
-        }
-        setRentalRequests((prev) => [request, ...prev])
-        notify('ADMIN', `Nouvelle demande de location ${request.reference} — ${eq?.name ?? ''}`)
-        notify('SUPPLIER', `Nouvelle demande de location ${request.reference} — ${eq?.name ?? ''}`)
-        return request
+        const quote = quoteRequests.find((r) => r.equipmentId === equipmentId)
+        if (quote) this.updateQuoteRequestStatus(quote.id, 'CATEGORISEE')
+        notify('ADMIN', `${eq?.name} catégorisé en ${category}`)
       },
     }
-  }, [equipment, inspections, reports, rentalRequests, notifications])
+  }, [equipment, inspections, reports, quoteRequests, notifications])
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
 }
