@@ -197,8 +197,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
 
       rateEquipment(equipmentId: string, rating: EquipmentRating) {
+        const tier: Equipment['tier'] = rating === 'STANDARD' ? 'BASIC' : rating
         setEquipment((prev) =>
-          prev.map((e) => (e.id === equipmentId ? { ...e, rating } : e)),
+          prev.map((e) => (e.id === equipmentId ? { ...e, rating, tier } : e)),
         )
         const eq = equipment.find((e) => e.id === equipmentId)
         notify('SUPPLIER', `${eq?.name} notée ${rating} sur VOLTA`)
