@@ -8,6 +8,18 @@ export type InspectionStatus = 'A_ASSIGNER' | 'ASSIGNEE' | 'EN_COURS' | 'TERMINE
 
 export type Role = 'ADMIN' | 'SUPPLIER' | 'TECHNICAL' | 'CLIENT'
 
+export type EquipmentTier = 'GOLD' | 'SILVER' | 'BASIC'
+
+export interface Review {
+  id: string
+  equipmentId: string
+  author: string
+  rating: number
+  comment: string
+  date: string
+  verified: boolean
+}
+
 export interface User {
   id: string
   name: string
@@ -49,6 +61,8 @@ export interface Equipment {
   createdAt: string
   pricePerDay?: number
   level?: 'BASIC' | 'STANDARD' | 'PREMIUM'
+  tier: EquipmentTier
+  likes: number
 }
 
 export type CheckResult = 'CONFORME' | 'A_SURVEILLER' | 'NON_CONFORME' | null

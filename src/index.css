@@ -24,3 +24,54 @@ body {
   background: #f8fafc;
   color: #0f172a;
 }
+
+/* GOLD badge: premium gradient with subtle moving shine */
+.tier-gold {
+  background: linear-gradient(120deg, #fef3c7, #fbbf24, #f59e0b, #fbbf24, #fef3c7);
+  background-size: 250% 100%;
+  animation: gold-shine 3.5s ease-in-out infinite;
+}
+
+@keyframes gold-shine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.6); }
+  100% { transform: scale(1); }
+}
+
+.animate-heart-pop {
+  animation: heart-pop 0.4s ease-out;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out backwards;
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.3s ease-out;
+}

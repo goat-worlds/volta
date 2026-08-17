@@ -7,6 +7,7 @@ import type {
   QuoteRequest,
   Notification,
   ChecklistItem,
+  Review,
 } from './types'
 
 export const CHECKLIST_TEMPLATE: ChecklistItem[] = [
@@ -67,6 +68,8 @@ export const equipment: Equipment[] = [
     category: 'A',
     declaredCondition: 'Très bon état',
     createdAt: '2026-05-10',
+    tier: 'GOLD',
+    likes: 128,
   },
   {
     id: 'eq-2',
@@ -85,6 +88,8 @@ export const equipment: Equipment[] = [
     category: 'B',
     declaredCondition: 'Bon état',
     createdAt: '2026-05-12',
+    tier: 'SILVER',
+    likes: 86,
   },
   {
     id: 'eq-3',
@@ -103,6 +108,8 @@ export const equipment: Equipment[] = [
     category: null,
     declaredCondition: 'Très bon état',
     createdAt: '2026-05-14',
+    tier: 'GOLD',
+    likes: 94,
   },
   {
     id: 'eq-4',
@@ -121,6 +128,8 @@ export const equipment: Equipment[] = [
     category: null,
     declaredCondition: 'Bon état',
     createdAt: '2026-05-15',
+    tier: 'BASIC',
+    likes: 31,
   },
   {
     id: 'eq-5',
@@ -139,6 +148,8 @@ export const equipment: Equipment[] = [
     category: null,
     declaredCondition: 'Bon état',
     createdAt: '2026-08-10',
+    tier: 'SILVER',
+    likes: 57,
   },
   {
     id: 'eq-6',
@@ -157,6 +168,8 @@ export const equipment: Equipment[] = [
     category: null,
     declaredCondition: 'Très bon état',
     createdAt: '2026-08-11',
+    tier: 'BASIC',
+    likes: 22,
   },
 ]
 
@@ -210,6 +223,19 @@ export const inspections: Inspection[] = [
 ]
 
 export const reports: Report[] = []
+
+export const reviews: Review[] = [
+  { id: 'rv-1', equipmentId: 'eq-1', author: 'Jean Konan', rating: 5, comment: 'Très bon état et conforme aux informations présentées. Livraison rapide sur chantier.', date: '2026-07-28', verified: true },
+  { id: 'rv-2', equipmentId: 'eq-1', author: 'Mariam Touré', rating: 5, comment: 'Pelle puissante, aucun souci pendant 3 semaines de terrassement.', date: '2026-07-14', verified: true },
+  { id: 'rv-3', equipmentId: 'eq-1', author: 'Ibrahim Sanogo', rating: 4, comment: 'Bon matériel, quelques heures au compteur mais très bien entretenu.', date: '2026-06-30', verified: false },
+  { id: 'rv-4', equipmentId: 'eq-2', author: 'Aya Brou', rating: 5, comment: 'Machine impeccable, le fournisseur est très réactif.', date: '2026-07-20', verified: true },
+  { id: 'rv-5', equipmentId: 'eq-2', author: 'Franck Ouattara', rating: 4, comment: 'Conforme au rapport d\'inspection VOLTA. Je recommande.', date: '2026-07-02', verified: true },
+  { id: 'rv-6', equipmentId: 'eq-3', author: 'Sika Assi', rating: 5, comment: 'Tombereau très fiable pour le transport de latérite.', date: '2026-07-25', verified: true },
+  { id: 'rv-7', equipmentId: 'eq-3', author: 'Moussa Camara', rating: 4, comment: 'Bonne capacité, consommation raisonnable.', date: '2026-06-18', verified: false },
+  { id: 'rv-8', equipmentId: 'eq-4', author: 'Paul N\'Guessan', rating: 4, comment: 'Bulldozer robuste, parfait pour le défrichage.', date: '2026-07-10', verified: true },
+  { id: 'rv-9', equipmentId: 'eq-5', author: 'Adjoua Kouamé', rating: 4, comment: 'Pelle lourde efficace sur notre carrière.', date: '2026-07-05', verified: true },
+  { id: 'rv-10', equipmentId: 'eq-6', author: 'Serge Yao', rating: 5, comment: 'Tractopelle récente et très maniable en zone urbaine.', date: '2026-08-01', verified: true },
+]
 
 export const notifications: Notification[] = [
   { id: 'n-1', role: 'SUPPLIER', message: 'Nouvelle demande de devis DV-2026-001', date: '2026-08-12', read: false },
