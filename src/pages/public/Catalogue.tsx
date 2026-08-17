@@ -24,7 +24,7 @@ export default function Catalogue() {
       {/* Explanation Banner */}
       <Card className="mb-8 p-4 bg-brand-50 border border-brand-200">
         <div className="flex gap-4">
-          <div className="text-3xl">ℹ️</div>
+          <img src="/assets/check.svg" alt="ℹ️" className="w-8 h-8" />
           <div>
             <h3 className="font-bold text-slate-900 mb-1">Comment fonctionne VOLTA?</h3>
             <p className="text-sm text-slate-700">
@@ -111,13 +111,13 @@ export default function Catalogue() {
                   {/* Category Badge - Inspection Result */}
                   {e.category && (
                     <div className="mb-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
-                      <div className="text-xs text-slate-600 mb-1">📊 Évaluation technique VOLTA</div>
+                      <div className="text-xs text-slate-600 mb-1"><img src="/assets/check.svg" alt="📊" className="w-3 h-3 inline mr-1" />Évaluation technique VOLTA</div>
                       <CategoryBadge category={e.category} />
                     </div>
                   )}
                   {!e.category && (
                     <div className="mb-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
-                      <div className="text-xs text-amber-700">⏳ En cours d'inspection VOLTA</div>
+                      <div className="text-xs text-amber-700"><img src="/assets/loading.svg" alt="⏳" className="w-3 h-3 inline mr-1 animate-spin" />En cours d'inspection VOLTA</div>
                     </div>
                   )}
 
@@ -156,7 +156,7 @@ export default function Catalogue() {
       {/* Model Explanation Section */}
       <div className="mt-16 mb-12">
         <div className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border-l-4 border-l-accent-500">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">💡 Le modèle VOLTA expliqué</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="💡" className="w-6 h-6 inline mr-2" />Le modèle VOLTA expliqué</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div>
               <div className="font-bold text-slate-900 mb-2">🔍 VOLTA = Inspecteur</div>
@@ -210,9 +210,9 @@ export default function Catalogue() {
                 <h2 className="text-xl font-bold">Demander un devis</h2>
                 <button
                   onClick={() => setQuoteFormOpen(null)}
-                  className="text-2xl text-slate-400 hover:text-slate-600"
+                  className="text-slate-400 hover:text-slate-600"
                 >
-                  ✕
+                  <img src="/assets/close.svg" alt="Fermer" className="w-6 h-6" />
                 </button>
               </div>
 

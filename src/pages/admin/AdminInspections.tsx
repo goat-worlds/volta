@@ -58,7 +58,7 @@ export default function AdminInspections() {
                   <tr key={insp.id}>
                     <td className="px-4 py-3 font-medium">
                       <Link to={`/equipment/${insp.equipmentId}`} className="text-brand-600 hover:underline">
-                        {eq?.name ?? 'Équipement'} →
+                        {eq?.name ?? 'Équipement'}
                       </Link>
                     </td>
                     <td className="px-4 py-3">{quote?.reference}</td>

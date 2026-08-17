@@ -29,7 +29,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">👨‍💼 Administration VOLTA</h1>
+          <h1 className="text-3xl font-bold text-white"><img src="/assets/check.svg" alt="👨‍💼" className="w-8 h-8 inline mr-2" />Administration VOLTA</h1>
           <p className="text-slate-400 mt-1">Contrôle et gestion plateforme</p>
         </div>
 
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
                             <div className="text-xs text-slate-400 mt-1">{eq?.name}</div>
                             {insp && (
                               <div className="text-xs text-amber-400 mt-1">
-                                📋 Inspection: {insp.status}
+                                <img src="/assets/check.svg" alt="📋" className="w-3 h-3 inline mr-1" />Inspection: {insp.status}
                               </div>
                             )}
                           </div>
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="font-semibold text-white">{qr.reference}</div>
                             <div className="text-xs text-slate-400 mt-1">{eq?.name}</div>
-                            <div className="text-xs text-emerald-400 mt-1">📊 Rapport reçu</div>
+                            <div className="text-xs text-emerald-400 mt-1"><img src="/assets/check.svg" alt="📊" className="w-3 h-3 inline mr-1" />Rapport reçu</div>
                           </div>
                           <Link
                             to={`/admin/validate/${qr.id}`}
@@ -189,9 +189,10 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 <Link
                   to="/admin/quotes"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500"
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500 flex items-center justify-center gap-2"
                 >
-                  📋 Toutes les demandes
+                  <img src="/assets/check.svg" alt="List" className="w-4 h-4" />
+                  Toutes les demandes
                 </Link>
                 <Link
                   to="/admin/inspections"
@@ -205,7 +206,7 @@ export default function AdminDashboard() {
             {/* Platform Info */}
             <Card dark className="p-6 bg-gradient-to-br from-brand-600/20 to-brand-700/20 border border-brand-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-2xl">ℹ️</span>
+                <img src="/assets/check.svg" alt="ℹ️" className="w-6 h-6" />
                 <span className="text-accent-600">Modèle VOLTA</span>
               </h2>
               <div className="space-y-2 text-xs text-slate-300">

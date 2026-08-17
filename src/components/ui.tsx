@@ -91,7 +91,6 @@ export function StatCard({ label, value, accent = 'text-brand-700' }: { label: s
 export function EmptyState({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-      <div className="text-3xl">📭</div>
       <div className="mt-2 font-semibold text-slate-700">{title}</div>
       {subtitle && <div className="mt-1 text-sm text-slate-700">{subtitle}</div>}
     </div>
@@ -136,7 +135,7 @@ export function Modal({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-bold">{title}</h3>
           <button onClick={onClose} className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-600">
-            ✕
+            <img src="/assets/close.svg" alt="Fermer" className="w-5 h-5" />
           </button>
         </div>
         {children}

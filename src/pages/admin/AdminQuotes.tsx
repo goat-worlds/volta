@@ -43,13 +43,13 @@ export default function AdminQuotes() {
                     <p className="mt-1 text-sm text-slate-600">
                       Équipement :{' '}
                       <Link to={`/equipment/${qr.equipmentId}`} className="font-semibold text-brand-600 hover:underline">
-                        {eq?.name ?? 'Équipement'} →
+                        {eq?.name ?? 'Équipement'}
                       </Link>
                     </p>
                     <p className="text-sm text-slate-600">Client : {qr.clientName} ({qr.clientCompany})</p>
                     <p className="text-sm text-slate-600">Fournisseur : {supplier?.company}</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {qr.duration} · {qr.requestedDate} · 📍 {qr.location}
+                      {qr.duration} · {qr.requestedDate} · <img src="/assets/check.svg" alt="📍" className="w-3 h-3 inline" /> {qr.location}
                     </p>
                   </div>
 
@@ -58,11 +58,11 @@ export default function AdminQuotes() {
                       <button
                         onClick={() => {
                           updateQuoteRequestStatus(qr.id, 'TRANSMISE')
-                          showToast(`${qr.reference} transmise au fournisseur ✔`)
+                          showToast(`${qr.reference} transmise au fournisseur <img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline" />`)
                         }}
                         className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
                       >
-                        📩 Transmettre au fournisseur
+                        <img src="/assets/check.svg" alt="📩" className="w-4 h-4 inline mr-1" />Transmettre au fournisseur
                       </button>
                     )}
                     {(qr.status === 'NOUVELLE' || qr.status === 'TRANSMISE') && (
@@ -79,23 +79,23 @@ export default function AdminQuotes() {
                         <button
                           onClick={() => {
                             assignInspection(qr.id, tech)
-                            showToast(`Inspection assignée pour ${qr.reference} ✔`)
+                            showToast(`Inspection assignée pour ${qr.reference} <img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline" />`)
                           }}
                           disabled={!tech}
                           className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
                         >
-                          🔍 Assigner l'inspection
+                          <img src="/assets/check.svg" alt="🔍" className="w-4 h-4 inline mr-1" />Assigner l'inspection
                         </button>
                       </div>
                     )}
                     {qr.status === 'EN_INSPECTION' && (
                       <Link to="/admin/inspections" className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
-                        Suivre l'inspection →
+                        Suivre l'inspection
                       </Link>
                     )}
                     {qr.status === 'RAPPORT_REÇU' && (
                       <Link to={`/admin/validate/${qr.id}`} className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600">
-                        📊 Valider le rapport
+                        <img src="/assets/check.svg" alt="📊" className="w-4 h-4 inline mr-1" />Valider le rapport
                       </Link>
                     )}
                   </div>

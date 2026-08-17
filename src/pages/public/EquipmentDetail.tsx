@@ -100,7 +100,7 @@ export default function EquipmentDetail() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <TierBadge tier={eq.tier} />
             <StarRating value={rating.average} count={rating.count} />
-            <span className="text-sm font-semibold text-rose-500">♥ {eq.likes}</span>
+            <span className="text-sm font-semibold text-rose-500"><img src="/assets/heart.svg" alt="♥" className="w-4 h-4 inline" /> {eq.likes}</span>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -130,7 +130,7 @@ export default function EquipmentDetail() {
               <div className="flex-1">
                 <div className="text-sm font-semibold text-slate-500">Fournisseur</div>
                 <div className="font-bold text-slate-900">{supplier?.company}</div>
-                <div className="mt-1 text-xs text-slate-600">📞 {supplier?.phone} • 📧 {supplier?.email}</div>
+                <div className="mt-1 text-xs text-slate-600"><img src="/assets/check.svg" alt="📞" className="w-3 h-3 inline mr-1" />{supplier?.phone} • <img src="/assets/check.svg" alt="📧" className="w-3 h-3 inline mr-1" />{supplier?.email}</div>
               </div>
               <Link
                 to="/fournisseurs"
@@ -199,7 +199,7 @@ export default function EquipmentDetail() {
           ) : inspection ? (
             <Card className="p-6">
               <div className="text-sm text-slate-600">
-                🔬 Inspection {inspection.status === 'TERMINEE' || inspection.status === 'DONE' ? 'terminée' : 'en cours'} par l'équipe technique VOLTA (assignée le {inspection.assignedAt}).
+                <img src="/assets/check.svg" alt="🔬" className="w-4 h-4 inline mr-1" />Inspection {inspection.status === 'TERMINEE' || inspection.status === 'DONE' ? 'terminée' : 'en cours'} par l'équipe technique VOLTA (assignée le {inspection.assignedAt}).
               </div>
             </Card>
           ) : eq.category ? (
@@ -213,7 +213,7 @@ export default function EquipmentDetail() {
             </Card>
           ) : (
             <Card className="border-amber-200 bg-amber-50 p-6">
-              <div className="text-sm text-amber-700">⏳ Inspection VOLTA en attente pour cet équipement.</div>
+              <div className="text-sm text-amber-700"><img src="/assets/loading.svg" alt="⏳" className="w-4 h-4 inline mr-1 animate-spin" />Inspection VOLTA en attente pour cet équipement.</div>
             </Card>
           )}
 
@@ -283,7 +283,7 @@ export default function EquipmentDetail() {
                 onClick={() => setModalOpen(false)}
                 className="text-2xl text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <img src="/assets/close.svg" alt="✕" className="w-6 h-6" />
               </button>
             </div>
 

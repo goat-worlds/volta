@@ -19,7 +19,7 @@ export default function TechnicalMissions() {
 
   return (
     <div className="mx-auto max-w-5xl p-6 lg:p-8">
-      <Link to="/technical-dashboard" className="text-sm font-medium text-brand-600 hover:underline">← Retour au tableau de bord</Link>
+      <Link to="/technical-dashboard" className="text-sm font-medium text-brand-600 hover:underline">Retour au tableau de bord</Link>
       <div className="mt-2">
         <PageTitle
           title="Missions d'inspection"
@@ -47,7 +47,7 @@ export default function TechnicalMissions() {
                         {status.label}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-600">{eq?.brand} {eq?.model} · {eq?.year} · 📍 {eq?.location}</p>
+                    <p className="mt-1 text-sm text-slate-600">{eq?.brand} {eq?.model} · {eq?.year} · <img src="/assets/check.svg" alt="📍" className="w-3 h-3 inline" /> {eq?.location}</p>
                     <p className="text-xs text-slate-500">Fournisseur : {supplier?.company} · Assignée le {insp.assignedAt}</p>
                     <p className="mt-1 text-xs text-slate-500">Checklist : {filled} / {insp.checklist.length}</p>
                   </div>

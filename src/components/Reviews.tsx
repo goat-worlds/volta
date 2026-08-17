@@ -3,9 +3,15 @@ import { StarRating } from './product'
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="text-amber-500">
-      {'★'.repeat(rating)}
-      <span className="text-slate-300">{'★'.repeat(5 - rating)}</span>
+    <span className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <img
+          key={i}
+          src="/assets/star.svg"
+          alt="★"
+          className={`w-4 h-4 ${i < rating ? 'text-amber-500' : 'text-slate-300'}`}
+        />
+      ))}
     </span>
   )
 }
@@ -39,8 +45,9 @@ export default function Reviews({ equipmentId }: { equipmentId: string }) {
                 </span>
                 <span className="font-semibold text-slate-800">{r.author}</span>
                 {r.verified && (
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600 ring-1 ring-emerald-200">
-                    ✓ Client vérifié
+                  <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600 ring-1 ring-emerald-200">
+                    <img src="/assets/check.svg" alt="✓" className="w-3 h-3" />
+                    Client vérifié
                   </span>
                 )}
               </div>

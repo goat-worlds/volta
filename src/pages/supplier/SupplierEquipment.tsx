@@ -26,7 +26,7 @@ export default function SupplierEquipment() {
 
       {/* Mes équipements */}
       <div className="mb-12">
-        <h2 className="text-xl font-bold text-slate-900 mb-4">🚜 Mes équipements</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="🚜" className="w-5 h-5 inline mr-2" />Mes équipements</h2>
         {myEquipment.length === 0 ? (
           <Card className="p-8 text-center bg-slate-50">
             <div className="text-4xl mb-3">📭</div>
@@ -46,17 +46,17 @@ export default function SupplierEquipment() {
                         eq.status === 'EN_INSPECTION' ? 'bg-amber-100 text-amber-700' :
                         'bg-blue-100 text-blue-700'
                       }`}>
-                        {eq.status === 'DISPONIBLE' && '✓ Disponible'}
-                        {eq.status === 'EN_INSPECTION' && '⏳ En inspection'}
-                        {eq.status === 'CATEGORISE' && '✔ Catégorisé'}
-                        {eq.status === 'INDISPONIBLE' && '✗ Indisponible'}
+                        {eq.status === 'DISPONIBLE' && '<img src="/assets/check.svg" alt="✓" className="w-3 h-3 inline mr-1" />Disponible'}
+                        {eq.status === 'EN_INSPECTION' && '<img src="/assets/loading.svg" alt="⏳" className="w-3 h-3 inline mr-1 animate-spin" />En inspection'}
+                        {eq.status === 'CATEGORISE' && '<img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline mr-1" />Catégorisé'}
+                        {eq.status === 'INDISPONIBLE' && '<img src="/assets/close.svg" alt="✗" className="w-3 h-3 inline mr-1" />Indisponible'}
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 mt-1">{eq.brand} {eq.model} • {eq.year} • {eq.hours}h</p>
                     {eq.category && (
                       <p className="text-sm text-slate-600 mt-2">
                         Catégorie VOLTA: <span className="font-bold">{eq.category}</span>
-                        {eq.rating && ` • Note: ${eq.rating === 'GOLD' ? '⭐ Or' : eq.rating === 'SILVER' ? '✓ Argent' : 'Standard'}`}
+                        {eq.rating && ` • Note: ${eq.rating === 'GOLD' ? '<img src="/assets/star.svg" alt="⭐" className="w-4 h-4 inline" /> Or' : eq.rating === 'SILVER' ? '<img src="/assets/check.svg" alt="✓" className="w-3 h-3 inline mr-1" />Argent' : 'Standard'}`}
                       </p>
                     )}
                   </div>
@@ -64,7 +64,7 @@ export default function SupplierEquipment() {
                     to={`/equipment/${eq.id}`}
                     className="px-4 py-2 rounded-lg text-brand-600 border-2 border-brand-600 hover:bg-brand-50 transition font-medium"
                   >
-                    Voir →
+                    Voir
                   </Link>
                 </div>
               </Card>
@@ -75,7 +75,7 @@ export default function SupplierEquipment() {
 
       {/* Demandes de devis */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900 mb-4">📋 Demandes de devis reçues</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="📋" className="w-5 h-5 inline mr-2" />Demandes de devis reçues</h2>
 
         {myRequests.length === 0 ? (
           <Card className="p-8 text-center bg-slate-50">
@@ -98,7 +98,7 @@ export default function SupplierEquipment() {
                       <p className="text-sm text-slate-600 mt-1">
                         Équipement:{' '}
                         <Link to={`/equipment/${qr.equipmentId}`} className="font-semibold text-brand-600 hover:underline">
-                          {eq?.name} →
+                          {eq?.name}
                         </Link>
                       </p>
                     </div>
@@ -114,12 +114,12 @@ export default function SupplierEquipment() {
                       <p className="text-xs text-slate-500 uppercase tracking-wide">Contact</p>
                       <p className="text-sm">
                         <a href={`tel:${qr.clientPhone}`} className="text-brand-600 hover:underline">
-                          📞 {qr.clientPhone}
+                          <img src="/assets/check.svg" alt="📞" className="w-3 h-3 inline mr-1" />{qr.clientPhone}
                         </a>
                       </p>
                       <p className="text-sm">
                         <a href={`mailto:${qr.clientEmail}`} className="text-brand-600 hover:underline">
-                          📧 {qr.clientEmail}
+                          <img src="/assets/check.svg" alt="📧" className="w-3 h-3 inline mr-1" />{qr.clientEmail}
                         </a>
                       </p>
                     </div>
@@ -152,7 +152,7 @@ export default function SupplierEquipment() {
                   )}
 
                   <div className="text-xs text-slate-500">
-                    💡 Contactez le client directement pour négocier les tarifs et conditions.
+                    <img src="/assets/check.svg" alt="💡" className="w-3 h-3 inline mr-1" />Contactez le client directement pour négocier les tarifs et conditions.
                   </div>
                 </Card>
               )

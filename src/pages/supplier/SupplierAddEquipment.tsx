@@ -34,7 +34,7 @@ export default function SupplierAddEquipment() {
     e.preventDefault()
 
     if (!form.name || !form.brand || !form.model) {
-      setToast('⚠️ Remplissez tous les champs obligatoires')
+      setToast('Remplissez tous les champs obligatoires')
       return
     }
 
@@ -65,7 +65,7 @@ export default function SupplierAddEquipment() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Identité de l'équipement */}
           <div>
-            <h3 className="font-bold text-slate-900 mb-4">📋 Identité de l'équipement</h3>
+            <h3 className="font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="📋" className="w-5 h-5 inline mr-2" />Identité de l'équipement</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -147,7 +147,7 @@ export default function SupplierAddEquipment() {
 
           {/* État technique */}
           <div className="border-t border-slate-200 pt-6">
-            <h3 className="font-bold text-slate-900 mb-4">🔧 État technique</h3>
+            <h3 className="font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="🔧" className="w-5 h-5 inline mr-2" />État technique</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -184,7 +184,7 @@ export default function SupplierAddEquipment() {
 
           {/* Localisation et description */}
           <div className="border-t border-slate-200 pt-6">
-            <h3 className="font-bold text-slate-900 mb-4">📍 Localisation & Description</h3>
+            <h3 className="font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="📍" className="w-5 h-5 inline mr-2" />Localisation & Description</h3>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Localisation
@@ -219,7 +219,7 @@ export default function SupplierAddEquipment() {
           {/* Info importante */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>ℹ️ Important:</strong> Après soumission, votre équipement sera inspecté par l'équipe technique VOLTA.
+              <strong><img src="/assets/check.svg" alt="ℹ️" className="w-4 h-4 inline mr-1" />Important:</strong> Après soumission, votre équipement sera inspecté par l'équipe technique VOLTA.
               Une fois l'inspection terminée et approuvée par l'administrateur, il sera catégorisé (A à E) et apparaîtra
               dans le catalogue public avec la notation assignée (Gold, Silver, ou Standard).
             </p>
@@ -230,9 +230,14 @@ export default function SupplierAddEquipment() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-3 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 disabled:opacity-50 transition"
+              className="flex-1 px-6 py-3 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
             >
-              {loading ? 'Envoi...' : '✔ Soumettre pour inspection'}
+              {loading ? 'Envoi...' : (
+                <>
+                  <img src="/assets/check.svg" alt="Submit" className="w-4 h-4" />
+                  Soumettre pour inspection
+                </>
+              )}
             </button>
             <Link
               to="/supplier/equipment"

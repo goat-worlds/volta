@@ -38,7 +38,7 @@ function Sidebar({
         ))}
       </nav>
       <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-400">
-        🔔 {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
+        {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
       </div>
     </aside>
   )
@@ -52,10 +52,10 @@ export function SupplierLayout() {
         color="bg-brand-600"
         role="SUPPLIER"
         links={[
-          { to: '/supplier', label: '📊 Tableau de bord', end: true },
-          { to: '/supplier/equipment', label: '🚜 Mes engins', end: true },
-          { to: '/supplier/equipment/new', label: '➕ Ajouter un engin' },
-          { to: '/supplier/requests', label: '📩 Demandes reçues' },
+          { to: '/supplier', label: 'Tableau de bord', end: true },
+          { to: '/supplier/equipment', label: 'Mes engins', end: true },
+          { to: '/supplier/equipment/new', label: 'Ajouter un engin' },
+          { to: '/supplier/requests', label: 'Demandes reçues' },
         ]}
       />
       <main className="flex-1 p-6 lg:p-8">
@@ -73,12 +73,12 @@ export function AdminLayout() {
         color="bg-indigo-600"
         role="ADMIN"
         links={[
-          { to: '/admin', label: '📊 Tableau de bord', end: true },
-          { to: '/admin/equipment', label: '🚜 Engins' },
-          { to: '/admin/inspections', label: '🔍 Inspections' },
-          { to: '/admin/reports', label: '📄 Rapports' },
-          { to: '/admin/requests', label: '📩 Demandes' },
-          { to: '/admin/users', label: '👥 Utilisateurs' },
+          { to: '/admin', label: 'Tableau de bord', end: true },
+          { to: '/admin/equipment', label: 'Engins' },
+          { to: '/admin/inspections', label: 'Inspections' },
+          { to: '/admin/reports', label: 'Rapports' },
+          { to: '/admin/requests', label: 'Demandes' },
+          { to: '/admin/users', label: 'Utilisateurs' },
         ]}
       />
       <main className="flex-1 p-6 lg:p-8">
@@ -96,8 +96,8 @@ export function TechnicalLayout() {
         color="bg-emerald-600"
         role="TECHNICAL"
         links={[
-          { to: '/technical', label: '📊 Tableau de bord', end: true },
-          { to: '/technical/missions', label: '🧰 Missions' },
+          { to: '/technical', label: 'Tableau de bord', end: true },
+          { to: '/technical/missions', label: 'Missions' },
         ]}
       />
       <main className="flex-1 p-6 lg:p-8">
@@ -122,16 +122,15 @@ export function PublicLayout() {
           <span className="text-lg font-bold text-slate-900">VOLTA</span>
         </Link>
         <nav className="flex flex-col gap-1">
-          <NavLink to="/" end className={publicNavClass}>🏠 Accueil</NavLink>
-          <NavLink to="/catalogue" className={publicNavClass}>🚜 Équipements</NavLink>
-          <NavLink to="/fournisseurs" className={publicNavClass}>🏢 Fournisseurs</NavLink>
+          <NavLink to="/" end className={publicNavClass}>Accueil</NavLink>
+          <NavLink to="/catalogue" className={publicNavClass}>Équipements</NavLink>
+          <NavLink to="/fournisseurs" className={publicNavClass}>Fournisseurs</NavLink>
         </nav>
         <div className="mt-6 border-t border-slate-200 pt-4 flex-1">
           <div className="space-y-3">
             {/* Supplier Portal */}
             <NavLink to="/supplier" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-brand-50 border border-brand-200' : 'hover:bg-slate-50 border border-transparent'}`}>
               <div className="font-semibold text-slate-900 flex items-center gap-2">
-                <span className="text-xl">📦</span>
                 Espace Fournisseur
               </div>
               <p className="text-xs text-slate-600 leading-tight">
@@ -142,7 +141,6 @@ export function PublicLayout() {
             {/* Technical Portal */}
             <NavLink to="/technical" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-emerald-50 border border-emerald-200' : 'hover:bg-slate-50 border border-transparent'}`}>
               <div className="font-semibold text-slate-900 flex items-center gap-2">
-                <span className="text-xl">🔬</span>
                 Équipe Technique
               </div>
               <p className="text-xs text-slate-600 leading-tight">
@@ -153,7 +151,6 @@ export function PublicLayout() {
             {/* Admin Portal */}
             <NavLink to="/admin" className={({ isActive }) => `group relative flex flex-col gap-1.5 rounded-lg p-3 transition ${isActive ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-slate-50 border border-transparent'}`}>
               <div className="font-semibold text-slate-900 flex items-center gap-2">
-                <span className="text-xl">⚙️</span>
                 Administration
               </div>
               <p className="text-xs text-slate-600 leading-tight">
@@ -166,7 +163,7 @@ export function PublicLayout() {
         {/* Services Promo */}
         <div className="mt-auto space-y-3">
           <div className="rounded-lg bg-gradient-to-br from-brand-50 to-brand-100 p-4 border border-brand-200">
-            <div className="font-bold text-slate-900 mb-2">✨ VOLTA Premium</div>
+            <div className="font-bold text-slate-900 mb-2">VOLTA Premium</div>
             <p className="text-xs text-slate-700 leading-snug mb-3">
               Accédez à des services exclusifs: support VIP 24/7, inspection technique complète, assurance équipements
             </p>

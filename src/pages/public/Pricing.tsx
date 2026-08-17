@@ -21,7 +21,7 @@ export default function Pricing() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-8">
-              <div className="text-4xl mb-4">🔍</div>
+              <img src="/assets/check.svg" alt="🔍" className="w-10 h-10 mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">VOLTA inspecte</h3>
               <p className="text-slate-700">
                 Nous inspectons chaque équipement et assignons une catégorie (A/B/C/D/E) basée sur l'état technique.
@@ -29,7 +29,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8">
-              <div className="text-4xl mb-4">🤝</div>
+              <img src="/assets/check.svg" alt="🤝" className="w-10 h-10 mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">Vous négociez</h3>
               <p className="text-slate-700">
                 Contactez directement le fournisseur. Les tarifs et conditions sont convenus entre vous.
@@ -37,7 +37,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8">
-              <div className="text-4xl mb-4">💰</div>
+              <img src="/assets/check.svg" alt="💰" className="w-10 h-10 mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">Zéro commission</h3>
               <p className="text-slate-700">
                 VOLTA ne prend aucun fonds. Vous gardez 100% du contrôle sur les tarifs et les négociations.
@@ -56,7 +56,7 @@ export default function Pricing() {
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-8 border-l-4 border-green-600">
-              <div className="text-3xl mb-4">🔧</div>
+              <img src="/assets/check.svg" alt="🔧" className="w-8 h-8 mb-4" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Mécanicien Qualifié</h3>
               <p className="text-slate-700 text-sm">
                 Certification professionnelle vérifiée. Disponible pour maintenance et réparations urgentes.
@@ -64,7 +64,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-blue-600">
-              <div className="text-3xl mb-4">🏭</div>
+              <img src="/assets/IMAGE1.jpg" alt="🏭" className="w-8 h-8 rounded mb-4" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Entrepôt Équipé</h3>
               <p className="text-slate-700 text-sm">
                 Stock permanent de pièces de rechange et outils nécessaires.
@@ -72,7 +72,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-purple-600">
-              <div className="text-3xl mb-4">✓</div>
+              <img src="/assets/check.svg" alt="✓" className="w-8 h-8 mb-4" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Certifié VOLTA</h3>
               <p className="text-slate-700 text-sm">
                 Respect des normes qualité et inspections techniques complètes.
@@ -120,13 +120,13 @@ export default function Pricing() {
                 href="mailto:support@volta.ci"
                 className="px-8 py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition"
               >
-                📧 Contacter le support
+                <img src="/assets/check.svg" alt="📧" className="w-4 h-4 inline mr-2" />Contacter le support
               </a>
               <a
                 href="tel:+22507000001"
                 className="px-8 py-3 rounded-lg border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-50 transition"
               >
-                📞 Appeler maintenant
+                <img src="/assets/check.svg" alt="📞" className="w-4 h-4 inline mr-2" />Appeler maintenant
               </a>
             </div>
           </div>

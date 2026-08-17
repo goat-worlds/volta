@@ -123,7 +123,7 @@ export default function Login() {
               disabled={isLoading || !email || !password}
               className={`w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${isLoading ? 'bg-accent-200' : 'bg-accent-500 hover:bg-accent-600'}`}
             >
-              {isLoading ? '⏳ Connexion...' : '🔓 Se connecter'}
+              {isLoading ? '<img src="/assets/loading.svg" alt="⏳" className="w-4 h-4 inline mr-2 animate-spin" />Connexion...' : '<img src="/assets/check.svg" alt="🔓" className="w-4 h-4 inline mr-2" />Se connecter'}
             </button>
           </form>
         </Card>
@@ -140,10 +140,10 @@ export default function Login() {
                 onClick={() => handleDemoLogin(account)}
                 className="p-3 rounded-lg bg-white/10 hover:bg-white/20 text-white transition transform hover:scale-105 border border-white/20 text-sm font-medium"
               >
-                <div className="font-bold">{account.role === 'CLIENT' ? '👤 Client' :
-                                              account.role === 'SUPPLIER' ? '🏭 Fournisseur' :
-                                              account.role === 'TECHNICAL' ? '🔧 Technique' :
-                                              '👨‍💼 Admin'}</div>
+                <div className="font-bold">{account.role === 'CLIENT' ? '<img src="/assets/check.svg" alt="👤" className="w-4 h-4 inline mr-1" />Client' :
+                                              account.role === 'SUPPLIER' ? '<img src="/assets/IMAGE1.jpg" alt="🏭" className="w-4 h-4 rounded inline mr-1" />Fournisseur' :
+                                              account.role === 'TECHNICAL' ? '<img src="/assets/check.svg" alt="🔧" className="w-4 h-4 inline mr-1" />Technique' :
+                                              '<img src="/assets/check.svg" alt="👨‍💼" className="w-4 h-4 inline mr-1" />Admin'}</div>
                 <div className="text-xs text-brand-100 mt-1">{account.company}</div>
               </button>
             ))}
@@ -153,7 +153,7 @@ export default function Login() {
         {/* Info Box */}
         <div className="p-4 bg-brand-50 border-l-4 rounded-lg border-l-accent-500">
           <p className="text-xs text-slate-700 leading-relaxed">
-            <strong className="text-accent-600">💡 Info:</strong> Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.
+            <strong className="text-accent-600"><img src="/assets/check.svg" alt="💡" className="w-4 h-4 inline mr-1" />Info:</strong> Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.
           </p>
         </div>
       </div>

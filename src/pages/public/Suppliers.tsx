@@ -29,9 +29,9 @@ export default function Suppliers() {
   const regions = [...new Set(suppliers.map((s) => s.city))]
 
   const criteria = [
-    { icon: '🔧', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
-    { icon: '⚡', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
-    { icon: '🏭', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
+    { icon: '/assets/check.svg', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
+    { icon: '/assets/check.svg', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
+    { icon: '/assets/IMAGE1.jpg', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
   ]
 
   let filteredSuppliers = selectedRegion
@@ -306,7 +306,7 @@ export default function Suppliers() {
                           <div className="font-semibold text-slate-800">{s.city}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-700">🚜 Équipements</div>
+                          <div className="text-slate-700"><img src="/assets/IMAGE1.jpg" alt="Equipment" className="w-4 h-4 inline mr-1" />Équipements</div>
                           <div className="font-semibold text-slate-800">{count}</div>
                         </div>
                         <div className="text-sm">
@@ -321,14 +321,14 @@ export default function Suppliers() {
 
                       {/* Certifications */}
                       <div className="flex flex-wrap gap-2 mb-3">
-                        <span className="inline-block px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                          ✓ Certifié VOLTA
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                          <img src="/assets/check.svg" alt="✓" className="w-3 h-3" /> Certifié VOLTA
                         </span>
-                        <span className="inline-block px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-semibold">
-                          🔧 Mécanicien
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-semibold">
+                          <img src="/assets/check.svg" alt="🔧" className="w-3 h-3" /> Mécanicien
                         </span>
-                        <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
-                          🏭 Entrepôt équipé
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                          <img src="/assets/IMAGE1.jpg" alt="🏭" className="w-3 h-3 rounded" /> Entrepôt équipé
                         </span>
                       </div>
                     </div>
@@ -430,9 +430,9 @@ export default function Suppliers() {
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-3xl text-slate-600 hover:text-slate-600 transition"
+                className="text-slate-600 hover:text-slate-600 transition"
               >
-                ✕
+                <img src="/assets/close.svg" alt="Fermer" className="w-8 h-8" />
               </button>
             </div>
 
@@ -471,9 +471,10 @@ export default function Suppliers() {
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95 bg-accent-500"
+                className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95 bg-accent-500 flex items-center justify-center gap-2"
               >
-                📋 Soumettre ma demande
+                <img src="/assets/check.svg" alt="Submit" className="w-4 h-4" />
+                Soumettre ma demande
               </button>
             </form>
           </Card>

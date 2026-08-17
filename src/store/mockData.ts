@@ -37,12 +37,12 @@ export const users: User[] = [
 ]
 
 export const categories: Category[] = [
-  { id: 'c-pelle', name: 'Pelles hydrauliques', icon: '🚜' },
-  { id: 'c-chargeuse', name: 'Chargeuses', icon: '🏗️' },
-  { id: 'c-benne', name: 'Bennes', icon: '🚚' },
-  { id: 'c-bulldozer', name: 'Bulldozers', icon: '🛠️' },
-  { id: 'c-compacteur', name: 'Compacteurs', icon: '⚙️' },
-  { id: 'c-grue', name: 'Grues', icon: '🏙️' },
+  { id: 'c-pelle', name: 'Pelles hydrauliques', icon: '/assets/IMAGE2.jpg' },
+  { id: 'c-chargeuse', name: 'Chargeuses', icon: '/assets/IMAGE1.jpg' },
+  { id: 'c-benne', name: 'Bennes', icon: '/assets/IMAGE3.jpg' },
+  { id: 'c-bulldozer', name: 'Bulldozers', icon: '/assets/IMAGE2.jpg' },
+  { id: 'c-compacteur', name: 'Compacteurs', icon: '/assets/IMAGE1.jpg' },
+  { id: 'c-grue', name: 'Grues', icon: '/assets/IMAGE3.jpg' },
 ]
 
 const photo = (seed: string) => `https://picsum.photos/seed/${seed}/640/420`

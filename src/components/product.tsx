@@ -24,7 +24,7 @@ export function TierBadge({ tier, size = 'sm' }: { tier: EquipmentTier; size?: '
       <span
         className={`tier-gold relative inline-flex items-center gap-1 overflow-hidden rounded-full font-extrabold uppercase text-amber-900 shadow-md ${base}`}
       >
-        ✦ Gold
+        <img src="/assets/star.svg" alt="Gold" className="w-4 h-4" /> Gold
       </span>
     )
   }
@@ -50,7 +50,7 @@ export function StarRating({ value, count, compact = false }: { value: number; c
   if (!count) return <span className="text-xs text-slate-400">Pas encore d'avis</span>
   return (
     <span className="inline-flex items-center gap-1 text-sm">
-      <span className="text-amber-500">★</span>
+      <img src="/assets/star.svg" alt="★" className="w-4 h-4 text-amber-500" />
       <span className="font-semibold text-slate-800">{value.toFixed(1)}</span>
       {!compact && <span className="text-xs text-slate-500">({count} avis)</span>}
     </span>
@@ -86,7 +86,7 @@ export function LikeButton({
           : 'bg-white/90 text-slate-600 ring-1 ring-slate-200 hover:text-rose-500'
       } ${className}`}
     >
-      <span className={`inline-block ${pop ? 'animate-heart-pop' : ''}`}>{liked ? '♥' : '♡'}</span>
+      <img src={liked ? '/assets/heart.svg' : '/assets/heart-empty.svg'} alt={liked ? '♥' : '♡'} className={`inline-block w-4 h-4 ${pop ? 'animate-heart-pop' : ''}`} />
       <span>{likes}</span>
     </button>
   )
@@ -180,17 +180,17 @@ export function ProductCard({
 
         {gold && (
           <div className="mt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500">
-            <span>🕓 {e.hours.toLocaleString('fr-FR')} h</span>
-            <span>📅 {e.year}</span>
-            <span>🛠 {e.declaredCondition}</span>
-            {e.category && <span>📊 Cat. {e.category}</span>}
+            <span>{e.hours.toLocaleString('fr-FR')} h</span>
+            <span>{e.year}</span>
+            <span>{e.declaredCondition}</span>
+            {e.category && <span>Cat. {e.category}</span>}
           </div>
         )}
 
         <div className="mt-3 flex flex-1 flex-col justify-end gap-1 text-xs text-slate-600">
           <span>Fournisseur : {supplier?.company}</span>
           <span className="flex items-center gap-2">
-            📍 {e.location.split(',')[0]}
+            {e.location.split(',')[0]}
             {e.status === 'DISPONIBLE' || e.status === 'CATEGORISE' ? (
               <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Disponible

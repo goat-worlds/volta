@@ -24,7 +24,7 @@ export default function SupplierDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">🏭 Tableau de bord Fournisseur</h1>
+          <h1 className="text-3xl font-bold text-white"><img src="/assets/IMAGE1.jpg" alt="🏭" className="w-8 h-8 rounded inline mr-2" />Tableau de bord Fournisseur</h1>
           <p className="text-slate-400 mt-1">{user.company}</p>
         </div>
 
@@ -66,7 +66,7 @@ export default function SupplierDashboard() {
                             <div className="text-sm text-slate-400 mt-1">{qr.clientCompany}</div>
                             <div className="text-xs text-slate-500 mt-1">Équipement: {eq?.name} • {qr.duration}</div>
                             <div className="text-xs text-slate-500">
-                              📞 {qr.clientPhone} | 📧 {qr.clientEmail}
+                              <img src="/assets/check.svg" alt="📞" className="w-3 h-3 inline mr-1" />{qr.clientPhone} | <img src="/assets/check.svg" alt="📧" className="w-3 h-3 inline mr-1" />{qr.clientEmail}
                             </div>
                           </div>
                           <QuoteStatusBadge status={qr.status} />
@@ -118,13 +118,13 @@ export default function SupplierDashboard() {
                   to="/supplier/equipment"
                   className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform bg-accent-500"
                 >
-                  🛠️ Mes équipements
+                  <img src="/assets/check.svg" alt="🛠️" className="w-4 h-4 inline mr-2" />Mes équipements
                 </Link>
                 <Link
                   to="/catalogue"
                   className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600"
                 >
-                  📊 Voir le catalogue
+                  <img src="/assets/check.svg" alt="📊" className="w-4 h-4 inline mr-2" />Voir le catalogue
                 </Link>
               </div>
             </Card>
@@ -157,20 +157,20 @@ export default function SupplierDashboard() {
             {/* Certification Status */}
             <Card dark className="p-6 bg-gradient-to-br from-emerald-600/20 to-emerald-700/20 border border-emerald-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-2xl">✓</span>
+                <img src="/assets/check.svg" alt="✓" className="w-5 h-5" />
                 <span className="text-accent-600">Certifications</span>
               </h2>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 p-2 rounded bg-emerald-700/40">
-                  <span>🔧</span>
+                  <img src="/assets/check.svg" alt="🔧" className="w-4 h-4" />
                   <span className="text-white">Mécanicien Qualifié</span>
                 </div>
                 <div className="flex items-center gap-2 p-2 rounded bg-emerald-700/40">
-                  <span>🏭</span>
+                  <img src="/assets/IMAGE1.jpg" alt="🏭" className="w-4 h-4 rounded" />
                   <span className="text-white">Entrepôt Équipé</span>
                 </div>
                 <div className="flex items-center gap-2 p-2 rounded bg-emerald-700/40">
-                  <span>✓</span>
+                  <img src="/assets/check.svg" alt="✓" className="w-4 h-4" />
                   <span className="text-white">Certifié VOLTA</span>
                 </div>
               </div>

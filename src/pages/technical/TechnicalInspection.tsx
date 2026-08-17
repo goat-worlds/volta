@@ -29,7 +29,7 @@ export default function TechnicalInspection() {
       <div className="mx-auto max-w-4xl p-6 lg:p-8">
         <EmptyState title="Inspection introuvable" />
         <div className="mt-4">
-          <Link to="/technical/missions" className="font-medium text-brand-600 hover:underline">← Retour aux missions</Link>
+          <Link to="/technical/missions" className="font-medium text-brand-600 hover:underline">Retour aux missions</Link>
         </div>
       </div>
     )
@@ -64,7 +64,7 @@ export default function TechnicalInspection() {
 
   return (
     <div className="mx-auto max-w-4xl p-6 lg:p-8">
-      <Link to="/technical/missions" className="text-sm font-medium text-brand-600 hover:underline">← Retour aux missions</Link>
+      <Link to="/technical/missions" className="text-sm font-medium text-brand-600 hover:underline">Retour aux missions</Link>
       <div className="mt-2">
         <PageTitle
           title={`Inspection — ${eq.name}`}
@@ -75,7 +75,7 @@ export default function TechnicalInspection() {
 
       {done ? (
         <Card className="p-6">
-          <div className="font-semibold text-emerald-700">✔ Rapport déjà soumis pour cette mission.</div>
+          <div className="font-semibold text-emerald-700"><img src="/assets/check.svg" alt="✔" className="w-4 h-4 inline mr-2" />Rapport déjà soumis pour cette mission.</div>
           <p className="mt-2 text-sm text-slate-600">L'engin est en attente de décision de l'administrateur VOLTA.</p>
         </Card>
       ) : (
@@ -152,10 +152,10 @@ export default function TechnicalInspection() {
             {(measures.length > 0 || anomalies.length > 0) && (
               <ul className="list-inside list-disc text-sm text-slate-600">
                 {measures.map((m, i) => (
-                  <li key={`m-${i}`}>📏 {m}</li>
+                  <li key={`m-${i}`}><img src="/assets/check.svg" alt="📏" className="w-3 h-3 inline mr-1" />{m}</li>
                 ))}
                 {anomalies.map((a, i) => (
-                  <li key={`a-${i}`} className="text-red-600">⚠️ {a}</li>
+                  <li key={`a-${i}`} className="text-red-600"><img src="/assets/warning.svg" alt="⚠️" className="w-4 h-4 inline mr-1" />{a}</li>
                 ))}
               </ul>
             )}

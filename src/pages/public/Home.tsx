@@ -272,10 +272,10 @@ export default function Home() {
                         <div className="font-bold text-slate-900 transition group-hover:text-brand-600">{s.company}</div>
                         <div className="mt-1 text-sm text-slate-500">📍 {s.city}</div>
                         <div className="mt-2 flex items-center gap-4 text-xs font-semibold text-slate-600">
-                          <span>🚜 {supplierEquipment.length} équipements</span>
-                          <span className="text-rose-500">♥ {totalLikes}</span>
+                          <span><img src="/assets/IMAGE1.jpg" alt="Equipment" className="w-4 h-4 inline mr-1" />{supplierEquipment.length} équipements</span>
+                          <span className="text-rose-500"><img src="/assets/heart.svg" alt="♥" className="w-4 h-4 inline" /> {totalLikes}</span>
                           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-600 ring-1 ring-emerald-200">
-                            ✓ Vérifié VOLTA
+                            <img src="/assets/check.svg" alt="✓" className="w-3 h-3 inline mr-1" />Vérifié VOLTA
                           </span>
                         </div>
                       </div>
@@ -367,7 +367,7 @@ export default function Home() {
                   onClick={() => setShowModal(false)}
                   className="text-3xl text-slate-400 hover:text-slate-600"
                 >
-                  ✕
+                  <img src="/assets/close.svg" alt="✕" className="w-6 h-6" />
                 </button>
               </div>
               <form
