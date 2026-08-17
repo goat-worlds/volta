@@ -2,6 +2,8 @@ export type EquipmentStatus = 'DISPONIBLE' | 'EN_INSPECTION' | 'CATEGORISE' | 'I
 
 export type EquipmentCategory = 'A' | 'B' | 'C' | 'D' | 'E'
 
+export type EquipmentRating = 'GOLD' | 'SILVER' | 'STANDARD'
+
 export type QuoteRequestStatus = 'NOUVELLE' | 'TRANSMISE' | 'EN_INSPECTION' | 'RAPPORT_REÇU' | 'CATEGORISEE' | 'TERMINEE'
 
 export type InspectionStatus = 'A_ASSIGNER' | 'ASSIGNEE' | 'EN_COURS' | 'TERMINEE' | 'ASSIGNED' | 'IN_PROGRESS' | 'DONE'
@@ -57,6 +59,7 @@ export interface Equipment {
   supplierId: string
   status: EquipmentStatus
   category: EquipmentCategory | null
+  rating?: EquipmentRating
   declaredCondition: string
   createdAt: string
   pricePerDay?: number

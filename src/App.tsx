@@ -15,9 +15,11 @@ import AdminDashboard from './pages/dashboards/AdminDashboard'
 import AdminQuotes from './pages/admin/AdminQuotes'
 import AdminInspections from './pages/admin/AdminInspections'
 import AdminValidate from './pages/admin/AdminValidate'
+import AdminEquipmentSubmissions from './pages/admin/AdminEquipmentSubmissions'
 import TechnicalMissions from './pages/technical/TechnicalMissions'
 import TechnicalInspection from './pages/technical/TechnicalInspection'
 import SupplierEquipment from './pages/supplier/SupplierEquipment'
+import SupplierAddEquipment from './pages/supplier/SupplierAddEquipment'
 
 export default function App() {
   return (
@@ -44,6 +46,7 @@ export default function App() {
           {/* Admin workspace */}
           <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
           <Route path="/admin/quotes" element={<AdminQuotes />} />
+          <Route path="/admin/submissions" element={<AdminEquipmentSubmissions />} />
           <Route path="/admin/inspections" element={<AdminInspections />} />
           <Route path="/admin/validate/:id" element={<AdminValidate />} />
 
@@ -55,6 +58,7 @@ export default function App() {
           {/* Supplier workspace */}
           <Route path="/supplier" element={<Navigate to="/supplier-dashboard" replace />} />
           <Route path="/supplier/equipment" element={<SupplierEquipment />} />
+          <Route path="/supplier/equipment/new" element={<SupplierAddEquipment />} />
         </Routes>
       </BrowserRouter>
     </StoreProvider>

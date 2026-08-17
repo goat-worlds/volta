@@ -15,7 +15,7 @@ const CATEGORIES: EquipmentCategory[] = ['A', 'B', 'C', 'D', 'E']
 export default function AdminValidate() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { quoteRequests, inspections, reports, equipment, categorizeEquipment, updateQuoteRequestStatus } = useStore()
+  const { quoteRequests, inspections, reports, equipment, categorizeEquipment, updateQuoteRequestStatus, rateEquipment } = useStore()
   const [toast, setToast] = useState<string | null>(null)
 
   const quote = quoteRequests.find((q) => q.id === id)
@@ -106,13 +106,44 @@ export default function AdminValidate() {
             </Card>
           ) : quote.status === 'CATEGORISEE' ? (
             <Card className="p-6">
-              <div className="font-semibold text-emerald-700">✔ Équipement catégorisé.</div>
+              <div className="mb-6">
+                <div className="font-semibold text-emerald-700 mb-2">✔ Équipement catégorisé.</div>
+                <div className="text-sm text-slate-600">Catégorie assignée : <span className="font-bold">{eq.category}</span></div>
+              </div>
+
+              <div className="border-t border-slate-200 pt-6">
+                <h3 className="mb-3 font-bold text-slate-900">Assigner une notation de qualité</h3>
+                <p className="mb-4 text-sm text-slate-600">
+                  Évaluez la qualité globale de cet équipement pour le catalogue.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {(['GOLD', 'SILVER', 'STANDARD'] as const).map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => {
+                        rateEquipment(eq.id, rating)
+                        setToast(`Notation ${rating} assignée ✔`)
+                      }}
+                      className={`rounded-lg px-6 py-3 font-semibold text-white transition hover:opacity-90 ${
+                        rating === 'GOLD' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                        rating === 'SILVER' ? 'bg-slate-500 hover:bg-slate-600' :
+                        'bg-orange-600 hover:bg-orange-700'
+                      }`}
+                    >
+                      {rating === 'GOLD' && '⭐ Or (Gold)'}
+                      {rating === 'SILVER' && '✓ Argent (Silver)'}
+                      {rating === 'STANDARD' && 'Standard'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={() => {
                   updateQuoteRequestStatus(quote.id, 'TERMINEE')
                   setToast('Demande clôturée ✔')
                 }}
-                className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
               >
                 Clôturer la demande
               </button>
