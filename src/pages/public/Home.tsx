@@ -165,7 +165,7 @@ export default function Home() {
           <div className="animate-fade-up mt-12 grid max-w-2xl grid-cols-3 gap-6" style={{ animationDelay: '400ms' }}>
             {[
               { icon: '/assets/users.svg', value: counters.users, label: 'Utilisateurs' },
-              { icon: '/assets/IMAGE1.jpg', value: counters.equipment, label: 'Équipements' },
+              { icon: '/IMAGE1.jpg', value: counters.equipment, label: 'Équipements' },
               { icon: '/assets/award.svg', value: counters.transactions, label: 'Locations réussies' },
             ].map((s) => (
               <div key={s.label} className="flex flex-col items-start">

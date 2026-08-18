@@ -32,7 +32,7 @@ export default function Suppliers() {
   const criteria = [
     { icon: '/assets/check.svg', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
     { icon: '/assets/check.svg', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
-    { icon: '/assets/IMAGE1.jpg', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
+    { icon: '/IMAGE1.jpg', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
   ]
 
   let filteredSuppliers = selectedRegion

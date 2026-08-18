@@ -32,7 +32,7 @@ export default function AdminEquipmentSubmissions() {
       {pendingEquipment.length === 0 ? (
         <Card className="p-12 text-center bg-slate-50">
           <div className="text-4xl mb-3">
-            <img src="/assets/IMAGE1.jpg" alt="Aucune soumission" className="w-16 h-16 mx-auto rounded" />
+            <img src="/IMAGE1.jpg" alt="Aucune soumission" className="w-16 h-16 mx-auto rounded" />
           </div>
           <p className="text-slate-600 font-medium">Aucune soumission en attente</p>
           <p className="text-sm text-slate-500 mt-1">Les fournisseurs peuvent soumettre des équipements pour inspection</p>

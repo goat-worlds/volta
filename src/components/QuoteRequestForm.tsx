@@ -176,7 +176,7 @@ export default function QuoteRequestForm({
         {/* Project Details Section */}
         <div className="border-t border-slate-200 pt-4">
           <div className="flex items-center gap-2 mb-3">
-            <img src="/assets/IMAGE1.jpg" alt="Détails du projet" className="w-5 h-5 rounded" />
+            <img src="/IMAGE1.jpg" alt="Détails du projet" className="w-5 h-5 rounded" />
             <h3 className="text-sm font-bold text-slate-900">Détails du projet</h3>
           </div>
 

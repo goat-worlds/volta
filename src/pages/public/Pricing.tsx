@@ -65,7 +65,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-blue-600">
-              <img src="/assets/IMAGE1.jpg" alt="Warehouse" className="w-8 h-8 rounded mb-4" />
+              <img src="/IMAGE1.jpg" alt="Warehouse" className="w-8 h-8 rounded mb-4" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Entrepôt Équipé</h3>
               <p className="text-slate-700 text-sm">
                 Stock permanent de pièces de rechange et outils nécessaires.
