@@ -15,7 +15,7 @@ import {
   Filter,
   Envelope,
   Eye,
-  HandshakesFill,
+  Handshake,
   CurrencyDollar,
   Hourglass,
   Wrench,
@@ -82,7 +82,7 @@ export function IconEye({ className = '' }: { className?: string }) {
 }
 
 export function IconHandshake({ className = '' }: { className?: string }) {
-  return <HandshakesFill className={className} />
+  return <Handshake className={className} />
 }
 
 export function IconMoney({ className = '' }: { className?: string }) {
