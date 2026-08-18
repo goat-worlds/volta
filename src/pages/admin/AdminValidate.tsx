@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, CategoryBadge, EmptyState, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
-import { IconCheck } from '../../components/Icons'
+import { IconCheck, IconStar } from '../../components/Icons'
 import type { EquipmentCategory } from '../../store/types'
 
 const RESULT_LABEL = {
@@ -116,36 +116,41 @@ export default function AdminValidate() {
               </div>
 
               <div className="border-t border-slate-200 pt-6">
-                <h3 className="mb-3 font-bold text-slate-900">Assigner une notation de qualité</h3>
+                <h3 className="mb-3 font-bold text-slate-900">Assigner un tier de qualité</h3>
                 <p className="mb-4 text-sm text-slate-600">
-                  Évaluez la qualité globale de cet équipement pour le catalogue.
+                  Sélectionnez le tier de qualité pour cet équipement dans le catalogue.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {(['GOLD', 'SILVER', 'STANDARD'] as const).map((rating) => (
+                  {(['GOLD', 'SILVER', 'BASIC'] as const).map((tier) => (
                     <button
-                      key={rating}
+                      key={tier}
                       onClick={() => {
-                        rateEquipment(eq.id, rating)
-                        setToast(`Notation ${rating} assignée`)
+                        rateEquipment(eq.id, tier)
+                        setToast(`Tier ${tier} assigné`)
                       }}
                       className={`rounded-lg px-6 py-3 font-semibold text-white transition hover:opacity-90 flex items-center gap-2 ${
-                        rating === 'GOLD' ? 'bg-yellow-600 hover:bg-yellow-700' :
-                        rating === 'SILVER' ? 'bg-slate-500 hover:bg-slate-600' :
-                        'bg-orange-600 hover:bg-orange-700'
+                        tier === 'GOLD' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                        tier === 'SILVER' ? 'bg-slate-500 hover:bg-slate-600' :
+                        'bg-emerald-600 hover:bg-emerald-700'
                       }`}
                     >
-                      {rating === 'GOLD' && (
+                      {tier === 'GOLD' && (
                         <>
-                          Or (Gold)
+                          <IconStar filled className="w-4 h-4" />
+                          Gold Premium
                         </>
                       )}
-                      {rating === 'SILVER' && (
+                      {tier === 'SILVER' && (
                         <>
                           <IconCheck className="w-4 h-4" />
-                          Argent (Silver)
+                          Silver Qualité
                         </>
                       )}
-                      {rating === 'STANDARD' && 'Standard'}
+                      {tier === 'BASIC' && (
+                        <>
+                          Standard
+                        </>
+                      )}
                     </button>
                   ))}
                 </div>

@@ -21,6 +21,7 @@ export default function SupplierAddEquipment() {
     location: 'Abidjan',
     description: '',
     declaredCondition: 'Bon état',
+    tier: 'BASIC',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -155,7 +156,7 @@ export default function SupplierAddEquipment() {
               <IconWrench className="w-5 h-5" />
               État technique
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Heures compteur
@@ -184,6 +185,21 @@ export default function SupplierAddEquipment() {
                   <option>Bon état</option>
                   <option>Acceptable</option>
                   <option>Nécessite réparation</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Tier demandé
+                </label>
+                <select
+                  name="tier"
+                  value={form.tier}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
+                >
+                  <option value="BASIC">Basic</option>
+                  <option value="SILVER">Silver</option>
+                  <option value="GOLD">Gold</option>
                 </select>
               </div>
             </div>
