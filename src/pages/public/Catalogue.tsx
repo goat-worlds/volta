@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, CategoryBadge, StatusBadge } from '../../components/ui'
-import { IconDisplay } from '../../components/IconDisplay'
 import QuoteRequestForm from '../../components/QuoteRequestForm'
 import { IconMapPin, IconEnvelope, IconEye, IconCheck, IconHourglass, IconSearch, IconHandshake, IconMoney, IconShield, IconClose } from '../../components/Icons'
 

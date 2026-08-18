@@ -96,7 +96,7 @@ export default function SupplierEquipment() {
                                 Argent
                               </>
                             )}
-                            {eq.rating === 'STANDARD' && 'Standard'}
+                            {eq.rating === 'BASIC' && 'Standard'}
                           </>
                         )}
                       </p>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, Toast } from '../../components/ui'
-import { IconMapPin, IconPhone, IconCheck, IconWarning, IconClock } from '../../components/Icons'
+import { IconMapPin, IconPhone, IconCheck, IconClock } from '../../components/Icons'
 
 export default function AdminEquipmentSubmissions() {
   const { equipment, users, assignInspection } = useStore()

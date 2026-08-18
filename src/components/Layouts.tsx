@@ -1,10 +1,11 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import type { JSX } from 'react'
 import { useStore } from '../store/StoreContext'
 import type { Role } from '../store/types'
-import { IconCheck, IconSearch, IconGear, IconPhone, IconEnvelope } from './Icons'
+import { IconCheck, IconSearch, IconPhone, IconEnvelope, IconWrench, IconShield } from './Icons'
 import Footer from './Footer'
 
-const ICON_MAP: Record<string, (className: string) => JSX.Element> = {
+const ICON_MAP: Record<string, (props: { className: string }) => JSX.Element> = {
   'Tableau de bord': ({ className }) => <IconSearch className={className} />,
   'Mes engins': ({ className }) => <IconWrench className={className} />,
   'Ajouter un engin': ({ className }) => <IconCheck className={className} />,

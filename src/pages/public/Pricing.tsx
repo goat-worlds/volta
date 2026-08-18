@@ -1,5 +1,5 @@
 import { Card } from '../../components/ui'
-import { IconGear, IconWarning, IconPhone, IconEnvelope, IconSearch, IconHandshake, IconMoney, IconWrench, IconCheck } from '../../components/Icons'
+import { IconGear, IconPhone, IconEnvelope, IconSearch, IconHandshake, IconMoney, IconWrench, IconCheck } from '../../components/Icons'
 
 export default function Pricing() {
   return (

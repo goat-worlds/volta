@@ -5,7 +5,7 @@ import { Card, EmptyState, CategoryBadge, StatusBadge } from '../../components/u
 import { LikeButton, ProductCard, Reveal, StarRating, TierBadge, onImgError } from '../../components/product'
 import Reviews from '../../components/Reviews'
 import QuoteRequestForm from '../../components/QuoteRequestForm'
-import { IconHeart, IconPhone, IconEnvelope, IconCheck, IconHourglass, IconWarning, IconAttachment, IconClose } from '../../components/Icons'
+import { IconHeart, IconPhone, IconEnvelope, IconCheck, IconHourglass, IconAttachment, IconClose } from '../../components/Icons'
 
 const SECTIONS = [
   { id: 'presentation', label: 'Présentation' },
