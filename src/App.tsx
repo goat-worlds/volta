@@ -8,6 +8,7 @@ import EquipmentDetail from './pages/public/EquipmentDetail'
 import Suppliers from './pages/public/Suppliers'
 import Pricing from './pages/public/Pricing'
 import Login from './pages/public/Login'
+import Signup from './pages/public/Signup'
 import ClientDashboard from './pages/dashboards/ClientDashboard'
 import SupplierDashboard from './pages/dashboards/SupplierDashboard'
 import TechnicalDashboard from './pages/dashboards/TechnicalDashboard'
@@ -36,8 +37,11 @@ export default function App() {
             <Route path="/pricing" element={<Pricing />} />
           </Route>
 
-          {/* Dashboard Routes */}
+          {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Dashboard Routes */}
           <Route path="/client-dashboard" element={<ClientDashboard />} />
           <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
           <Route path="/technical-dashboard" element={<TechnicalDashboard />} />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { Card } from '../../components/ui'
-import { IconHourglass, IconCheck, IconWrench } from '../../components/Icons'
+import { IconHourglass, IconCheck, IconWrench, IconWarning } from '../../components/Icons'
 
 type UserRole = 'CLIENT' | 'SUPPLIER' | 'TECHNICAL' | 'ADMIN'
 
@@ -14,10 +14,12 @@ const demoAccounts = [
 
 export default function Login() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const location = useLocation()
+  const [email, setEmail] = useState((location.state?.email) || '')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const success = (location.state?.message) || ''
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,32 +62,41 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-800 to-brand-600 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
         {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-lg">
               <img src="/volta-logo.svg" alt="VOLTA" className="h-8 w-8" />
             </div>
             <div>
               <div className="text-2xl font-bold text-white">VOLTA</div>
-              <div className="text-xs text-brand-100">Plateforme de location d'équipements</div>
+              <div className="text-xs text-brand-100">Se connecter</div>
             </div>
           </div>
         </div>
 
+        {/* Success Message */}
+        {success && (
+          <div className="mb-6 p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+            <IconCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-emerald-700">{success}</p>
+          </div>
+        )}
+
         {/* Login Form Card */}
         <Card className="p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-2 text-accent-600">
-            Accès aux dashboards
+          <h2 className="text-2xl font-bold mb-2 text-slate-900">
+            Bienvenue
           </h2>
           <p className="text-slate-600 text-sm mb-6">
-            Connectez-vous pour accéder à votre espace personnel
+            Connectez-vous à votre compte VOLTA
           </p>
 
           {error && (
-            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200">
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2">
+              <IconWarning className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
@@ -100,7 +111,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="exemple@volta.ci"
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
                 disabled={isLoading}
               />
             </div>
@@ -114,7 +125,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
                 disabled={isLoading}
               />
             </div>
@@ -122,7 +133,11 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || !email || !password}
-              className={`w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isLoading ? 'bg-accent-200' : 'bg-accent-500 hover:bg-accent-600'}`}
+              className={`w-full py-2.5 rounded-lg text-white font-semibold transition flex items-center justify-center gap-2 ${
+                isLoading
+                  ? 'bg-brand-400'
+                  : 'bg-brand-600 hover:bg-brand-700'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isLoading ? (
                 <>
@@ -169,14 +184,13 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Info Box */}
-        <div className="p-4 bg-brand-50 border-l-4 rounded-lg border-l-accent-500">
-          <p className="text-xs text-slate-700 leading-relaxed flex items-start gap-2">
-            <strong className="text-accent-600 flex items-center gap-1">
-              <IconCheck className="w-4 h-4 flex-shrink-0" />
-              Info:
-            </strong>
-            <span>Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.</span>
+        {/* Signup Link */}
+        <div className="text-center">
+          <p className="text-white text-sm">
+            Pas encore de compte?{' '}
+            <Link to="/signup" className="font-bold hover:underline">
+              S'inscrire
+            </Link>
           </p>
         </div>
       </div>
