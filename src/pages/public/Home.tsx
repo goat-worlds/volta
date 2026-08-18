@@ -287,7 +287,7 @@ export default function Home() {
                 const totalLikes = supplierEquipment.reduce((sum, e) => sum + e.likes, 0)
                 return (
                   <Reveal key={s.id} delay={idx * 80}>
-                    <Link to="/fournisseurs" className="group block flex-shrink-0 w-80">
+                    <Link to="/fournisseurs" className="group block flex-shrink-0 w-80 h-64">
                       <Card className="flex h-full items-center gap-5 p-6 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
                         <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-3xl font-extrabold text-white shadow-md">
                           {s.company.charAt(0)}
