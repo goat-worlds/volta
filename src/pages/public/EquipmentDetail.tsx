@@ -5,6 +5,7 @@ import { Card, EmptyState, CategoryBadge, StatusBadge } from '../../components/u
 import { LikeButton, ProductCard, Reveal, StarRating, TierBadge, onImgError } from '../../components/product'
 import Reviews from '../../components/Reviews'
 import QuoteRequestForm from '../../components/QuoteRequestForm'
+import { IconHeart, IconPhone, IconEnvelope, IconCheck, IconHourglass, IconWarning, IconAttachment, IconClose } from '../../components/Icons'
 
 const SECTIONS = [
   { id: 'presentation', label: 'Présentation' },
@@ -100,7 +101,10 @@ export default function EquipmentDetail() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <TierBadge tier={eq.tier} />
             <StarRating value={rating.average} count={rating.count} />
-            <span className="text-sm font-semibold text-rose-500"><img src="/assets/heart.svg" alt="♥" className="w-4 h-4 inline" /> {eq.likes}</span>
+            <span className="text-sm font-semibold text-rose-500 flex items-center gap-1">
+              <IconHeart filled={true} className="w-4 h-4" />
+              {eq.likes}
+            </span>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -130,7 +134,16 @@ export default function EquipmentDetail() {
               <div className="flex-1">
                 <div className="text-sm font-semibold text-slate-500">Fournisseur</div>
                 <div className="font-bold text-slate-900">{supplier?.company}</div>
-                <div className="mt-1 text-xs text-slate-600"><img src="/assets/check.svg" alt="📞" className="w-3 h-3 inline mr-1" />{supplier?.phone} • <img src="/assets/check.svg" alt="📧" className="w-3 h-3 inline mr-1" />{supplier?.email}</div>
+                <div className="mt-1 text-xs text-slate-600 flex flex-col gap-0.5">
+                  <span className="flex items-center gap-1">
+                    <IconPhone className="w-3 h-3" />
+                    {supplier?.phone}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <IconEnvelope className="w-3 h-3" />
+                    {supplier?.email}
+                  </span>
+                </div>
               </div>
               <Link
                 to="/fournisseurs"
@@ -143,9 +156,10 @@ export default function EquipmentDetail() {
 
           <button
             onClick={() => setModalOpen(true)}
-            className="mt-6 w-full rounded-xl bg-accent-500 py-3.5 font-bold text-white transition hover:bg-accent-600 active:scale-[0.98]"
+            className="mt-6 w-full rounded-xl bg-accent-500 py-3.5 font-bold text-white transition hover:bg-accent-600 active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            📧 Demander un devis
+            <IconEnvelope className="w-5 h-5" />
+            Demander un devis
           </button>
         </div>
       </div>
@@ -189,8 +203,9 @@ export default function EquipmentDetail() {
           {report ? (
             <Card className="p-6">
               <div className="flex items-center gap-2 text-sm text-slate-500">
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600 ring-1 ring-emerald-200">
-                  ✓ Rapport soumis
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600 ring-1 ring-emerald-200 flex items-center gap-1">
+                  <IconCheck className="w-4 h-4" />
+                  Rapport soumis
                 </span>
                 <span>{report.submittedAt}</span>
               </div>
@@ -198,8 +213,11 @@ export default function EquipmentDetail() {
             </Card>
           ) : inspection ? (
             <Card className="p-6">
-              <div className="text-sm text-slate-600">
-                <img src="/assets/check.svg" alt="🔬" className="w-4 h-4 inline mr-1" />Inspection {inspection.status === 'TERMINEE' || inspection.status === 'DONE' ? 'terminée' : 'en cours'} par l'équipe technique VOLTA (assignée le {inspection.assignedAt}).
+              <div className="text-sm text-slate-600 flex items-center gap-1">
+                <IconCheck className="w-4 h-4" />
+                <span>
+                  Inspection {inspection.status === 'TERMINEE' || inspection.status === 'DONE' ? 'terminée' : 'en cours'} par l'équipe technique VOLTA (assignée le {inspection.assignedAt}).
+                </span>
               </div>
             </Card>
           ) : eq.category ? (
@@ -213,7 +231,10 @@ export default function EquipmentDetail() {
             </Card>
           ) : (
             <Card className="border-amber-200 bg-amber-50 p-6">
-              <div className="text-sm text-amber-700"><img src="/assets/loading.svg" alt="⏳" className="w-4 h-4 inline mr-1 animate-spin" />Inspection VOLTA en attente pour cet équipement.</div>
+              <div className="text-sm text-amber-700 flex items-center gap-1">
+                <IconHourglass className="w-4 h-4 animate-pulse" />
+                <span>Inspection VOLTA en attente pour cet équipement.</span>
+              </div>
             </Card>
           )}
 
@@ -221,7 +242,7 @@ export default function EquipmentDetail() {
             <div className="mt-4 space-y-2">
               {eq.documents.map((d, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50">
-                  <span>📎</span>
+                  <IconAttachment className="w-5 h-5 text-slate-500" />
                   <div>
                     <div className="text-sm font-semibold text-slate-900">{d.name}</div>
                     <div className="text-xs text-slate-500">{d.type}</div>
@@ -281,9 +302,9 @@ export default function EquipmentDetail() {
               <h2 className="text-xl font-bold">Demander un devis</h2>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-2xl text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 transition"
               >
-                <img src="/assets/close.svg" alt="✕" className="w-6 h-6" />
+                <IconClose className="w-6 h-6" />
               </button>
             </div>
 

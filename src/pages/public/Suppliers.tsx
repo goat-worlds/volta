@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
+import { IconHandshake, IconSearch, IconCheck, IconMapPin, IconPhone, IconEnvelope, IconWrench, IconClose, IconMoney } from '../../components/Icons'
 
 export default function Suppliers() {
   const { users, equipment } = useStore()
@@ -73,7 +74,7 @@ export default function Suppliers() {
         <div className="mx-auto max-w-6xl relative z-10">
           <div className="max-w-2xl">
             <div className="mb-6 inline-block px-4 py-2 rounded-full bg-accent-600/80 backdrop-blur-sm">
-              <span className="text-sm font-semibold">🏆 VOLTA - Plateforme de mise en relation</span>
+              <span className="text-sm font-semibold">VOLTA - Plateforme de mise en relation</span>
             </div>
 
             <h1 className="text-6xl font-bold mb-4 leading-tight">
@@ -90,19 +91,19 @@ export default function Suppliers() {
 
             <div className="space-y-3 mb-10 text-slate-100">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🤝</span>
+                <IconHandshake className="w-6 h-6" />
                 <span>Mise en relation directe fournisseur-client</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🔍</span>
+                <IconSearch className="w-6 h-6" />
                 <span>Inspections techniques complètes (certification)</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">📊</span>
+                <IconCheck className="w-6 h-6" />
                 <span>Catégories A/B/C/D/E basées sur évaluations</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">💰</span>
+                <IconMoney className="w-6 h-6" />
                 <span>Aucune commission VOLTA - Tarifs directs fournisseur</span>
               </div>
             </div>
@@ -167,8 +168,9 @@ export default function Suppliers() {
         {/* Criteria Section */}
         <div className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3 text-accent-600">
-              ✓ Critères de certification VOLTA
+            <h2 className="text-3xl font-bold mb-3 text-accent-600 flex items-center justify-center gap-2">
+              <IconCheck className="w-8 h-8" />
+              Critères de certification VOLTA
             </h2>
             <p className="text-slate-700 max-w-2xl mx-auto">
               Tous nos fournisseurs doivent répondre à ces critères essentiels pour rejoindre notre plateforme et garantir une expérience sécurisée.
@@ -205,13 +207,14 @@ export default function Suppliers() {
 
         {/* Search and Sort Section */}
         <div className="mb-8 space-y-4">
-          <div>
+          <div className="relative">
+            <IconSearch className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="🔍 Chercher un fournisseur..."
+              placeholder="Chercher un fournisseur..."
               value={searchSupplier}
               onChange={(e) => setSearchSupplier(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition text-lg"
+              className="w-full px-4 py-3 pl-10 rounded-lg border-2 border-slate-300 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition text-lg"
             />
           </div>
           <div className="flex flex-wrap gap-3">
@@ -295,26 +298,39 @@ export default function Suppliers() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-bold">{s.company}</h3>
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
-                          ✓ Certifié
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700 flex items-center gap-1">
+                          <IconCheck className="w-4 h-4" />
+                          Certifié
                         </span>
                       </div>
                       {/* Quick Info */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 mb-3">
                         <div className="text-sm">
-                          <div className="text-slate-700">📍 Région</div>
+                          <div className="text-slate-700 flex items-center gap-1">
+                            <IconMapPin className="w-4 h-4" />
+                            Région
+                          </div>
                           <div className="font-semibold text-slate-800">{s.city}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-700"><img src="/assets/IMAGE1.jpg" alt="Equipment" className="w-4 h-4 inline mr-1" />Équipements</div>
+                          <div className="text-slate-700 flex items-center gap-1">
+                            <IconCheck className="w-4 h-4" />
+                            Équipements
+                          </div>
                           <div className="font-semibold text-slate-800">{count}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-700">📞 Contact</div>
+                          <div className="text-slate-700 flex items-center gap-1">
+                            <IconPhone className="w-4 h-4" />
+                            Contact
+                          </div>
                           <div className="font-semibold text-slate-800">{s.phone}</div>
                         </div>
                         <div className="text-sm">
-                          <div className="text-slate-700">📧 Email</div>
+                          <div className="text-slate-700 flex items-center gap-1">
+                            <IconEnvelope className="w-4 h-4" />
+                            Email
+                          </div>
                           <div className="font-semibold text-slate-800 truncate">{s.email}</div>
                         </div>
                       </div>
@@ -322,13 +338,16 @@ export default function Suppliers() {
                       {/* Certifications */}
                       <div className="flex flex-wrap gap-2 mb-3">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                          <img src="/assets/check.svg" alt="✓" className="w-3 h-3" /> Certifié VOLTA
+                          <IconCheck className="w-3 h-3" />
+                          Certifié VOLTA
                         </span>
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-semibold">
-                          <img src="/assets/check.svg" alt="🔧" className="w-3 h-3" /> Mécanicien
+                          <IconWrench className="w-3 h-3" />
+                          Mécanicien
                         </span>
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
-                          <img src="/assets/IMAGE1.jpg" alt="🏭" className="w-3 h-3 rounded" /> Entrepôt équipé
+                          <IconCheck className="w-3 h-3" />
+                          Entrepôt équipé
                         </span>
                       </div>
                     </div>
@@ -358,10 +377,11 @@ export default function Suppliers() {
                               {crit.label}
                             </h4>
                           </div>
-                          <p className="text-sm text-slate-600">
-                            {crit.key === 'mechanic' && '✓ Mécanicien certifié disponible'}
-                            {crit.key === 'replacement' && '✓ Garantie complète'}
-                            {crit.key === 'warehouse' && '✓ Stock permanent'}
+                          <p className="text-sm text-slate-600 flex items-center gap-1">
+                            <IconCheck className="w-4 h-4 text-green-600" />
+                            {crit.key === 'mechanic' && 'Mécanicien certifié disponible'}
+                            {crit.key === 'replacement' && 'Garantie complète'}
+                            {crit.key === 'warehouse' && 'Stock permanent'}
                           </p>
                         </div>
                       ))}
@@ -383,8 +403,9 @@ export default function Suppliers() {
                                 <div className="text-xs text-slate-700 mt-1">
                                   {e.brand} {e.model} • {e.year}
                                 </div>
-                                <div className="text-xs text-slate-600 mt-2">
-                                  📊 Catégorie: {e.category || 'À définir'}
+                                <div className="text-xs text-slate-600 mt-2 flex items-center gap-1">
+                                  <IconCheck className="w-3.5 h-3.5" />
+                                  Catégorie: {e.category || 'À définir'}
                                 </div>
                               </div>
                             ))}
@@ -401,7 +422,9 @@ export default function Suppliers() {
 
         {sortedSuppliers.length === 0 && (
           <Card className="p-12 text-center animate-in fade-in duration-300">
-            <div className="text-5xl mb-4">🔍</div>
+            <div className="text-5xl mb-4 flex justify-center">
+              <IconSearch className="w-12 h-12 text-slate-400" />
+            </div>
             <h3 className="text-xl font-bold mb-2">Aucun fournisseur trouvé</h3>
             <p className="text-slate-600">Essayez une autre recherche ou région</p>
           </Card>
@@ -409,7 +432,7 @@ export default function Suppliers() {
 
         {/* CTA Section */}
         <div className="mt-16 rounded-2xl p-10 text-white cursor-pointer transition transform hover:scale-105 active:scale-95 bg-accent-500" onClick={() => setShowModal(true)}>
-          <h2 className="text-2xl font-bold mb-3">🚀 Vous êtes fournisseur ?</h2>
+          <h2 className="text-2xl font-bold mb-3">Vous êtes fournisseur ?</h2>
           <p className="mb-5 text-accent-100 max-w-2xl">
             Rejoignez le réseau VOLTA et accédez à une clientèle stable et vérifiée.
             Profitez de nos certifications reconnues, de nos inspections techniques, et restez à 100% des tarifs que vous fixez.
@@ -430,9 +453,9 @@ export default function Suppliers() {
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-600 hover:text-slate-600 transition"
+                className="text-slate-400 hover:text-slate-600 transition"
               >
-                <img src="/assets/close.svg" alt="Fermer" className="w-8 h-8" />
+                <IconClose className="w-8 h-8" />
               </button>
             </div>
 
@@ -473,7 +496,7 @@ export default function Suppliers() {
                 type="submit"
                 className="w-full py-2.5 rounded-lg text-white font-bold transition hover:scale-105 active:scale-95 bg-accent-500 flex items-center justify-center gap-2"
               >
-                <img src="/assets/check.svg" alt="Submit" className="w-4 h-4" />
+                <IconCheck className="w-4 h-4" />
                 Soumettre ma demande
               </button>
             </form>

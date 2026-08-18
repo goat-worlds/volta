@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
+import { IconWrench, IconMapPin, IconSearch, IconCheck } from '../../components/Icons'
 
 const TEAM_ID = 'u-tech-1'
 
@@ -27,7 +28,10 @@ export default function TechnicalDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white"><img src="/assets/check.svg" alt="🔧" className="w-8 h-8 inline mr-2" />Tableau de bord Équipe Technique</h1>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            <IconWrench className="w-8 h-8" />
+            Tableau de bord Équipe Technique
+          </h1>
           <p className="text-slate-400 mt-1">Inspections et certifications d'équipements</p>
         </div>
 
@@ -66,10 +70,16 @@ export default function TechnicalDashboard() {
                       <div key={insp.id} className="p-4 rounded-lg bg-amber-900/30 border border-amber-500/50 hover:bg-amber-900/40 transition">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white"><img src="/assets/check.svg" alt="📋" className="w-5 h-5 inline mr-2" />{eq?.name ?? 'Équipement'}</div>
+                            <div className="font-semibold text-white flex items-center gap-1">
+                              <IconCheck className="w-5 h-5" />
+                              <span>{eq?.name ?? 'Équipement'}</span>
+                            </div>
                             <div className="text-sm text-slate-400 mt-1">{eq?.brand} {eq?.model} · {eq?.year}</div>
                             <div className="text-xs text-slate-500 mt-1">Fournisseur: {supplier?.company}</div>
-                            <div className="text-xs text-slate-500"><img src="/assets/check.svg" alt="📍" className="w-3 h-3 inline mr-1" />{eq?.location}</div>
+                            <div className="text-xs text-slate-500 flex items-center gap-1">
+                              <IconMapPin className="w-3 h-3" />
+                              <span>{eq?.location}</span>
+                            </div>
                           </div>
                           <div className="flex flex-col gap-2 shrink-0">
                             <Link
@@ -110,7 +120,10 @@ export default function TechnicalDashboard() {
                       <div key={insp.id} className="p-4 rounded-lg bg-blue-900/30 border border-brand-500/50 hover:bg-blue-900/40 transition">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white"><img src="/assets/check.svg" alt="🔍" className="w-5 h-5 inline mr-2" />{eq?.name ?? 'Équipement'}</div>
+                            <div className="font-semibold text-white flex items-center gap-1">
+                              <IconSearch className="w-5 h-5" />
+                              <span>{eq?.name ?? 'Équipement'}</span>
+                            </div>
                             <div className="text-xs text-slate-400 mt-1">Checklist: {filled}/{insp.checklist.length}</div>
                             <div className="w-full bg-slate-700 rounded h-1.5 mt-2">
                               <div
@@ -152,7 +165,10 @@ export default function TechnicalDashboard() {
                       <div key={insp.id} className="p-3 rounded-lg bg-green-900/30 border border-green-500/50 hover:bg-green-900/40 transition">
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="font-semibold text-white text-sm"><img src="/assets/check.svg" alt="✓" className="w-4 h-4 inline mr-2" />{eq?.name}</div>
+                            <div className="font-semibold text-white text-sm flex items-center gap-1">
+                              <IconCheck className="w-4 h-4" />
+                              <span>{eq?.name}</span>
+                            </div>
                             <div className="text-xs text-slate-400 mt-1">Rapport soumis</div>
                           </div>
                           <span className="text-emerald-400 text-sm font-bold">Complétée</span>
@@ -175,15 +191,17 @@ export default function TechnicalDashboard() {
               <div className="space-y-2">
                 <Link
                   to="/technical/missions"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500"
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500 flex items-center justify-center gap-2"
                 >
-                  <img src="/assets/check.svg" alt="📋" className="w-5 h-5 inline mr-2" />Toutes les missions
+                  <IconCheck className="w-5 h-5" />
+                  <span>Toutes les missions</span>
                 </Link>
                 <Link
                   to="/catalogue"
-                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 text-sm"
+                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 text-sm flex items-center justify-center gap-2"
                 >
-                  <img src="/assets/check.svg" alt="📊" className="w-5 h-5 inline mr-2" />Voir catalogue
+                  <IconCheck className="w-5 h-5" />
+                  <span>Voir catalogue</span>
                 </Link>
               </div>
             </Card>
@@ -204,7 +222,10 @@ export default function TechnicalDashboard() {
                 </div>
                 <div>
                   <div className="font-semibold text-white">Rôle</div>
-                  <div className="text-slate-400"><img src="/assets/check.svg" alt="🔧" className="w-4 h-4 inline mr-1" />Équipe Technique</div>
+                  <div className="text-slate-400 flex items-center gap-1">
+                    <IconWrench className="w-4 h-4" />
+                    <span>Équipe Technique</span>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -212,7 +233,7 @@ export default function TechnicalDashboard() {
             {/* Inspection Standards */}
             <Card dark className="p-6 bg-gradient-to-br from-emerald-600/20 to-emerald-700/20 border border-emerald-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <img src="/assets/check.svg" alt="✓" className="w-5 h-5" />
+                <IconCheck className="w-5 h-5" />
                 <span className="text-accent-600">Catégories</span>
               </h2>
               <div className="space-y-2 text-xs">

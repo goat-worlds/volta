@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, QuoteStatusBadge } from '../../components/ui'
+import { IconCheck, IconShield, IconMoney } from '../../components/Icons'
 
 export default function ClientDashboard() {
   const navigate = useNavigate()
@@ -28,7 +29,10 @@ export default function ClientDashboard() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white"><img src="/assets/check.svg" alt="👤" className="w-8 h-8 inline mr-2" />Tableau de bord Client</h1>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            <IconCheck className="w-8 h-8" />
+            Tableau de bord Client
+          </h1>
           <p className="text-slate-400 mt-1">Bienvenue, {user.company}</p>
         </div>
 
@@ -121,15 +125,17 @@ export default function ClientDashboard() {
               <div className="space-y-2">
                 <Link
                   to="/catalogue"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform bg-accent-500"
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform bg-accent-500 flex items-center justify-center gap-2"
                 >
-                  <img src="/assets/check.svg" alt="🛍️" className="w-4 h-4 inline mr-2" />Parcourir le catalogue
+                  <IconCheck className="w-4 h-4" />
+                  <span>Parcourir le catalogue</span>
                 </Link>
                 <Link
                   to="/fournisseurs"
-                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600"
+                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 flex items-center justify-center gap-2"
                 >
-                  <img src="/assets/check.svg" alt="🏢" className="w-4 h-4 inline mr-2" />Voir les fournisseurs
+                  <IconCheck className="w-4 h-4" />
+                  <span>Voir les fournisseurs</span>
                 </Link>
               </div>
             </Card>
@@ -150,7 +156,10 @@ export default function ClientDashboard() {
                 </div>
                 <div>
                   <div className="font-semibold text-white">Rôle</div>
-                  <div className="text-slate-400"><img src="/assets/check.svg" alt="👤" className="w-4 h-4 inline mr-1" />Client</div>
+                  <div className="text-slate-400 flex items-center gap-1">
+                    <IconCheck className="w-4 h-4" />
+                    <span>Client</span>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -158,20 +167,29 @@ export default function ClientDashboard() {
             {/* VOLTA Services Info */}
             <Card dark className="p-6 bg-gradient-to-br from-brand-600/20 to-brand-700/20 border border-brand-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <img src="/assets/check.svg" alt="ℹ️" className="w-6 h-6" />
+                <IconShield className="w-6 h-6" />
                 <span className="text-accent-600">À propos de VOLTA</span>
               </h2>
               <div className="space-y-3 text-sm">
                 <div className="p-3 rounded-lg bg-brand-700/40">
-                  <div className="font-semibold text-white mb-1"><img src="/assets/check.svg" alt="💡" className="w-4 h-4 inline mr-2" />Mise en relation</div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-1">
+                    <IconCheck className="w-4 h-4" />
+                    <span>Mise en relation</span>
+                  </div>
                   <p className="text-slate-300">VOLTA vous met directement en contact avec des fournisseurs vérifiés</p>
                 </div>
                 <div className="p-3 rounded-lg bg-brand-700/40">
-                  <div className="font-semibold text-white mb-1"><img src="/assets/check.svg" alt="✅" className="w-4 h-4 inline mr-2" />Inspections techniques</div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-1">
+                    <IconCheck className="w-4 h-4" />
+                    <span>Inspections techniques</span>
+                  </div>
                   <p className="text-slate-300">Tous les équipements sont inspectés et catégorisés</p>
                 </div>
                 <div className="p-3 rounded-lg bg-brand-700/40">
-                  <div className="font-semibold text-white mb-1"><img src="/assets/check.svg" alt="💰" className="w-4 h-4 inline mr-2" />Zéro commission</div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-1">
+                    <IconMoney className="w-4 h-4" />
+                    <span>Zéro commission</span>
+                  </div>
                   <p className="text-slate-300">Vous négociez directement les tarifs avec le fournisseur</p>
                 </div>
               </div>

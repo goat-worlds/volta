@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, QuoteStatusBadge } from '../../components/ui'
+import { IconCheck, IconSearch, IconShield, IconMoney } from '../../components/Icons'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -29,7 +30,10 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white"><img src="/assets/check.svg" alt="👨‍💼" className="w-8 h-8 inline mr-2" />Administration VOLTA</h1>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            <IconShield className="w-8 h-8" />
+            Administration VOLTA
+          </h1>
           <p className="text-slate-400 mt-1">Contrôle et gestion plateforme</p>
         </div>
 
@@ -106,8 +110,9 @@ export default function AdminDashboard() {
                             <div className="font-semibold text-white">{qr.reference}</div>
                             <div className="text-xs text-slate-400 mt-1">{eq?.name}</div>
                             {insp && (
-                              <div className="text-xs text-amber-400 mt-1">
-                                <img src="/assets/check.svg" alt="📋" className="w-3 h-3 inline mr-1" />Inspection: {insp.status}
+                              <div className="text-xs text-amber-400 mt-1 flex items-center gap-1">
+                                <IconCheck className="w-3 h-3" />
+                                <span>Inspection: {insp.status}</span>
                               </div>
                             )}
                           </div>
@@ -137,7 +142,10 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="font-semibold text-white">{qr.reference}</div>
                             <div className="text-xs text-slate-400 mt-1">{eq?.name}</div>
-                            <div className="text-xs text-emerald-400 mt-1"><img src="/assets/check.svg" alt="📊" className="w-3 h-3 inline mr-1" />Rapport reçu</div>
+                            <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                              <IconCheck className="w-3 h-3" />
+                              <span>Rapport reçu</span>
+                            </div>
                           </div>
                           <Link
                             to={`/admin/validate/${qr.id}`}
@@ -196,9 +204,10 @@ export default function AdminDashboard() {
                 </Link>
                 <Link
                   to="/admin/inspections"
-                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 text-sm"
+                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 text-sm flex items-center justify-center gap-2"
                 >
-                  🔍 Inspections
+                  <IconSearch className="w-4 h-4" />
+                  <span>Inspections</span>
                 </Link>
               </div>
             </Card>
@@ -206,18 +215,21 @@ export default function AdminDashboard() {
             {/* Platform Info */}
             <Card dark className="p-6 bg-gradient-to-br from-brand-600/20 to-brand-700/20 border border-brand-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <img src="/assets/check.svg" alt="ℹ️" className="w-6 h-6" />
+                <IconShield className="w-6 h-6" />
                 <span className="text-accent-600">Modèle VOLTA</span>
               </h2>
               <div className="space-y-2 text-xs text-slate-300">
-                <p className="leading-relaxed">
-                  🔍 VOLTA inspecte chaque équipement et assigne une catégorie (A/B/C/D/E).
+                <p className="leading-relaxed flex items-start gap-2">
+                  <IconSearch className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>VOLTA inspecte chaque équipement et assigne une catégorie (A/B/C/D/E).</span>
                 </p>
-                <p className="leading-relaxed">
-                  💰 Zéro commission - Les clients et fournisseurs négocient directement les tarifs.
+                <p className="leading-relaxed flex items-start gap-2">
+                  <IconMoney className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Zéro commission - Les clients et fournisseurs négocient directement les tarifs.</span>
                 </p>
-                <p className="leading-relaxed">
-                  ✓ Votre rôle: Assurer la qualité et la conformité technique.
+                <p className="leading-relaxed flex items-start gap-2">
+                  <IconCheck className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Votre rôle: Assurer la qualité et la conformité technique.</span>
                 </p>
               </div>
             </Card>
