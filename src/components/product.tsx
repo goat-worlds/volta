@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import type { Equipment, EquipmentTier } from '../store/types'
 import { CategoryBadge } from './ui'
-import { IconStar, IconHeart, IconMapPin, IconCheck, IconBuilding } from './Icons'
+import { IconStar, IconHeart, IconMapPin, IconCheck, IconBuilding, IconClose } from './Icons'
 
 export const TIER_ORDER: Record<EquipmentTier, number> = { GOLD: 0, SILVER: 1, BASIC: 2 }
 
@@ -140,29 +140,76 @@ export function ProductCard({
 }) {
   const { users, categories, getRating } = useStore()
   const navigate = useNavigate()
+  const [isHovered, setIsHovered] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+
   const supplier = users.find((u) => u.id === e.supplierId)
   const cat = categories.find((c) => c.id === e.categoryId)
   const rating = getRating(e.id)
   const gold = e.tier === 'GOLD'
 
+  const handlePhotoChange = (index: number) => {
+    setCurrentPhotoIndex(index)
+  }
+
+  const handleQuoteClick = (evt: React.MouseEvent) => {
+    evt.preventDefault()
+    evt.stopPropagation()
+    if (onQuote) {
+      onQuote(e.id)
+    } else {
+      navigate(`/equipment/${e.id}`)
+    }
+  }
+
   return (
-    <div
-      className={`product-card group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
-        gold
-          ? 'border-amber-200 shadow-md ring-1 ring-amber-100 hover:shadow-amber-200/60'
-          : e.tier === 'SILVER'
-            ? 'border-slate-200 shadow-sm'
-            : 'border-slate-100 shadow-sm'
-      }`}
-    >
-      <Link to={`/equipment/${e.id}`} className="relative block h-44 overflow-hidden bg-slate-100">
-        <img
-          src={e.photos[0]}
-          alt={e.name}
-          onError={onImgError}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          loading="lazy"
-        />
+    <>
+      <div
+        className={`product-card group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 ${
+          isHovered ? '-translate-y-2 shadow-2xl' : 'shadow-md hover:shadow-lg'
+        } cursor-pointer ${
+          gold
+            ? 'border-amber-200 ring-1 ring-amber-100 hover:shadow-amber-200/60'
+            : e.tier === 'SILVER'
+              ? 'border-slate-200'
+              : 'border-slate-100'
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Image Section with Multiple Photos */}
+        <Link to={`/equipment/${e.id}`} className="relative block h-44 overflow-hidden bg-slate-100 group">
+          <img
+            src={e.photos[currentPhotoIndex]}
+            alt={e.name}
+            onError={onImgError}
+            className={`h-full w-full object-cover transition-transform duration-500 ${
+              isHovered ? 'scale-125' : 'scale-100'
+            }`}
+            loading="lazy"
+          />
+
+          {/* Photo Gallery Indicators */}
+          {e.photos.length > 1 && (
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 px-2">
+              {e.photos.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(evt) => {
+                    evt.preventDefault()
+                    evt.stopPropagation()
+                    handlePhotoChange(idx)
+                  }}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === currentPhotoIndex
+                      ? 'w-6 bg-white'
+                      : 'w-1.5 bg-white/50 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
           <TierBadge tier={e.tier} />
           <LikeButton equipmentId={e.id} likes={e.likes} />
@@ -240,18 +287,78 @@ export function ProductCard({
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Link
             to={`/equipment/${e.id}`}
-            className="rounded-lg border-2 border-brand-200 py-2.5 text-center text-sm font-bold text-brand-700 transition hover:bg-brand-50"
+            className="rounded-lg border-2 border-brand-200 py-2.5 text-center text-sm font-bold text-brand-700 transition transform hover:bg-brand-50 hover:scale-105 active:scale-95"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             Voir
           </Link>
           <button
-            onClick={() => (onQuote ? onQuote(e.id) : navigate(`/equipment/${e.id}`))}
-            className="rounded-lg bg-accent-500 py-2.5 text-sm font-bold text-white transition hover:bg-accent-600 active:scale-95"
+            onClick={handleQuoteClick}
+            className="rounded-lg bg-accent-500 py-2.5 text-sm font-bold text-white transition transform hover:bg-accent-600 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             Devis
           </button>
         </div>
       </div>
-    </div>
-  )
-}
+      </div>
+
+      {/* Full Screen Image Preview Modal */}
+      {showPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setShowPreview(false)}
+        >
+          <div
+            className="relative max-h-[90vh] max-w-4xl overflow-auto rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowPreview(false)}
+              className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/80 p-2 text-white hover:bg-slate-900 transition"
+            >
+              <IconClose className="w-6 h-6" />
+            </button>
+
+            <div className="p-6">
+              <img
+                src={e.photos[currentPhotoIndex]}
+                alt={e.name}
+                className="w-full rounded-lg"
+                onError={onImgError}
+              />
+
+              {e.photos.length > 1 && (
+                <div className="mt-6 flex justify-center gap-3">
+                  {e.photos.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handlePhotoChange(idx)}
+                      className={`transition transform ${
+                        idx === currentPhotoIndex ? 'scale-110 ring-2 ring-brand-600' : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={e.photos[idx]}
+                        alt={`Photo ${idx + 1}`}
+                        className="h-16 w-20 rounded object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 space-y-4 border-t pt-6">
+                <h2 className="text-2xl font-bold text-slate-900">{e.name}</h2>
+                <p className="text-sm text-slate-600">{e.brand} {e.model} • {e.year}</p>
+                <p className="text-slate-700">{e.description}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+    )
+  }
