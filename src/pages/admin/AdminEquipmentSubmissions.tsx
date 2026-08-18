@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, Toast } from '../../components/ui'
+import { IconMapPin, IconPhone, IconCheck, IconWarning, IconClock } from '../../components/Icons'
 
 export default function AdminEquipmentSubmissions() {
   const { equipment, users, assignInspection } = useStore()
@@ -61,7 +62,7 @@ export default function AdminEquipmentSubmissions() {
                       <div>
                         <p className="text-xs text-slate-500 uppercase font-semibold">Localisation</p>
                         <p className="font-bold text-slate-900 flex items-center gap-1">
-                          <img src="/assets/check.svg" alt="📍" className="w-3 h-3" />
+                          <IconMapPin className="w-3 h-3" />
                           {eq.location}
                         </p>
                       </div>
@@ -76,13 +77,24 @@ export default function AdminEquipmentSubmissions() {
                     </div>
 
                     <div className="mb-4 p-3 bg-brand-50 rounded-lg border border-brand-200">
-                      <p className="text-xs font-semibold text-brand-700 mb-1"><img src="/assets/check.svg" alt="User" className="w-3 h-3 inline mr-1" />Fournisseur</p>
+                      <p className="text-xs font-semibold text-brand-700 mb-1 flex items-center gap-1">
+                        <IconCheck className="w-3 h-3" />
+                        Fournisseur
+                      </p>
                       <p className="text-sm text-slate-900 font-semibold">{supplier?.company}</p>
-                      <p className="text-xs text-slate-600"><img src="/assets/check.svg" alt="Location" className="w-3 h-3 inline mr-1" />{supplier?.city} • <img src="/assets/check.svg" alt="Phone" className="w-3 h-3 inline mr-1" />{supplier?.phone}</p>
+                      <p className="text-xs text-slate-600 flex items-center gap-1">
+                        <IconMapPin className="w-3 h-3" />
+                        {supplier?.city} •
+                        <IconPhone className="w-3 h-3" />
+                        {supplier?.phone}
+                      </p>
                     </div>
 
                     <div className="p-3 bg-slate-100 rounded-lg">
-                      <p className="text-xs font-semibold text-slate-700 mb-1"><img src="/assets/loading.svg" alt="Loading" className="w-3 h-3 inline mr-1" />Description</p>
+                      <p className="text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                        <IconCheck className="w-3 h-3 text-slate-400" />
+                        Description
+                      </p>
                       <p className="text-sm text-slate-700">{eq.description || 'Aucune description fournie'}</p>
                     </div>
                   </div>
@@ -90,10 +102,13 @@ export default function AdminEquipmentSubmissions() {
                   {/* Actions */}
                   <div className="flex-none w-full lg:w-56">
                     <div className="bg-amber-50 rounded-lg p-4 border-l-4 border-amber-500">
-                      <p className="text-xs font-bold text-amber-900 mb-4 uppercase"><img src="/assets/loading.svg" alt="Steps" className="w-3 h-3 inline mr-1 animate-spin" />Étapes</p>
+                      <p className="text-xs font-bold text-amber-900 mb-4 uppercase flex items-center gap-1">
+                        <IconClock className="w-3 h-3 animate-spin" />
+                        Étapes
+                      </p>
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <img src="/assets/check.svg" alt="Done" className="w-4 h-4" />
+                          <IconCheck className="w-4 h-4" />
                           <span className="text-sm text-slate-700">Soumis par fournisseur</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -125,16 +140,17 @@ export default function AdminEquipmentSubmissions() {
                         <button
                           onClick={() => {
                             if (!tech) {
-                              showToast('<img src="/assets/warning.svg" alt="⚠️" className="w-4 h-4 inline" /> Sélectionnez un technicien')
+                              showToast('Sélectionnez un technicien')
                               return
                             }
                             assignInspection(eq.id as any, tech)
-                            showToast(`<img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline" /> Inspection assignée pour ${eq.name}`)
+                            showToast(`Inspection assignée pour ${eq.name}`)
                           }}
                           disabled={!tech}
-                          className="w-full rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700 disabled:opacity-50 transition"
+                          className="w-full rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
                         >
-                          <img src="/assets/check.svg" alt="🔍" className="w-4 h-4 inline mr-1" />Assigner inspection
+                          <IconCheck className="w-4 h-4" />
+                          Assigner inspection
                         </button>
                       </div>
                     </div>

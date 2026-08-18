@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle } from '../../components/ui'
+import { IconMapPin } from '../../components/Icons'
 
 const TEAM_ID = 'u-tech-1'
 
@@ -47,7 +48,11 @@ export default function TechnicalMissions() {
                         {status.label}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-600">{eq?.brand} {eq?.model} · {eq?.year} · <img src="/assets/check.svg" alt="📍" className="w-3 h-3 inline" /> {eq?.location}</p>
+                    <p className="mt-1 text-sm text-slate-600 flex items-center gap-1">
+                      {eq?.brand} {eq?.model} · {eq?.year} ·
+                      <IconMapPin className="w-3 h-3" />
+                      {eq?.location}
+                    </p>
                     <p className="text-xs text-slate-500">Fournisseur : {supplier?.company} · Assignée le {insp.assignedAt}</p>
                     <p className="mt-1 text-xs text-slate-500">Checklist : {filled} / {insp.checklist.length}</p>
                   </div>

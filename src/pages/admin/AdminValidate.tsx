@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, CategoryBadge, EmptyState, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
+import { IconCheck } from '../../components/Icons'
 import type { EquipmentCategory } from '../../store/types'
 
 const RESULT_LABEL = {
@@ -36,7 +37,7 @@ export default function AdminValidate() {
 
   const categorize = (category: EquipmentCategory) => {
     categorizeEquipment(eq.id, category)
-    setToast(`${eq.name} catégorisé ${category} ✔`)
+    setToast(`${eq.name} catégorisé ${category}`)
     setTimeout(() => navigate('/admin/inspections'), 1500)
   }
 
@@ -71,7 +72,7 @@ export default function AdminValidate() {
       ) : (
         <>
           <Card className="mb-4 p-6">
-            <h3 className="mb-2 font-bold text-slate-900">📄 Rapport d'inspection ({report.submittedAt})</h3>
+            <h3 className="mb-2 font-bold text-slate-900">Rapport d'inspection ({report.submittedAt})</h3>
             <p className="mb-4 text-sm text-slate-600">{report.summary}</p>
             <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
               {report.checklist.map((c) => (
@@ -107,7 +108,10 @@ export default function AdminValidate() {
           ) : quote.status === 'CATEGORISEE' ? (
             <Card className="p-6">
               <div className="mb-6">
-                <div className="font-semibold text-emerald-700 mb-2">✔ Équipement catégorisé.</div>
+                <div className="font-semibold text-emerald-700 mb-2 flex items-center gap-2">
+                  <IconCheck className="w-5 h-5" />
+                  Équipement catégorisé.
+                </div>
                 <div className="text-sm text-slate-600">Catégorie assignée : <span className="font-bold">{eq.category}</span></div>
               </div>
 
@@ -122,16 +126,25 @@ export default function AdminValidate() {
                       key={rating}
                       onClick={() => {
                         rateEquipment(eq.id, rating)
-                        setToast(`Notation ${rating} assignée ✔`)
+                        setToast(`Notation ${rating} assignée`)
                       }}
-                      className={`rounded-lg px-6 py-3 font-semibold text-white transition hover:opacity-90 ${
+                      className={`rounded-lg px-6 py-3 font-semibold text-white transition hover:opacity-90 flex items-center gap-2 ${
                         rating === 'GOLD' ? 'bg-yellow-600 hover:bg-yellow-700' :
                         rating === 'SILVER' ? 'bg-slate-500 hover:bg-slate-600' :
                         'bg-orange-600 hover:bg-orange-700'
                       }`}
                     >
-                      {rating === 'GOLD' && '⭐ Or (Gold)'}
-                      {rating === 'SILVER' && '✓ Argent (Silver)'}
+                      {rating === 'GOLD' && (
+                        <>
+                          Or (Gold)
+                        </>
+                      )}
+                      {rating === 'SILVER' && (
+                        <>
+                          <IconCheck className="w-4 h-4" />
+                          Argent (Silver)
+                        </>
+                      )}
                       {rating === 'STANDARD' && 'Standard'}
                     </button>
                   ))}
@@ -141,16 +154,20 @@ export default function AdminValidate() {
               <button
                 onClick={() => {
                   updateQuoteRequestStatus(quote.id, 'TERMINEE')
-                  setToast('Demande clôturée ✔')
+                  setToast('Demande clôturée')
                 }}
-                className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 flex items-center justify-center gap-2"
               >
+                <IconCheck className="w-4 h-4" />
                 Clôturer la demande
               </button>
             </Card>
           ) : quote.status === 'TERMINEE' ? (
             <Card className="p-6">
-              <div className="font-semibold text-emerald-700">✔ Demande terminée.</div>
+              <div className="font-semibold text-emerald-700 flex items-center gap-2">
+                <IconCheck className="w-5 h-5" />
+                Demande terminée.
+              </div>
             </Card>
           ) : null}
         </>

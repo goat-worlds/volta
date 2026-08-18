@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
+import { IconMapPin, IconCheck, IconEnvelope } from '../../components/Icons'
 
 export default function AdminQuotes() {
   const { quoteRequests, equipment, users, updateQuoteRequestStatus, assignInspection } = useStore()
@@ -48,8 +49,10 @@ export default function AdminQuotes() {
                     </p>
                     <p className="text-sm text-slate-600">Client : {qr.clientName} ({qr.clientCompany})</p>
                     <p className="text-sm text-slate-600">Fournisseur : {supplier?.company}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {qr.duration} · {qr.requestedDate} · <img src="/assets/check.svg" alt="📍" className="w-3 h-3 inline" /> {qr.location}
+                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                      {qr.duration} · {qr.requestedDate} ·
+                      <IconMapPin className="w-3 h-3" />
+                      {qr.location}
                     </p>
                   </div>
 
@@ -58,11 +61,12 @@ export default function AdminQuotes() {
                       <button
                         onClick={() => {
                           updateQuoteRequestStatus(qr.id, 'TRANSMISE')
-                          showToast(`${qr.reference} transmise au fournisseur <img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline" />`)
+                          showToast(`${qr.reference} transmise au fournisseur`)
                         }}
-                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 flex items-center gap-1"
                       >
-                        <img src="/assets/check.svg" alt="📩" className="w-4 h-4 inline mr-1" />Transmettre au fournisseur
+                        <IconEnvelope className="w-4 h-4" />
+                        Transmettre au fournisseur
                       </button>
                     )}
                     {(qr.status === 'NOUVELLE' || qr.status === 'TRANSMISE') && (
@@ -79,12 +83,13 @@ export default function AdminQuotes() {
                         <button
                           onClick={() => {
                             assignInspection(qr.id, tech)
-                            showToast(`Inspection assignée pour ${qr.reference} <img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline" />`)
+                            showToast(`Inspection assignée pour ${qr.reference}`)
                           }}
                           disabled={!tech}
-                          className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+                          className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600 disabled:opacity-50 flex items-center gap-1"
                         >
-                          <img src="/assets/check.svg" alt="🔍" className="w-4 h-4 inline mr-1" />Assigner l'inspection
+                          <IconCheck className="w-4 h-4" />
+                          Assigner l'inspection
                         </button>
                       </div>
                     )}
@@ -94,8 +99,9 @@ export default function AdminQuotes() {
                       </Link>
                     )}
                     {qr.status === 'RAPPORT_REÇU' && (
-                      <Link to={`/admin/validate/${qr.id}`} className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600">
-                        <img src="/assets/check.svg" alt="📊" className="w-4 h-4 inline mr-1" />Valider le rapport
+                      <Link to={`/admin/validate/${qr.id}`} className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600 flex items-center gap-1">
+                        <IconCheck className="w-4 h-4" />
+                        Valider le rapport
                       </Link>
                     )}
                   </div>

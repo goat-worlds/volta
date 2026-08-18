@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { IconCheck, IconHourglass, IconPhone, IconEnvelope } from '../../components/Icons'
 
 const SUPPLIER_ID = 'u-sup-1'
 
@@ -26,10 +27,15 @@ export default function SupplierEquipment() {
 
       {/* Mes équipements */}
       <div className="mb-12">
-        <h2 className="text-xl font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="🚜" className="w-5 h-5 inline mr-2" />Mes équipements</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <IconCheck className="w-5 h-5" />
+          Mes équipements
+        </h2>
         {myEquipment.length === 0 ? (
           <Card className="p-8 text-center bg-slate-50">
-            <div className="text-4xl mb-3">📭</div>
+            <div className="flex justify-center mb-3">
+              <IconEnvelope className="w-12 h-12 text-slate-400" />
+            </div>
             <p className="text-slate-600 font-medium">Vous n'avez pas encore d'équipements listés</p>
             <p className="text-sm text-slate-500 mt-1">Cliquez sur "Ajouter équipement" pour commencer</p>
           </Card>
@@ -41,22 +47,58 @@ export default function SupplierEquipment() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-slate-900 text-lg">{eq.name}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
                         eq.status === 'CATEGORISE' ? 'bg-emerald-100 text-emerald-700' :
                         eq.status === 'EN_INSPECTION' ? 'bg-amber-100 text-amber-700' :
                         'bg-blue-100 text-blue-700'
                       }`}>
-                        {eq.status === 'DISPONIBLE' && '<img src="/assets/check.svg" alt="✓" className="w-3 h-3 inline mr-1" />Disponible'}
-                        {eq.status === 'EN_INSPECTION' && '<img src="/assets/loading.svg" alt="⏳" className="w-3 h-3 inline mr-1 animate-spin" />En inspection'}
-                        {eq.status === 'CATEGORISE' && '<img src="/assets/check.svg" alt="✔" className="w-3 h-3 inline mr-1" />Catégorisé'}
-                        {eq.status === 'INDISPONIBLE' && '<img src="/assets/close.svg" alt="✗" className="w-3 h-3 inline mr-1" />Indisponible'}
+                        {eq.status === 'DISPONIBLE' && (
+                          <>
+                            <IconCheck className="w-3 h-3" />
+                            Disponible
+                          </>
+                        )}
+                        {eq.status === 'EN_INSPECTION' && (
+                          <>
+                            <IconHourglass className="w-3 h-3 animate-spin" />
+                            En inspection
+                          </>
+                        )}
+                        {eq.status === 'CATEGORISE' && (
+                          <>
+                            <IconCheck className="w-3 h-3" />
+                            Catégorisé
+                          </>
+                        )}
+                        {eq.status === 'INDISPONIBLE' && (
+                          <>
+                            <span>✗</span>
+                            Indisponible
+                          </>
+                        )}
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 mt-1">{eq.brand} {eq.model} • {eq.year} • {eq.hours}h</p>
                     {eq.category && (
-                      <p className="text-sm text-slate-600 mt-2">
+                      <p className="text-sm text-slate-600 mt-2 flex items-center gap-2">
                         Catégorie VOLTA: <span className="font-bold">{eq.category}</span>
-                        {eq.rating && ` • Note: ${eq.rating === 'GOLD' ? '<img src="/assets/star.svg" alt="⭐" className="w-4 h-4 inline" /> Or' : eq.rating === 'SILVER' ? '<img src="/assets/check.svg" alt="✓" className="w-3 h-3 inline mr-1" />Argent' : 'Standard'}`}
+                        {eq.rating && (
+                          <>
+                            •
+                            {eq.rating === 'GOLD' && (
+                              <>
+                                Or
+                              </>
+                            )}
+                            {eq.rating === 'SILVER' && (
+                              <>
+                                <IconCheck className="w-3 h-3" />
+                                Argent
+                              </>
+                            )}
+                            {eq.rating === 'STANDARD' && 'Standard'}
+                          </>
+                        )}
                       </p>
                     )}
                   </div>
@@ -75,11 +117,16 @@ export default function SupplierEquipment() {
 
       {/* Demandes de devis */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900 mb-4"><img src="/assets/check.svg" alt="📋" className="w-5 h-5 inline mr-2" />Demandes de devis reçues</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <IconCheck className="w-5 h-5" />
+          Demandes de devis reçues
+        </h2>
 
         {myRequests.length === 0 ? (
           <Card className="p-8 text-center bg-slate-50">
-            <div className="text-4xl mb-3">📭</div>
+            <div className="flex justify-center mb-3">
+              <IconEnvelope className="w-12 h-12 text-slate-400" />
+            </div>
             <p className="text-slate-600 font-medium">Aucune demande</p>
             <p className="text-sm text-slate-500 mt-1">Les clients qui vous demandent un devis apparaîtront ici.</p>
           </Card>
@@ -112,14 +159,16 @@ export default function SupplierEquipment() {
                     </div>
                     <div>
                       <p className="text-xs text-slate-500 uppercase tracking-wide">Contact</p>
-                      <p className="text-sm">
-                        <a href={`tel:${qr.clientPhone}`} className="text-brand-600 hover:underline">
-                          <img src="/assets/check.svg" alt="📞" className="w-3 h-3 inline mr-1" />{qr.clientPhone}
+                      <p className="text-sm flex items-center gap-1">
+                        <a href={`tel:${qr.clientPhone}`} className="text-brand-600 hover:underline flex items-center gap-1">
+                          <IconPhone className="w-3 h-3" />
+                          {qr.clientPhone}
                         </a>
                       </p>
-                      <p className="text-sm">
-                        <a href={`mailto:${qr.clientEmail}`} className="text-brand-600 hover:underline">
-                          <img src="/assets/check.svg" alt="📧" className="w-3 h-3 inline mr-1" />{qr.clientEmail}
+                      <p className="text-sm flex items-center gap-1">
+                        <a href={`mailto:${qr.clientEmail}`} className="text-brand-600 hover:underline flex items-center gap-1">
+                          <IconEnvelope className="w-3 h-3" />
+                          {qr.clientEmail}
                         </a>
                       </p>
                     </div>
@@ -151,8 +200,9 @@ export default function SupplierEquipment() {
                     </div>
                   )}
 
-                  <div className="text-xs text-slate-500">
-                    <img src="/assets/check.svg" alt="💡" className="w-3 h-3 inline mr-1" />Contactez le client directement pour négocier les tarifs et conditions.
+                  <div className="text-xs text-slate-500 flex items-center gap-1">
+                    <IconCheck className="w-3 h-3" />
+                    Contactez le client directement pour négocier les tarifs et conditions.
                   </div>
                 </Card>
               )

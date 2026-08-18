@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import { IconCheck, IconWarning } from '../../components/Icons'
 import type { CheckResult, ChecklistItem } from '../../store/types'
 
 const RESULT_OPTIONS: { value: CheckResult; label: string; cls: string }[] = [
@@ -57,7 +58,7 @@ export default function TechnicalInspection() {
         checklist,
       )
       setSending(false)
-      setToast('Rapport soumis à VOLTA ✔ L\'engin passe en attente de décision admin.')
+      setToast('Rapport soumis à VOLTA. L\'engin passe en attente de décision admin.')
       setTimeout(() => navigate('/technical/missions'), 1500)
     }, 600)
   }
@@ -75,7 +76,10 @@ export default function TechnicalInspection() {
 
       {done ? (
         <Card className="p-6">
-          <div className="font-semibold text-emerald-700"><img src="/assets/check.svg" alt="✔" className="w-4 h-4 inline mr-2" />Rapport déjà soumis pour cette mission.</div>
+          <div className="font-semibold text-emerald-700 flex items-center gap-2">
+            <IconCheck className="w-4 h-4" />
+            Rapport déjà soumis pour cette mission.
+          </div>
           <p className="mt-2 text-sm text-slate-600">L'engin est en attente de décision de l'administrateur VOLTA.</p>
         </Card>
       ) : (
@@ -150,12 +154,18 @@ export default function TechnicalInspection() {
               </div>
             )}
             {(measures.length > 0 || anomalies.length > 0) && (
-              <ul className="list-inside list-disc text-sm text-slate-600">
+              <ul className="space-y-2">
                 {measures.map((m, i) => (
-                  <li key={`m-${i}`}><img src="/assets/check.svg" alt="📏" className="w-3 h-3 inline mr-1" />{m}</li>
+                  <li key={`m-${i}`} className="flex items-center gap-2 text-sm text-slate-600">
+                    <IconCheck className="w-3 h-3 flex-shrink-0" />
+                    {m}
+                  </li>
                 ))}
                 {anomalies.map((a, i) => (
-                  <li key={`a-${i}`} className="text-red-600"><img src="/assets/warning.svg" alt="⚠️" className="w-4 h-4 inline mr-1" />{a}</li>
+                  <li key={`a-${i}`} className="flex items-center gap-2 text-sm text-red-600">
+                    <IconWarning className="w-4 h-4 flex-shrink-0" />
+                    {a}
+                  </li>
                 ))}
               </ul>
             )}

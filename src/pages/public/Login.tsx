@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card } from '../../components/ui'
+import { IconHourglass, IconCheck, IconWrench } from '../../components/Icons'
 
 type UserRole = 'CLIENT' | 'SUPPLIER' | 'TECHNICAL' | 'ADMIN'
 
@@ -121,9 +122,19 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || !email || !password}
-              className={`w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${isLoading ? 'bg-accent-200' : 'bg-accent-500 hover:bg-accent-600'}`}
+              className={`w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isLoading ? 'bg-accent-200' : 'bg-accent-500 hover:bg-accent-600'}`}
             >
-              {isLoading ? '<img src="/assets/loading.svg" alt="⏳" className="w-4 h-4 inline mr-2 animate-spin" />Connexion...' : '<img src="/assets/check.svg" alt="🔓" className="w-4 h-4 inline mr-2" />Se connecter'}
+              {isLoading ? (
+                <>
+                  <IconHourglass className="w-4 h-4 animate-spin" />
+                  Connexion...
+                </>
+              ) : (
+                <>
+                  <IconCheck className="w-4 h-4" />
+                  Se connecter
+                </>
+              )}
             </button>
           </form>
         </Card>
@@ -140,10 +151,18 @@ export default function Login() {
                 onClick={() => handleDemoLogin(account)}
                 className="p-3 rounded-lg bg-white/10 hover:bg-white/20 text-white transition transform hover:scale-105 border border-white/20 text-sm font-medium"
               >
-                <div className="font-bold">{account.role === 'CLIENT' ? '<img src="/assets/check.svg" alt="👤" className="w-4 h-4 inline mr-1" />Client' :
-                                              account.role === 'SUPPLIER' ? '<img src="/assets/IMAGE1.jpg" alt="🏭" className="w-4 h-4 rounded inline mr-1" />Fournisseur' :
-                                              account.role === 'TECHNICAL' ? '<img src="/assets/check.svg" alt="🔧" className="w-4 h-4 inline mr-1" />Technique' :
-                                              '<img src="/assets/check.svg" alt="👨‍💼" className="w-4 h-4 inline mr-1" />Admin'}</div>
+                <div className="font-bold flex items-center gap-1">
+                  {account.role === 'CLIENT' && <IconCheck className="w-4 h-4" />}
+                  {account.role === 'SUPPLIER' && <IconCheck className="w-4 h-4" />}
+                  {account.role === 'TECHNICAL' && <IconWrench className="w-4 h-4" />}
+                  {account.role === 'ADMIN' && <IconCheck className="w-4 h-4" />}
+                  <span>
+                    {account.role === 'CLIENT' ? 'Client' :
+                    account.role === 'SUPPLIER' ? 'Fournisseur' :
+                    account.role === 'TECHNICAL' ? 'Technique' :
+                    'Admin'}
+                  </span>
+                </div>
                 <div className="text-xs text-brand-100 mt-1">{account.company}</div>
               </button>
             ))}
@@ -152,8 +171,12 @@ export default function Login() {
 
         {/* Info Box */}
         <div className="p-4 bg-brand-50 border-l-4 rounded-lg border-l-accent-500">
-          <p className="text-xs text-slate-700 leading-relaxed">
-            <strong className="text-accent-600"><img src="/assets/check.svg" alt="💡" className="w-4 h-4 inline mr-1" />Info:</strong> Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.
+          <p className="text-xs text-slate-700 leading-relaxed flex items-start gap-2">
+            <strong className="text-accent-600 flex items-center gap-1">
+              <IconCheck className="w-4 h-4 flex-shrink-0" />
+              Info:
+            </strong>
+            <span>Cliquez sur un compte de démonstration ou entrez les identifiants manuellement pour accéder aux espaces administratifs.</span>
           </p>
         </div>
       </div>
