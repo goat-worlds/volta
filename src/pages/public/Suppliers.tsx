@@ -2,37 +2,26 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
-import { IconHandshake, IconSearch, IconCheck, IconMapPin, IconPhone, IconEnvelope, IconWrench, IconClose, IconMoney } from '../../components/Icons'
+import { IconHandshake, IconSearch, IconCheck, IconMapPin, IconPhone, IconEnvelope, IconWrench, IconClose, IconMoney, IconTool, IconBuilding } from '../../components/Icons'
 
 export default function Suppliers() {
   const { users, equipment } = useStore()
   const [selectedRegion, setSelectedRegion] = useState<string>('')
   const [expandedSupplier, setExpandedSupplier] = useState<string | null>(null)
   const [searchSupplier, setSearchSupplier] = useState('')
-  const [showModal, setShowModal] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'equipment' | 'region'>('name')
   const [hoveredCriteria, setHoveredCriteria] = useState<string | null>(null)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  const carouselImages = [
-    '/chargeuse hydraulique(.webp).webp',
-    '/perle hydrolique(.webp).webp',
-  ]
+  const backgroundGradient = 'linear-gradient(135deg, rgba(30, 30, 40, 0.85) 0%, rgba(20, 20, 30, 0.75) 100%)'
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
 
   const suppliers = users.filter((u) => u.role === 'SUPPLIER')
   const regions = [...new Set(suppliers.map((s) => s.city))]
 
   const criteria = [
-    { icon: 'check', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
-    { icon: 'check', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
-    { icon: '/IMAGE1.jpg', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
+    { label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée', Icon: IconTool },
+    { label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide', Icon: IconCheck },
+    { label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces', Icon: IconBuilding },
   ]
 
   let filteredSuppliers = selectedRegion
@@ -61,15 +50,9 @@ export default function Suppliers() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      {/* Hero Section with Image Background */}
+      {/* Hero Section with Gradient Background */}
       <section
-        className="relative px-4 py-20 text-white overflow-hidden"
-        style={{
-          backgroundImage: `linear-gradient(135deg, rgba(30, 30, 40, 0.85) 0%, rgba(20, 20, 30, 0.75) 100%), url('${carouselImages[0]}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-        }}
+        className="relative px-4 py-20 text-white overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900"
       >
         <div className="mx-auto max-w-6xl relative z-10">
           <div className="max-w-2xl">
@@ -125,18 +108,6 @@ export default function Suppliers() {
           </div>
         </div>
 
-        {/* Carousel Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-          {carouselImages.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentImageIndex(idx)}
-              className={`h-2 transition-all rounded-full ${
-                idx === currentImageIndex ? 'bg-accent-500 w-8' : 'bg-white/40 w-2 hover:bg-white/60'
-              }`}
-            />
-          ))}
-        </div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-16">
@@ -182,10 +153,10 @@ export default function Suppliers() {
               <Card
                 className="p-8 hover:shadow-xl transition transform hover:scale-105 cursor-pointer h-full"
               >
-                <div className="text-7xl mb-4 transition transform inline-block" style={{
+                <div className="mb-4 transition transform inline-block" style={{
                   transform: hoveredCriteria === crit.key ? 'scale(1.2) rotate(5deg)' : 'scale(1)',
                 }}>
-                  {crit.icon}
+                  <crit.Icon className="w-12 h-12 text-accent-600" />
                 </div>
                 <h3 className="font-bold text-xl mb-3 text-accent-600">
                   {crit.label}
