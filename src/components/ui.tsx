@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { EquipmentStatus, EquipmentCategory, QuoteRequestStatus } from '../store/types'
+import { IconClose } from './Icons'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
   DISPONIBLE: 'Disponible',
@@ -135,7 +136,7 @@ export function Modal({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-bold">{title}</h3>
           <button onClick={onClose} className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-600">
-            <img src="/assets/close.svg" alt="Fermer" className="w-5 h-5" />
+            <IconClose className="w-5 h-5" />
           </button>
         </div>
         {children}

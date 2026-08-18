@@ -4,7 +4,7 @@ import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
 import { ProductCard, Reveal, TierBadge, TIER_ORDER } from '../../components/product'
 import { IconDisplay } from '../../components/IconDisplay'
-import { IconMapPin, IconEnvelope, IconCheck, IconHeart } from '../../components/Icons'
+import { IconMapPin, IconEnvelope, IconCheck, IconHeart, IconUsers, IconAward, IconStar, IconWarning, IconClose, IconGear } from '../../components/Icons'
 
 interface CounterStats {
   users: number
@@ -163,19 +163,27 @@ export default function Home() {
 
           {/* Animated stats */}
           <div className="animate-fade-up mt-12 grid max-w-2xl grid-cols-3 gap-6" style={{ animationDelay: '400ms' }}>
-            {[
-              { icon: '/assets/users.svg', value: counters.users, label: 'Utilisateurs' },
-              { icon: '/IMAGE1.jpg', value: counters.equipment, label: 'Équipements' },
-              { icon: '/assets/award.svg', value: counters.transactions, label: 'Locations réussies' },
-            ].map((s) => (
-              <div key={s.label} className="flex flex-col items-start">
-                <img src={s.icon} alt={s.label} className="mb-2 h-6 w-6 text-white opacity-80" />
-                <div className="text-3xl font-extrabold text-white md:text-4xl">
-                  {s.value.toLocaleString('fr-FR')}+
-                </div>
-                <div className="mt-1 text-sm text-slate-400">{s.label}</div>
+            <div className="flex flex-col items-start">
+              <IconUsers className="mb-2 h-6 w-6 text-white opacity-80" />
+              <div className="text-3xl font-extrabold text-white md:text-4xl">
+                {counters.users.toLocaleString('fr-FR')}+
               </div>
-            ))}
+              <div className="mt-1 text-sm text-slate-400">Utilisateurs</div>
+            </div>
+            <div className="flex flex-col items-start">
+              <IconGear className="mb-2 h-6 w-6 text-white opacity-80" />
+              <div className="text-3xl font-extrabold text-white md:text-4xl">
+                {counters.equipment.toLocaleString('fr-FR')}+
+              </div>
+              <div className="mt-1 text-sm text-slate-400">Équipements</div>
+            </div>
+            <div className="flex flex-col items-start">
+              <IconAward className="mb-2 h-6 w-6 text-white opacity-80" />
+              <div className="text-3xl font-extrabold text-white md:text-4xl">
+                {counters.transactions.toLocaleString('fr-FR')}+
+              </div>
+              <div className="mt-1 text-sm text-slate-400">Locations réussies</div>
+            </div>
           </div>
         </div>
       </section>
@@ -184,15 +192,15 @@ export default function Home() {
         {/* Features Section */}
         <section className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-4">
           {[
-            { icon: 'check', title: 'Vérifiés', desc: 'Tous les équipements inspectés' },
-            { icon: '/assets/star.svg', title: 'Notés', desc: 'Catégories A à E pour chaque équipement' },
-            { icon: '/assets/heart.svg', title: 'Testés', desc: 'Par une communauté de clients vérifiés' },
-            { icon: '/assets/warning.svg', title: 'Certifiés', desc: 'Avec rapports d\'inspection détaillés' },
+            { Icon: IconCheck, title: 'Vérifiés', desc: 'Tous les équipements inspectés' },
+            { Icon: IconStar, title: 'Notés', desc: 'Catégories A à E pour chaque équipement' },
+            { Icon: IconHeart, title: 'Testés', desc: 'Par une communauté de clients vérifiés' },
+            { Icon: IconWarning, title: 'Certifiés', desc: 'Avec rapports d\'inspection détaillés' },
           ].map((f, idx) => (
             <Reveal key={idx} delay={idx * 100}>
               <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-sm transition hover:shadow-md">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100">
-                  <img src={f.icon} alt={f.title} className="h-6 w-6" />
+                  <f.Icon className="h-6 w-6 text-brand-600" />
                 </div>
                 <h3 className="mt-3 font-bold text-slate-900">{f.title}</h3>
                 <p className="mt-1 text-xs text-slate-600">{f.desc}</p>
@@ -402,7 +410,7 @@ export default function Home() {
                   onClick={() => setShowModal(false)}
                   className="text-3xl text-slate-400 hover:text-slate-600"
                 >
-                  <img src="/assets/close.svg" alt="✕" className="w-6 h-6" />
+                  <IconClose className="w-6 h-6" />
                 </button>
               </div>
               <form

@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                   to="/admin/quotes"
                   className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500 flex items-center justify-center gap-2"
                 >
-                  <img src="/assets/check.svg" alt="List" className="w-4 h-4" />
+                  <IconCheck className="w-4 h-4" />
                   Toutes les demandes
                 </Link>
                 <Link

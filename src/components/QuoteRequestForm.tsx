@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store/StoreContext'
 import { Card, Toast } from './ui'
+import { IconCheck, IconClock } from './Icons'
 
 interface QuoteRequestFormProps {
   equipmentId: string
@@ -118,7 +119,7 @@ export default function QuoteRequestForm({
         {/* Client Info Section */}
         <div className="border-t border-slate-200 pt-4">
           <div className="flex items-center gap-2 mb-3">
-            <img src="/assets/check.svg" alt="Informations" className="w-5 h-5 text-slate-900" />
+            <IconCheck className="w-5 h-5 text-slate-900" />
             <h3 className="text-sm font-bold text-slate-900">Vos informations</h3>
           </div>
 
@@ -235,12 +236,12 @@ export default function QuoteRequestForm({
         >
           {sending ? (
             <>
-              <img src="/assets/loading.svg" alt="Envoi" className="w-4 h-4 animate-spin" />
+              <IconClock className="w-4 h-4 animate-spin" />
               Envoi en cours...
             </>
           ) : (
             <>
-              <img src="/assets/check.svg" alt="Valider" className="w-4 h-4" />
+              <IconCheck className="w-4 h-4" />
               Envoyer ma demande de devis
             </>
           )}

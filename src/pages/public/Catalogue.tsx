@@ -4,7 +4,7 @@ import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, CategoryBadge, StatusBadge } from '../../components/ui'
 import { IconDisplay } from '../../components/IconDisplay'
 import QuoteRequestForm from '../../components/QuoteRequestForm'
-import { IconMapPin, IconEnvelope, IconEye, IconCheck, IconHourglass, IconSearch, IconHandshake, IconMoney } from '../../components/Icons'
+import { IconMapPin, IconEnvelope, IconEye, IconCheck, IconHourglass, IconSearch, IconHandshake, IconMoney, IconShield, IconClose } from '../../components/Icons'
 
 export default function Catalogue() {
   const { equipment, categories, users } = useStore()
@@ -26,7 +26,7 @@ export default function Catalogue() {
       {/* Explanation Banner */}
       <Card className="mb-8 overflow-hidden border border-brand-200 bg-gradient-to-r from-brand-50 to-brand-100/50 p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <img src="/assets/shield.svg" alt="Information" className="h-10 w-10 shrink-0 text-brand-600" />
+          <IconShield className="h-10 w-10 shrink-0 text-brand-600" />
           <div className="flex-1">
             <h3 className="font-bold text-slate-900 mb-2">Comment fonctionne VOLTA?</h3>
             <p className="text-sm text-slate-700 leading-relaxed">
@@ -113,7 +113,7 @@ export default function Catalogue() {
                   {/* Category Badge - Inspection Result */}
                   {e.category && (
                     <div className="mb-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
-                      <div className="text-xs text-slate-600 mb-1"><img src="/assets/check.svg" alt="📊" className="w-3 h-3 inline mr-1" />Évaluation technique VOLTA</div>
+                      <div className="text-xs text-slate-600 mb-1"><IconCheck className="w-3 h-3 inline mr-1" />Évaluation technique VOLTA</div>
                       <CategoryBadge category={e.category} />
                     </div>
                   )}
@@ -234,7 +234,7 @@ export default function Catalogue() {
                   onClick={() => setQuoteFormOpen(null)}
                   className="text-slate-400 hover:text-slate-600"
                 >
-                  <img src="/assets/close.svg" alt="Fermer" className="w-6 h-6" />
+                  <IconClose className="w-6 h-6" />
                 </button>
               </div>
 
