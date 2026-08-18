@@ -15,7 +15,7 @@ import {
   Filter,
   Envelope,
   Eye,
-  Handshake,
+  HandThumbsUp,
   CurrencyDollar,
   Hourglass,
   Wrench,
@@ -82,7 +82,7 @@ export function IconEye({ className = '' }: { className?: string }) {
 }
 
 export function IconHandshake({ className = '' }: { className?: string }) {
-  return <Handshake className={className} />
+  return <HandThumbsUp className={className} />
 }
 
 export function IconMoney({ className = '' }: { className?: string }) {
