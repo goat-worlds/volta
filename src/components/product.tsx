@@ -173,10 +173,10 @@ export function ProductCard({
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <Link to={`/equipment/${e.id}`} className="font-bold text-slate-900 transition hover:text-brand-600">
+        <Link to={`/equipment/${e.id}`} className="font-bold text-lg text-slate-900 transition hover:text-brand-600">
           {e.name}
         </Link>
-        <p className="mt-0.5 text-xs text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           {cat?.name} • {e.brand} {e.model}
         </p>
 
@@ -185,7 +185,7 @@ export function ProductCard({
         </div>
 
         {gold && (
-          <div className="mt-3 space-y-1.5 text-[11px] text-slate-600 bg-slate-50 rounded p-2">
+          <div className="mt-3 space-y-1.5 text-sm text-slate-600 bg-amber-50 rounded p-3 border border-amber-100">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 text-amber-600 flex-shrink-0">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -213,20 +213,20 @@ export function ProductCard({
           </div>
         )}
 
-        <div className="mt-3 flex flex-1 flex-col justify-end gap-2 text-xs text-slate-600">
-          <span className="flex items-center gap-2"><IconBuilding className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" /> {supplier?.company}</span>
+        <div className="mt-3 flex flex-1 flex-col justify-end gap-2 text-sm text-slate-600">
+          <span className="flex items-center gap-2"><IconBuilding className="w-4 h-4 text-slate-500 flex-shrink-0" /> <span className="font-medium">{supplier?.company}</span></span>
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2">
-              <IconMapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-              {e.location.split(',')[0]}
+              <IconMapPin className="w-4 h-4 text-slate-500 flex-shrink-0" />
+              <span className="font-medium">{e.location.split(',')[0]}</span>
             </span>
             {e.status === 'DISPONIBLE' || e.status === 'CATEGORISE' ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Disponible
+              <span className="inline-flex items-center gap-1 font-bold text-emerald-600 text-sm">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" /> Disponible
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> En inspection
+              <span className="inline-flex items-center gap-1 font-bold text-amber-600 text-sm">
+                <span className="h-2 w-2 rounded-full bg-amber-500" /> En inspection
               </span>
             )}
           </div>
@@ -240,15 +240,15 @@ export function ProductCard({
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Link
             to={`/equipment/${e.id}`}
-            className="rounded-lg border border-brand-200 py-2 text-center text-xs font-semibold text-brand-700 transition hover:bg-brand-50"
+            className="rounded-lg border-2 border-brand-200 py-2.5 text-center text-sm font-bold text-brand-700 transition hover:bg-brand-50"
           >
-            Voir le matériel
+            Voir
           </Link>
           <button
             onClick={() => (onQuote ? onQuote(e.id) : navigate(`/equipment/${e.id}`))}
-            className="rounded-lg bg-accent-500 py-2 text-xs font-bold text-white transition hover:bg-accent-600 active:scale-95"
+            className="rounded-lg bg-accent-500 py-2.5 text-sm font-bold text-white transition hover:bg-accent-600 active:scale-95"
           >
-            Demander devis
+            Devis
           </button>
         </div>
       </div>
