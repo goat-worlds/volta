@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
 import { ProductCard, Reveal, TierBadge, TIER_ORDER } from '../../components/product'
+import { IconDisplay } from '../../components/IconDisplay'
 
 interface CounterStats {
   users: number
@@ -115,7 +116,7 @@ export default function Home() {
           {/* Central search */}
           <div className="animate-fade-up relative mt-10 max-w-2xl" style={{ animationDelay: '300ms' }}>
             <div className="flex items-center gap-2 rounded-2xl bg-white p-2 shadow-2xl shadow-black/30">
-              <span className="pl-3 text-xl">🔍</span>
+              <img src="/assets/check.svg" alt="Rechercher" className="h-5 w-5 pl-3 text-slate-400" />
               <input
                 type="text"
                 placeholder="Pelle hydraulique, bulldozer, grue…"
@@ -162,11 +163,12 @@ export default function Home() {
           {/* Animated stats */}
           <div className="animate-fade-up mt-12 grid max-w-2xl grid-cols-3 gap-6" style={{ animationDelay: '400ms' }}>
             {[
-              { value: counters.users, label: 'Utilisateurs' },
-              { value: counters.equipment, label: 'Équipements' },
-              { value: counters.transactions, label: 'Locations réussies' },
+              { icon: '/assets/users.svg', value: counters.users, label: 'Utilisateurs' },
+              { icon: '/assets/IMAGE1.jpg', value: counters.equipment, label: 'Équipements' },
+              { icon: '/assets/award.svg', value: counters.transactions, label: 'Locations réussies' },
             ].map((s) => (
-              <div key={s.label}>
+              <div key={s.label} className="flex flex-col items-start">
+                <img src={s.icon} alt={s.label} className="mb-2 h-6 w-6 text-white opacity-80" />
                 <div className="text-3xl font-extrabold text-white md:text-4xl">
                   {s.value.toLocaleString('fr-FR')}+
                 </div>
@@ -178,6 +180,26 @@ export default function Home() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
+        {/* Features Section */}
+        <section className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-4">
+          {[
+            { icon: '/assets/check.svg', title: 'Vérifiés', desc: 'Tous les équipements inspectés' },
+            { icon: '/assets/star.svg', title: 'Notés', desc: 'Catégories A à E pour chaque équipement' },
+            { icon: '/assets/heart.svg', title: 'Testés', desc: 'Par une communauté de clients vérifiés' },
+            { icon: '/assets/warning.svg', title: 'Certifiés', desc: 'Avec rapports d\'inspection détaillés' },
+          ].map((f, idx) => (
+            <Reveal key={idx} delay={idx * 100}>
+              <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-sm transition hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100">
+                  <img src={f.icon} alt={f.title} className="h-6 w-6" />
+                </div>
+                <h3 className="mt-3 font-bold text-slate-900">{f.title}</h3>
+                <p className="mt-1 text-xs text-slate-600">{f.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </section>
+
         {/* Interactive categories */}
         <section className="mt-16">
           <Reveal>
@@ -192,8 +214,8 @@ export default function Home() {
               <Reveal key={c.id} delay={idx * 60}>
                 <Link to={`/catalogue?categorie=${c.id}`} className="group block h-full">
                   <Card className="flex h-full flex-col items-center justify-center p-5 text-center transition-all duration-300 group-hover:-translate-y-1 group-hover:border-brand-300 group-hover:shadow-lg">
-                    <div className="text-4xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">
-                      {c.icon}
+                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-slate-100 transition-transform duration-300 group-hover:scale-110">
+                      <IconDisplay icon={c.icon} alt={c.name} className="h-14 w-14" />
                     </div>
                     <div className="mt-3 text-sm font-semibold text-slate-800 transition group-hover:text-brand-600">
                       {c.name}

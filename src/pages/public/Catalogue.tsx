@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, CategoryBadge, StatusBadge } from '../../components/ui'
+import { IconDisplay } from '../../components/IconDisplay'
 import QuoteRequestForm from '../../components/QuoteRequestForm'
 
 export default function Catalogue() {
@@ -49,7 +50,7 @@ export default function Catalogue() {
           <option value="">Toutes les catégories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.icon} {c.name}
+              {c.name}
             </option>
           ))}
         </select>
