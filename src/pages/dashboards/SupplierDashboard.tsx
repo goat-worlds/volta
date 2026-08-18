@@ -35,16 +35,31 @@ export default function SupplierDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
-            <div className="text-3xl font-bold mb-2">{supplierEquipment.length}</div>
-            <div className="text-brand-100">Équipements listés</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{supplierEquipment.length}</div>
+                <div className="text-brand-100 text-sm mt-1">Équipements listés</div>
+              </div>
+              <IconWrench className="w-10 h-10 text-brand-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-accent-500 to-accent-600 text-white">
-            <div className="text-3xl font-bold mb-2">{newRequests.length}</div>
-            <div className="text-accent-100">Nouvelles demandes</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{newRequests.length}</div>
+                <div className="text-accent-100 text-sm mt-1">Nouvelles demandes</div>
+              </div>
+              <IconEnvelope className="w-10 h-10 text-accent-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
-            <div className="text-3xl font-bold mb-2">{myRequests.length}</div>
-            <div className="text-emerald-100">Demandes totales</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{myRequests.length}</div>
+                <div className="text-emerald-100 text-sm mt-1">Demandes totales</div>
+              </div>
+              <IconCheck className="w-10 h-10 text-emerald-200" />
+            </div>
           </Card>
         </div>
 

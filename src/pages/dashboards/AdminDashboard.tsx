@@ -40,20 +40,40 @@ export default function AdminDashboard() {
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
-            <div className="text-3xl font-bold mb-2">{totalRequests}</div>
-            <div className="text-brand-100">Demandes totales</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{totalRequests}</div>
+                <div className="text-brand-100 text-sm mt-1">Demandes totales</div>
+              </div>
+              <IconSearch className="w-10 h-10 text-brand-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-accent-500 to-accent-600 text-white">
-            <div className="text-3xl font-bold mb-2">{pendingQuotes.length}</div>
-            <div className="text-accent-100">À traiter</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{pendingQuotes.length}</div>
+                <div className="text-accent-100 text-sm mt-1">À traiter</div>
+              </div>
+              <IconCheck className="w-10 h-10 text-accent-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-violet-600 to-violet-700 text-white">
-            <div className="text-3xl font-bold mb-2">{inInspection.length}</div>
-            <div className="text-violet-100">En inspection</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{inInspection.length}</div>
+                <div className="text-violet-100 text-sm mt-1">En inspection</div>
+              </div>
+              <IconShield className="w-10 h-10 text-violet-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
-            <div className="text-3xl font-bold mb-2">{toBeReviewed.length}</div>
-            <div className="text-emerald-100">À valider</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{toBeReviewed.length}</div>
+                <div className="text-emerald-100 text-sm mt-1">À valider</div>
+              </div>
+              <IconMoney className="w-10 h-10 text-emerald-200" />
+            </div>
           </Card>
         </div>
 

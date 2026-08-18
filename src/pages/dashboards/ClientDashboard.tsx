@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, QuoteStatusBadge } from '../../components/ui'
-import { IconCheck, IconShield, IconMoney } from '../../components/Icons'
+import { IconCheck, IconShield, IconMoney, IconSearch } from '../../components/Icons'
 
 export default function ClientDashboard() {
   const navigate = useNavigate()
@@ -39,16 +39,31 @@ export default function ClientDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
-            <div className="text-3xl font-bold mb-2">{activeRequests.length}</div>
-            <div className="text-brand-100">Demandes en cours</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{activeRequests.length}</div>
+                <div className="text-brand-100 text-sm mt-1">Demandes en cours</div>
+              </div>
+              <IconSearch className="w-10 h-10 text-brand-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-violet-600 to-violet-700 text-white">
-            <div className="text-3xl font-bold mb-2">{myRequests.filter((qr) => qr.status === 'NOUVELLE' || qr.status === 'TRANSMISE').length}</div>
-            <div className="text-violet-100">À traiter</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{myRequests.filter((qr) => qr.status === 'NOUVELLE' || qr.status === 'TRANSMISE').length}</div>
+                <div className="text-violet-100 text-sm mt-1">À traiter</div>
+              </div>
+              <IconShield className="w-10 h-10 text-violet-200" />
+            </div>
           </Card>
           <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
-            <div className="text-3xl font-bold mb-2">{completedRequests.length}</div>
-            <div className="text-emerald-100">Demandes complétées</div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{completedRequests.length}</div>
+                <div className="text-emerald-100 text-sm mt-1">Demandes complétées</div>
+              </div>
+              <IconCheck className="w-10 h-10 text-emerald-200" />
+            </div>
           </Card>
         </div>
 
