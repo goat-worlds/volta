@@ -11,7 +11,7 @@ export default function Catalogue() {
   const [selectedLocation, setSelectedLocation] = useState('')
   const [quoteFormOpen, setQuoteFormOpen] = useState<string | null>(null)
 
-  const approvedEquipment = equipment.filter((e) => e.status === 'CATEGORISE' && e.rating)
+  const approvedEquipment = equipment.filter((e) => e.status === 'CATEGORISE' && e.tier)
   const locations = [...new Set(approvedEquipment.map((e) => e.location))]
 
   const filtered = approvedEquipment.filter(
