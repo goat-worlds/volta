@@ -280,44 +280,46 @@ export default function Home() {
               link={{ to: '/fournisseurs', label: 'Tous les fournisseurs' }}
             />
           </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2">
-            {suppliers.map((s, idx) => {
-              const supplierEquipment = published.filter((e) => e.supplierId === s.id)
-              const totalLikes = supplierEquipment.reduce((sum, e) => sum + e.likes, 0)
-              return (
-                <Reveal key={s.id} delay={idx * 80}>
-                  <Link to="/fournisseurs" className="group block h-full">
-                    <Card className="flex h-full items-center gap-5 p-6 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg">
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-2xl font-extrabold text-white shadow-md">
-                        {s.company.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-slate-900 transition group-hover:text-brand-600">{s.company}</div>
-                        <div className="mt-1 text-sm text-slate-500 flex items-center gap-1">
-                          <IconMapPin className="w-4 h-4" />
-                          {s.city}
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-6 pb-4">
+              {suppliers.map((s, idx) => {
+                const supplierEquipment = published.filter((e) => e.supplierId === s.id)
+                const totalLikes = supplierEquipment.reduce((sum, e) => sum + e.likes, 0)
+                return (
+                  <Reveal key={s.id} delay={idx * 80}>
+                    <Link to="/fournisseurs" className="group block flex-shrink-0 w-80">
+                      <Card className="flex h-full items-center gap-5 p-6 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-3xl font-extrabold text-white shadow-md">
+                          {s.company.charAt(0)}
                         </div>
-                        <div className="mt-2 flex items-center gap-4 text-xs font-semibold text-slate-600">
-                          <span className="flex items-center gap-1">
-                            <IconCheck className="w-4 h-4 text-slate-400" />
-                            {supplierEquipment.length} équipements
-                          </span>
-                          <span className="text-rose-500 flex items-center gap-1">
-                            <IconHeart filled={true} className="w-4 h-4" />
-                            {totalLikes}
-                          </span>
-                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-600 ring-1 ring-emerald-200 flex items-center gap-1">
-                            <IconCheck className="w-3 h-3" />
-                            Vérifié VOLTA
-                          </span>
+                        <div className="flex-1">
+                          <div className="font-bold text-slate-900 transition group-hover:text-brand-600 text-lg">{s.company}</div>
+                          <div className="mt-1 text-sm text-slate-500 flex items-center gap-1">
+                            <IconMapPin className="w-4 h-4" />
+                            {s.city}
+                          </div>
+                          <div className="mt-3 flex flex-col gap-2 text-xs font-semibold text-slate-600">
+                            <span className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded">
+                              <IconCheck className="w-4 h-4 text-slate-400" />
+                              {supplierEquipment.length} équipements
+                            </span>
+                            <span className="text-rose-500 flex items-center gap-2 bg-rose-50 px-2 py-1 rounded">
+                              <IconHeart filled={true} className="w-4 h-4" />
+                              {totalLikes} j'aimes
+                            </span>
+                            <span className="rounded bg-emerald-50 px-2 py-1 text-emerald-600 ring-1 ring-emerald-200 flex items-center gap-2">
+                              <IconCheck className="w-3 h-3" />
+                              Vérifié VOLTA
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-brand-500">→</span>
-                    </Card>
-                  </Link>
-                </Reveal>
-              )
-            })}
+                        <span className="text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-brand-500 text-xl">→</span>
+                      </Card>
+                    </Link>
+                  </Reveal>
+                )
+              })}
+            </div>
           </div>
         </section>
 
