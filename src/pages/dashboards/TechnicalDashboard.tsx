@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
+import { IconTool } from '../../components/Icons'
 
 const TEAM_ID = 'u-tech-1'
 
@@ -27,7 +28,10 @@ export default function TechnicalDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">🔧 Tableau de bord Équipe Technique</h1>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            <IconTool className="w-8 h-8 text-amber-500" />
+            Tableau de bord Équipe Technique
+          </h1>
           <p className="text-slate-400 mt-1">Inspections et certifications d'équipements</p>
         </div>
 
@@ -204,7 +208,10 @@ export default function TechnicalDashboard() {
                 </div>
                 <div>
                   <div className="font-semibold text-white">Rôle</div>
-                  <div className="text-slate-400">🔧 Équipe Technique</div>
+                  <div className="text-slate-400 flex items-center gap-1">
+                    <IconTool className="w-4 h-4 text-amber-500" />
+                    Équipe Technique
+                  </div>
                 </div>
               </div>
             </Card>

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import type { Equipment, EquipmentTier } from '../store/types'
 import { CategoryBadge } from './ui'
-import { IconStar, IconHeart, IconMapPin, IconCheck } from './Icons'
+import { IconStar, IconHeart, IconMapPin, IconCheck, IconBuilding } from './Icons'
 
 export const TIER_ORDER: Record<EquipmentTier, number> = { GOLD: 0, SILVER: 1, BASIC: 2 }
 
@@ -214,7 +214,7 @@ export function ProductCard({
         )}
 
         <div className="mt-3 flex flex-1 flex-col justify-end gap-2 text-xs text-slate-600">
-          <span className="flex items-center gap-2"><span>🏢</span> {supplier?.company}</span>
+          <span className="flex items-center gap-2"><IconBuilding className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" /> {supplier?.company}</span>
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2">
               <IconMapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
