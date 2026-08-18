@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card } from '../../components/ui'
@@ -11,8 +11,7 @@ export default function Suppliers() {
   const [searchSupplier, setSearchSupplier] = useState('')
   const [sortBy, setSortBy] = useState<'name' | 'equipment' | 'region'>('name')
   const [hoveredCriteria, setHoveredCriteria] = useState<string | null>(null)
-
-  const backgroundGradient = 'linear-gradient(135deg, rgba(30, 30, 40, 0.85) 0%, rgba(20, 20, 30, 0.75) 100%)'
+  const [showModal, setShowModal] = useState(false)
 
 
   const suppliers = users.filter((u) => u.role === 'SUPPLIER')
@@ -343,7 +342,7 @@ export default function Suppliers() {
                           className="p-4 rounded-lg bg-accent-500/10"
                         >
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-2xl">{crit.icon}</span>
+                            <crit.Icon className="w-6 h-6 text-accent-600" />
                             <h4 className="font-bold text-accent-600">
                               {crit.label}
                             </h4>
