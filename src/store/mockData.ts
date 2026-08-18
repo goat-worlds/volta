@@ -313,7 +313,7 @@ export const quoteRequests: QuoteRequest[] = [
   {
     id: 'dv-002',
     reference: 'DV-2026-002',
-    equipmentId: 'eq-2',
+    equipmentId: 'eq-4',
     supplierId: 'u-sup-2',
     clientName: 'Construction Plus',
     clientCompany: 'Construction Plus SARL',
@@ -322,8 +322,8 @@ export const quoteRequests: QuoteRequest[] = [
     duration: '10 jours',
     requestedDate: '2026-08-25',
     location: 'Yamoussoukro',
-    message: 'Projet de route',
-    status: 'TRANSMISE',
+    message: 'Besoin de bulldozer pour nivellement',
+    status: 'RAPPORT_REÇU',
     createdAt: '2026-08-11',
   },
 ]
@@ -342,7 +342,25 @@ export const inspections: Inspection[] = [
   },
 ]
 
-export const reports: Report[] = []
+export const reports: Report[] = [
+  {
+    id: 'rep-1',
+    inspectionId: 'insp-1',
+    equipmentId: 'eq-4',
+    submittedAt: '2026-08-14',
+    summary: 'Inspection complète effectuée. Équipement en bon état général avec signature de panne au niveau de l\'hydrosystème. Recommandé pour catégorie C.',
+    checklist: [
+      { section: 'Moteur', label: 'Démarrage et fonctionnement', result: 'CONFORME', observation: 'Le moteur démarre facilement et fonctionne normalement' },
+      { section: 'Moteur', label: 'Consommation huile', result: 'CONFORME', observation: 'Niveau correct, pas de fuite' },
+      { section: 'Moteur', label: 'Bruit anormal', result: 'A_SURVEILLER', observation: 'Bruit léger au ralenti, à surveiller' },
+      { section: 'Hydrosystème', label: 'Pression hydraulique', result: 'A_SURVEILLER', observation: 'Pression légèrement basse, maintenance recommandée' },
+      { section: 'Hydrosystème', label: 'Fuites', result: 'CONFORME', observation: 'Aucune fuite détectée' },
+      { section: 'Châssis', label: 'Structure et soudures', result: 'CONFORME', observation: 'Pas de fissure ou déformation' },
+      { section: 'Châssis', label: 'Usure des pneus/chenilles', result: 'A_SURVEILLER', observation: 'Usure modérée observée' },
+      { section: 'Sécurité', label: 'Ceintures et signalisation', result: 'CONFORME', observation: 'Tous les éléments de sécurité présents' },
+    ],
+  },
+]
 
 export const reviews: Review[] = [
   { id: 'rv-1', equipmentId: 'eq-1', author: 'Jean Konan', rating: 5, comment: 'Très bon état et conforme aux informations présentées. Livraison rapide sur chantier.', date: '2026-07-28', verified: true },
