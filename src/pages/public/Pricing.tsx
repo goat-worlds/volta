@@ -1,5 +1,5 @@
 import { Card } from '../../components/ui'
-import { IconGear, IconWarning, IconPhone, IconEnvelope } from '../../components/Icons'
+import { IconGear, IconWarning, IconPhone, IconEnvelope, IconSearch, IconHandshake, IconMoney, IconWrench, IconCheck } from '../../components/Icons'
 
 export default function Pricing() {
   return (
@@ -22,7 +22,7 @@ export default function Pricing() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-8">
-              <img src="/assets/check.svg" alt="Search" className="w-10 h-10 mb-4" />
+              <IconSearch className="w-10 h-10 mb-4 text-brand-600" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">VOLTA inspecte</h3>
               <p className="text-slate-700">
                 Nous inspectons chaque équipement et assignons une catégorie (A/B/C/D/E) basée sur l'état technique.
@@ -30,7 +30,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8">
-              <img src="/assets/check.svg" alt="Handshake" className="w-10 h-10 mb-4" />
+              <IconHandshake className="w-10 h-10 mb-4 text-amber-600" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">Vous négociez</h3>
               <p className="text-slate-700">
                 Contactez directement le fournisseur. Les tarifs et conditions sont convenus entre vous.
@@ -38,7 +38,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8">
-              <img src="/assets/check.svg" alt="Money" className="w-10 h-10 mb-4" />
+              <IconMoney className="w-10 h-10 mb-4 text-emerald-600" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">Zéro commission</h3>
               <p className="text-slate-700">
                 VOLTA ne prend aucun fonds. Vous gardez 100% du contrôle sur les tarifs et les négociations.
@@ -57,7 +57,7 @@ export default function Pricing() {
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-8 border-l-4 border-green-600">
-              <img src="/assets/check.svg" alt="Tool" className="w-8 h-8 mb-4" />
+              <IconWrench className="w-8 h-8 mb-4 text-green-600" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Mécanicien Qualifié</h3>
               <p className="text-slate-700 text-sm">
                 Certification professionnelle vérifiée. Disponible pour maintenance et réparations urgentes.
@@ -65,7 +65,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-blue-600">
-              <img src="/IMAGE1.jpg" alt="Warehouse" className="w-8 h-8 rounded mb-4" />
+              <IconGear className="w-8 h-8 mb-4 text-blue-600" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Entrepôt Équipé</h3>
               <p className="text-slate-700 text-sm">
                 Stock permanent de pièces de rechange et outils nécessaires.
@@ -73,7 +73,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-purple-600">
-              <img src="/assets/check.svg" alt="Certified" className="w-8 h-8 mb-4" />
+              <IconCheck className="w-8 h-8 mb-4 text-purple-600" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Certifié VOLTA</h3>
               <p className="text-slate-700 text-sm">
                 Respect des normes qualité et inspections techniques complètes.

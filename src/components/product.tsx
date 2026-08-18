@@ -186,10 +186,30 @@ export function ProductCard({
 
         {gold && (
           <div className="mt-3 space-y-1.5 text-[11px] text-slate-600 bg-slate-50 rounded p-2">
-            <div className="flex items-center gap-2"><span className="text-amber-600">⏱️</span> {e.hours.toLocaleString('fr-FR')} heures</div>
-            <div className="flex items-center gap-2"><span className="text-blue-600">📅</span> {e.year}</div>
-            <div className="flex items-center gap-2"><span className="text-green-600">🔧</span> {e.declaredCondition}</div>
-            {e.category && <div className="flex items-center gap-2"><span className="text-purple-600">📊</span> Catégorie: {e.category}</div>}
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 text-amber-600 flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              {e.hours.toLocaleString('fr-FR')} heures
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 text-blue-600 flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </div>
+              {e.year}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 text-green-600 flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 18 0A9 9 0 0 0 3 12z"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path><path d="M9 15a3 3 0 0 0 6 0"></path></svg>
+              </div>
+              {e.declaredCondition}
+            </div>
+            {e.category && <div className="flex items-center gap-2">
+              <div className="w-4 h-4 text-purple-600 flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 10.26 24 10.27 17.55 16.73 19.64 25 12 19.54 4.36 25 6.45 16.73 0 10.27 8.91 10.26 12 2"></polygon></svg>
+              </div>
+              Catégorie: {e.category}
+            </div>}
           </div>
         )}
 
