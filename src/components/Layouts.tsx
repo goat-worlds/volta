@@ -1,10 +1,12 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import type { Role } from '../store/types'
+import { IconCheck, IconSearch, IconGear, IconPhone, IconEnvelope } from './Icons'
+import Footer from './Footer'
 
 function navClass({ isActive }: { isActive: boolean }) {
-  return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-    isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+  return `flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
+    isActive ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
   }`
 }
 
@@ -22,87 +24,102 @@ function Sidebar({
   const { notifications } = useStore()
   const unread = notifications.filter((n) => n.role === role && !n.read).length
   return (
-    <aside className="flex w-60 shrink-0 flex-col bg-slate-900 p-4">
-      <Link to="/" className="mb-6 flex items-center gap-2 px-2">
-        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${color}`}><img src="/volta-logo.svg" alt="VOLTA" className="h-6 w-6" /></span>
+    <aside className="flex w-64 shrink-0 flex-col bg-gradient-to-b from-slate-900 to-slate-950 p-6 border-r border-slate-800">
+      <Link to="/" className="mb-8 flex items-center gap-3 px-2">
+        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color} shadow-lg`}><img src="/volta-logo.svg" alt="VOLTA" className="h-7 w-7" /></span>
         <div>
-          <div className="font-bold text-white">VOLTA</div>
-          <div className="text-xs text-slate-400">{title}</div>
+          <div className="font-bold text-white text-lg">VOLTA</div>
+          <div className="text-xs text-slate-500">{title}</div>
         </div>
       </Link>
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-2">
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.end} className={navClass}>
-            {l.label}
+            <span className="flex-1">{l.label}</span>
           </NavLink>
         ))}
       </nav>
-      <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-400">
-        {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
-      </div>
+      {unread > 0 && (
+        <div className="mt-auto rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/30 p-4 text-sm text-amber-200">
+          <div className="font-semibold mb-1 flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">{unread}</span>
+            Notification{unread > 1 ? 's' : ''}
+          </div>
+          <p className="text-xs text-amber-100">Vous avez {unread} message{unread > 1 ? 's' : ''} non lu{unread > 1 ? 's' : ''}</p>
+        </div>
+      )}
     </aside>
   )
 }
 
 export function SupplierLayout() {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar
-        title="Espace Fournisseur"
-        color="bg-brand-600"
-        role="SUPPLIER"
-        links={[
-          { to: '/supplier', label: 'Tableau de bord', end: true },
-          { to: '/supplier/equipment', label: 'Mes engins', end: true },
-          { to: '/supplier/equipment/new', label: 'Ajouter un engin' },
-          { to: '/supplier/requests', label: 'Demandes reçues' },
-        ]}
-      />
-      <main className="flex-1 p-6 lg:p-8">
-        <Outlet />
-      </main>
+    <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1">
+        <Sidebar
+          title="Espace Fournisseur"
+          color="bg-brand-600"
+          role="SUPPLIER"
+          links={[
+            { to: '/supplier', label: 'Tableau de bord', end: true },
+            { to: '/supplier/equipment', label: 'Mes engins', end: true },
+            { to: '/supplier/equipment/new', label: 'Ajouter un engin' },
+            { to: '/supplier/requests', label: 'Demandes reçues' },
+          ]}
+        />
+        <main className="flex-1 p-6 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
+      <Footer />
     </div>
   )
 }
 
 export function AdminLayout() {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar
-        title="Administration"
-        color="bg-indigo-600"
-        role="ADMIN"
-        links={[
-          { to: '/admin', label: 'Tableau de bord', end: true },
-          { to: '/admin/equipment', label: 'Engins' },
-          { to: '/admin/inspections', label: 'Inspections' },
-          { to: '/admin/reports', label: 'Rapports' },
-          { to: '/admin/requests', label: 'Demandes' },
-          { to: '/admin/users', label: 'Utilisateurs' },
-        ]}
-      />
-      <main className="flex-1 p-6 lg:p-8">
-        <Outlet />
-      </main>
+    <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1">
+        <Sidebar
+          title="Administration"
+          color="bg-indigo-600"
+          role="ADMIN"
+          links={[
+            { to: '/admin', label: 'Tableau de bord', end: true },
+            { to: '/admin/equipment', label: 'Engins' },
+            { to: '/admin/inspections', label: 'Inspections' },
+            { to: '/admin/reports', label: 'Rapports' },
+            { to: '/admin/requests', label: 'Demandes' },
+            { to: '/admin/users', label: 'Utilisateurs' },
+          ]}
+        />
+        <main className="flex-1 p-6 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
+      <Footer />
     </div>
   )
 }
 
 export function TechnicalLayout() {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar
-        title="Équipe Technique"
-        color="bg-emerald-600"
-        role="TECHNICAL"
-        links={[
-          { to: '/technical', label: 'Tableau de bord', end: true },
-          { to: '/technical/missions', label: 'Missions' },
-        ]}
-      />
-      <main className="flex-1 p-6 lg:p-8">
-        <Outlet />
-      </main>
+    <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1">
+        <Sidebar
+          title="Équipe Technique"
+          color="bg-emerald-600"
+          role="TECHNICAL"
+          links={[
+            { to: '/technical', label: 'Tableau de bord', end: true },
+            { to: '/technical/missions', label: 'Missions' },
+          ]}
+        />
+        <main className="flex-1 p-6 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
+      <Footer />
     </div>
   )
 }
@@ -192,9 +209,7 @@ export function PublicLayout() {
         <main className="flex-1">
           <Outlet />
         </main>
-        <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-700">
-          © 2026 VOLTA — Équipements de chantier vérifiés en Côte d'Ivoire
-        </footer>
+        <Footer />
       </div>
     </div>
   )
