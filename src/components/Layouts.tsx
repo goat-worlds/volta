@@ -4,9 +4,24 @@ import type { Role } from '../store/types'
 import { IconCheck, IconSearch, IconGear, IconPhone, IconEnvelope } from './Icons'
 import Footer from './Footer'
 
+const ICON_MAP: Record<string, (className: string) => JSX.Element> = {
+  'Tableau de bord': ({ className }) => <IconSearch className={className} />,
+  'Mes engins': ({ className }) => <IconWrench className={className} />,
+  'Ajouter un engin': ({ className }) => <IconCheck className={className} />,
+  'Demandes reçues': ({ className }) => <IconEnvelope className={className} />,
+  'Engins': ({ className }) => <IconWrench className={className} />,
+  'Inspections': ({ className }) => <IconShield className={className} />,
+  'Rapports': ({ className }) => <IconCheck className={className} />,
+  'Demandes': ({ className }) => <IconEnvelope className={className} />,
+  'Utilisateurs': ({ className }) => <IconPhone className={className} />,
+  'Missions': ({ className }) => <IconWrench className={className} />,
+}
+
 function navClass({ isActive }: { isActive: boolean }) {
-  return `flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
-    isActive ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+  return `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition duration-200 ${
+    isActive
+      ? 'bg-brand-600 text-white shadow-lg scale-105'
+      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
   }`
 }
 
@@ -23,29 +38,46 @@ function Sidebar({
 }) {
   const { notifications } = useStore()
   const unread = notifications.filter((n) => n.role === role && !n.read).length
+
   return (
-    <aside className="flex w-64 shrink-0 flex-col bg-gradient-to-b from-slate-900 to-slate-950 p-6 border-r border-slate-800">
-      <Link to="/" className="mb-8 flex items-center gap-3 px-2">
-        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color} shadow-lg`}><img src="/volta-logo.svg" alt="VOLTA" className="h-7 w-7" /></span>
+    <aside className="flex w-72 shrink-0 flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-6 border-r border-slate-800/50 shadow-2xl">
+      {/* Logo Section */}
+      <Link to="/" className="mb-8 flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/30 transition">
+        <span className={`flex h-12 w-12 items-center justify-center rounded-xl ${color} shadow-xl`}>
+          <img src="/volta-logo.svg" alt="VOLTA" className="h-8 w-8" />
+        </span>
         <div>
           <div className="font-bold text-white text-lg">VOLTA</div>
-          <div className="text-xs text-slate-500">{title}</div>
+          <div className="text-xs text-slate-500 font-medium">{title}</div>
         </div>
       </Link>
-      <nav className="flex flex-col gap-2">
-        {links.map((l) => (
-          <NavLink key={l.to} to={l.to} end={l.end} className={navClass}>
-            <span className="flex-1">{l.label}</span>
-          </NavLink>
-        ))}
+
+      {/* Divider */}
+      <div className="mb-6 h-px bg-gradient-to-r from-slate-800 via-slate-700 to-transparent"></div>
+
+      {/* Navigation */}
+      <nav className="flex flex-col gap-1 flex-1">
+        {links.map((l) => {
+          const IconComponent = ICON_MAP[l.label] || (() => null)
+          return (
+            <NavLink key={l.to} to={l.to} end={l.end} className={navClass}>
+              <IconComponent className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1">{l.label}</span>
+            </NavLink>
+          )
+        })}
       </nav>
+
+      {/* Notification Alert */}
       {unread > 0 && (
-        <div className="mt-auto rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/30 p-4 text-sm text-amber-200">
-          <div className="font-semibold mb-1 flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">{unread}</span>
+        <div className="mt-6 rounded-lg bg-gradient-to-r from-amber-500/20 via-orange-500/10 to-red-500/5 border border-amber-500/40 p-4 text-sm">
+          <div className="font-semibold mb-2 flex items-center gap-2 text-amber-200">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">{unread}</span>
             Notification{unread > 1 ? 's' : ''}
           </div>
-          <p className="text-xs text-amber-100">Vous avez {unread} message{unread > 1 ? 's' : ''} non lu{unread > 1 ? 's' : ''}</p>
+          <p className="text-xs text-amber-100/80">
+            Vous avez {unread} message{unread > 1 ? 's' : ''} non lu{unread > 1 ? 's' : ''}
+          </p>
         </div>
       )}
     </aside>

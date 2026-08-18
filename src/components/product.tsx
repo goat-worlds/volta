@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import type { Equipment, EquipmentTier } from '../store/types'
 import { CategoryBadge } from './ui'
+import { IconStar, IconHeart, IconMapPin, IconCheck } from './Icons'
 
 export const TIER_ORDER: Record<EquipmentTier, number> = { GOLD: 0, SILVER: 1, BASIC: 2 }
 
@@ -17,30 +18,33 @@ export function onImgError(img: React.SyntheticEvent<HTMLImageElement>) {
 export function TierBadge({ tier, size = 'sm' }: { tier: EquipmentTier; size?: 'sm' | 'lg' }) {
   const base =
     size === 'lg'
-      ? 'px-4 py-1.5 text-sm tracking-widest'
-      : 'px-2.5 py-0.5 text-[10px] tracking-wider'
+      ? 'px-4 py-2 text-sm tracking-widest'
+      : 'px-3 py-1 text-[10px] tracking-wider'
   if (tier === 'GOLD') {
     return (
       <span
-        className={`tier-gold relative inline-flex items-center gap-1 overflow-hidden rounded-full font-extrabold uppercase text-amber-900 shadow-md ${base}`}
+        className={`tier-gold relative inline-flex items-center gap-2 overflow-hidden rounded-full font-extrabold uppercase bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 shadow-lg ring-2 ring-amber-300 ${base}`}
       >
-        <img src="/assets/star.svg" alt="Gold" className="w-4 h-4" /> Gold
+        <IconStar filled className="w-4 h-4" />
+        Gold
       </span>
     )
   }
   if (tier === 'SILVER') {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-slate-200 to-slate-300 font-bold uppercase text-slate-700 shadow-sm ring-1 ring-slate-300 ${base}`}
+        className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-slate-300 to-slate-400 font-bold uppercase text-slate-800 shadow-md ring-2 ring-slate-400 ${base}`}
       >
+        <IconStar className="w-4 h-4" />
         Silver
       </span>
     )
   }
   return (
     <span
-      className={`inline-flex items-center rounded-full bg-slate-100 font-semibold uppercase text-slate-500 ring-1 ring-slate-200 ${base}`}
+      className={`inline-flex items-center gap-2 rounded-full bg-slate-200 font-semibold uppercase text-slate-700 ring-2 ring-slate-300 ${base}`}
     >
+      <IconCheck className="w-3 h-3" />
       Basic
     </span>
   )
@@ -49,9 +53,11 @@ export function TierBadge({ tier, size = 'sm' }: { tier: EquipmentTier; size?: '
 export function StarRating({ value, count, compact = false }: { value: number; count?: number; compact?: boolean }) {
   if (!count) return <span className="text-xs text-slate-400">Pas encore d'avis</span>
   return (
-    <span className="inline-flex items-center gap-1 text-sm">
-      <img src="/assets/star.svg" alt="★" className="w-4 h-4 text-amber-500" />
-      <span className="font-semibold text-slate-800">{value.toFixed(1)}</span>
+    <span className="inline-flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-1">
+        <IconStar filled className="w-4 h-4 text-amber-500" />
+        <span className="font-semibold text-slate-800">{value.toFixed(1)}</span>
+      </div>
       {!compact && <span className="text-xs text-slate-500">({count} avis)</span>}
     </span>
   )
@@ -80,14 +86,14 @@ export function LikeButton({
         setPop(true)
         setTimeout(() => setPop(false), 400)
       }}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold transition ${
+      className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition transform hover:scale-105 ${
         liked
-          ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200'
-          : 'bg-white/90 text-slate-600 ring-1 ring-slate-200 hover:text-rose-500'
+          ? 'bg-rose-100 text-rose-600 ring-2 ring-rose-300 shadow-md'
+          : 'bg-white/90 text-slate-600 ring-1 ring-slate-200 hover:text-rose-500 hover:ring-rose-200'
       } ${className}`}
     >
-      <img src={liked ? '/assets/heart.svg' : '/assets/heart-empty.svg'} alt={liked ? '♥' : '♡'} className={`inline-block w-4 h-4 ${pop ? 'animate-heart-pop' : ''}`} />
-      <span>{likes}</span>
+      <IconHeart filled={liked} className={`inline-block w-4 h-4 ${pop ? 'animate-heart-pop' : ''}`} />
+      <span className="font-bold">{likes}</span>
     </button>
   )
 }
@@ -179,18 +185,19 @@ export function ProductCard({
         </div>
 
         {gold && (
-          <div className="mt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500">
-            <span>{e.hours.toLocaleString('fr-FR')} h</span>
-            <span>{e.year}</span>
-            <span>{e.declaredCondition}</span>
-            {e.category && <span>Cat. {e.category}</span>}
+          <div className="mt-3 space-y-1.5 text-[11px] text-slate-600 bg-slate-50 rounded p-2">
+            <div className="flex items-center gap-2"><span className="text-amber-600">⏱️</span> {e.hours.toLocaleString('fr-FR')} heures</div>
+            <div className="flex items-center gap-2"><span className="text-blue-600">📅</span> {e.year}</div>
+            <div className="flex items-center gap-2"><span className="text-green-600">🔧</span> {e.declaredCondition}</div>
+            {e.category && <div className="flex items-center gap-2"><span className="text-purple-600">📊</span> Catégorie: {e.category}</div>}
           </div>
         )}
 
-        <div className="mt-3 flex flex-1 flex-col justify-end gap-1 text-xs text-slate-600">
-          <span>Fournisseur : {supplier?.company}</span>
+        <div className="mt-3 flex flex-1 flex-col justify-end gap-2 text-xs text-slate-600">
+          <span className="flex items-center gap-2"><span>🏢</span> {supplier?.company}</span>
           <span className="flex items-center gap-2">
-            {e.location.split(',')[0]}
+            <IconMapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+            {e.location.split(',')[0]}</span>
             {e.status === 'DISPONIBLE' || e.status === 'CATEGORISE' ? (
               <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Disponible

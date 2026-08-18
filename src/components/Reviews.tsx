@@ -1,16 +1,12 @@
 import { useStore } from '../store/StoreContext'
 import { StarRating } from './product'
+import { IconStar, IconCheck } from './Icons'
 
 function Stars({ rating }: { rating: number }) {
   return (
     <span className="flex items-center gap-1">
       {Array.from({ length: 5 }).map((_, i) => (
-        <img
-          key={i}
-          src="/assets/star.svg"
-          alt="★"
-          className={`w-4 h-4 ${i < rating ? 'text-amber-500' : 'text-slate-300'}`}
-        />
+        <IconStar key={i} filled={i < rating} className={`w-4 h-4 ${i < rating ? 'text-amber-500' : 'text-slate-300'}`} />
       ))}
     </span>
   )
@@ -33,21 +29,23 @@ export default function Reviews({ equipmentId }: { equipmentId: string }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {reviews.map((r) => (
-            <div key={r.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
-              <div className="flex items-center justify-between">
+            <div key={r.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-md transition hover:shadow-lg hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-3">
                 <Stars rating={r.rating} />
-                <span className="text-xs text-slate-400">{r.date}</span>
+                <span className="text-xs text-slate-500 font-medium">{r.date}</span>
               </div>
-              <p className="mt-2 text-sm italic text-slate-700">« {r.comment} »</p>
-              <div className="mt-3 flex items-center gap-2 text-xs">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-700">
-                  {r.author.charAt(0)}
-                </span>
-                <span className="font-semibold text-slate-800">{r.author}</span>
+              <p className="text-sm italic text-slate-700 leading-relaxed">« {r.comment} »</p>
+              <div className="mt-4 flex items-center justify-between pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 font-bold text-white text-sm">
+                    {r.author.charAt(0)}
+                  </span>
+                  <span className="font-semibold text-slate-800 text-sm">{r.author}</span>
+                </div>
                 {r.verified && (
-                  <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600 ring-1 ring-emerald-200">
-                    <img src="/assets/check.svg" alt="✓" className="w-3 h-3" />
-                    Client vérifié
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 font-semibold text-emerald-700 ring-1 ring-emerald-300 text-xs">
+                    <IconCheck className="w-3.5 h-3.5" />
+                    Vérifié
                   </span>
                 )}
               </div>
