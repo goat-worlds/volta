@@ -184,7 +184,7 @@ export default function Home() {
         {/* Features Section */}
         <section className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-4">
           {[
-            { icon: '/assets/check.svg', title: 'Vérifiés', desc: 'Tous les équipements inspectés' },
+            { icon: 'check', title: 'Vérifiés', desc: 'Tous les équipements inspectés' },
             { icon: '/assets/star.svg', title: 'Notés', desc: 'Catégories A à E pour chaque équipement' },
             { icon: '/assets/heart.svg', title: 'Testés', desc: 'Par une communauté de clients vérifiés' },
             { icon: '/assets/warning.svg', title: 'Certifiés', desc: 'Avec rapports d\'inspection détaillés' },

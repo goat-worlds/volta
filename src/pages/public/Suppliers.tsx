@@ -30,8 +30,8 @@ export default function Suppliers() {
   const regions = [...new Set(suppliers.map((s) => s.city))]
 
   const criteria = [
-    { icon: '/assets/check.svg', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
-    { icon: '/assets/check.svg', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
+    { icon: 'check', label: 'Mécanicien qualifié', key: 'mechanic', description: 'Certification professionnelle vérifiée' },
+    { icon: 'check', label: 'Remplacement 24h', key: 'replacement', description: 'Garantie de remplacement rapide' },
     { icon: '/IMAGE1.jpg', label: 'Entrepôt équipé', key: 'warehouse', description: 'Stock permanent de pièces' },
   ]
 
