@@ -195,9 +195,11 @@ export function ProductCard({
 
         <div className="mt-3 flex flex-1 flex-col justify-end gap-2 text-xs text-slate-600">
           <span className="flex items-center gap-2"><span>🏢</span> {supplier?.company}</span>
-          <span className="flex items-center gap-2">
-            <IconMapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-            {e.location.split(',')[0]}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <IconMapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+              {e.location.split(',')[0]}
+            </span>
             {e.status === 'DISPONIBLE' || e.status === 'CATEGORISE' ? (
               <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Disponible
@@ -207,7 +209,7 @@ export function ProductCard({
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> En inspection
               </span>
             )}
-          </span>
+          </div>
           {e.category && (
             <span className="mt-1">
               <CategoryBadge category={e.category} />
