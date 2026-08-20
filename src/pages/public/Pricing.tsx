@@ -1,4 +1,5 @@
 import { Card } from '../../components/ui'
+import { IconGear, IconPhone, IconEnvelope, IconSearch, IconHandshake, IconMoney, IconWrench, IconCheck } from '../../components/Icons'
 
 export default function Pricing() {
   return (
@@ -21,7 +22,7 @@ export default function Pricing() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-8">
-              <div className="text-4xl mb-4">🔍</div>
+              <IconSearch className="w-10 h-10 mb-4 text-brand-600" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">VOLTA inspecte</h3>
               <p className="text-slate-700">
                 Nous inspectons chaque équipement et assignons une catégorie (A/B/C/D/E) basée sur l'état technique.
@@ -29,7 +30,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8">
-              <div className="text-4xl mb-4">🤝</div>
+              <IconHandshake className="w-10 h-10 mb-4 text-amber-600" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">Vous négociez</h3>
               <p className="text-slate-700">
                 Contactez directement le fournisseur. Les tarifs et conditions sont convenus entre vous.
@@ -37,7 +38,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8">
-              <div className="text-4xl mb-4">💰</div>
+              <IconMoney className="w-10 h-10 mb-4 text-emerald-600" />
               <h3 className="text-xl font-bold text-slate-900 mb-3">Zéro commission</h3>
               <p className="text-slate-700">
                 VOLTA ne prend aucun fonds. Vous gardez 100% du contrôle sur les tarifs et les négociations.
@@ -56,7 +57,7 @@ export default function Pricing() {
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-8 border-l-4 border-green-600">
-              <div className="text-3xl mb-4">🔧</div>
+              <IconWrench className="w-8 h-8 mb-4 text-green-600" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Mécanicien Qualifié</h3>
               <p className="text-slate-700 text-sm">
                 Certification professionnelle vérifiée. Disponible pour maintenance et réparations urgentes.
@@ -64,7 +65,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-blue-600">
-              <div className="text-3xl mb-4">🏭</div>
+              <IconGear className="w-8 h-8 mb-4 text-blue-600" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Entrepôt Équipé</h3>
               <p className="text-slate-700 text-sm">
                 Stock permanent de pièces de rechange et outils nécessaires.
@@ -72,7 +73,7 @@ export default function Pricing() {
             </Card>
 
             <Card className="p-8 border-l-4 border-purple-600">
-              <div className="text-3xl mb-4">✓</div>
+              <IconCheck className="w-8 h-8 mb-4 text-purple-600" />
               <h3 className="text-lg font-bold text-slate-900 mb-2">Certifié VOLTA</h3>
               <p className="text-slate-700 text-sm">
                 Respect des normes qualité et inspections techniques complètes.
@@ -109,7 +110,7 @@ export default function Pricing() {
         </div>
 
         {/* Support */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-12 border border-blue-200">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-12 border border-brand-200">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Support 24/7</h2>
             <p className="text-slate-700 mb-6">
@@ -118,15 +119,17 @@ export default function Pricing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="mailto:support@volta.ci"
-                className="px-8 py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition"
+                className="px-8 py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2"
               >
-                📧 Contacter le support
+                <IconEnvelope className="w-4 h-4" />
+                Contacter le support
               </a>
               <a
                 href="tel:+22507000001"
-                className="px-8 py-3 rounded-lg border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-50 transition"
+                className="px-8 py-3 rounded-lg border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
               >
-                📞 Appeler maintenant
+                <IconPhone className="w-4 h-4" />
+                Appeler maintenant
               </a>
             </div>
           </div>

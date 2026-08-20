@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { EquipmentStatus, EquipmentCategory, QuoteRequestStatus } from '../store/types'
+import { IconClose } from './Icons'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
   DISPONIBLE: 'Disponible',
@@ -11,7 +12,7 @@ export const STATUS_LABELS: Record<EquipmentStatus, string> = {
 const STATUS_COLORS: Record<EquipmentStatus, string> = {
   DISPONIBLE: 'bg-emerald-100 text-emerald-700',
   EN_INSPECTION: 'bg-amber-100 text-amber-700',
-  CATEGORISE: 'bg-blue-100 text-blue-700',
+  CATEGORISE: 'bg-brand-100 text-brand-700',
   INDISPONIBLE: 'bg-red-100 text-red-700',
 }
 
@@ -33,7 +34,7 @@ export const QUOTE_STATUS_LABELS: Record<QuoteRequestStatus, string> = {
 }
 
 const QUOTE_STATUS_COLORS: Record<QuoteRequestStatus, string> = {
-  NOUVELLE: 'bg-blue-100 text-blue-700',
+  NOUVELLE: 'bg-brand-100 text-brand-700',
   TRANSMISE: 'bg-purple-100 text-purple-700',
   EN_INSPECTION: 'bg-amber-100 text-amber-700',
   RAPPORT_REÇU: 'bg-cyan-100 text-cyan-700',
@@ -74,11 +75,12 @@ export function CategoryBadge({ category }: { category: EquipmentCategory | null
   )
 }
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</div>
+export function Card({ children, className = '', dark = false }: { children: ReactNode; className?: string; dark?: boolean }) {
+  const surface = dark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
+  return <div className={`rounded-xl border shadow-sm ${surface} ${className}`}>{children}</div>
 }
 
-export function StatCard({ label, value, accent = 'text-blue-700' }: { label: string; value: ReactNode; accent?: string }) {
+export function StatCard({ label, value, accent = 'text-brand-700' }: { label: string; value: ReactNode; accent?: string }) {
   return (
     <Card className="p-4">
       <div className={`text-2xl font-bold ${accent}`}>{value}</div>
@@ -90,7 +92,6 @@ export function StatCard({ label, value, accent = 'text-blue-700' }: { label: st
 export function EmptyState({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-      <div className="text-3xl">📭</div>
       <div className="mt-2 font-semibold text-slate-700">{title}</div>
       {subtitle && <div className="mt-1 text-sm text-slate-700">{subtitle}</div>}
     </div>
@@ -112,7 +113,7 @@ export function PageTitle({ title, subtitle, actions }: { title: string; subtitl
 export function ProgressBar({ value }: { value: number }) {
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-      <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${value}%` }} />
+      <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${value}%` }} />
     </div>
   )
 }
@@ -135,7 +136,7 @@ export function Modal({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-bold">{title}</h3>
           <button onClick={onClose} className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-600">
-            ✕
+            <IconClose className="w-5 h-5" />
           </button>
         </div>
         {children}

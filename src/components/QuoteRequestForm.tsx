@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store/StoreContext'
 import { Card, Toast } from './ui'
+import { IconCheck, IconClock } from './Icons'
 
 interface QuoteRequestFormProps {
   equipmentId: string
@@ -43,15 +44,15 @@ export default function QuoteRequestForm({
 
     // Validation
     if (!form.clientName.trim()) {
-      setToast('⚠️ Veuillez entrer votre nom')
+      setToast('Veuillez entrer votre nom')
       return
     }
     if (!form.clientPhone.trim()) {
-      setToast('⚠️ Veuillez entrer votre téléphone')
+      setToast('Veuillez entrer votre téléphone')
       return
     }
     if (!form.clientEmail.trim()) {
-      setToast('⚠️ Veuillez entrer votre email')
+      setToast('Veuillez entrer votre email')
       return
     }
 
@@ -73,7 +74,7 @@ export default function QuoteRequestForm({
           supplierId: eq.supplierId,
         })
 
-        const msg = `✓ Devis ${quote.reference} créé ! Le fournisseur vous contactera très bientôt.`
+        const msg = `Devis ${quote.reference} créé ! Le fournisseur vous contactera très bientôt.`
         setToast(msg)
         setSending(false)
 
@@ -95,20 +96,20 @@ export default function QuoteRequestForm({
           setTimeout(() => onClose(), 2000)
         }
       } catch (error) {
-        setToast('❌ Une erreur s\'est produite')
+        setToast('Une erreur s\'est produite')
         setSending(false)
       }
     }, 600)
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition'
+  const inputClass = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition'
   const labelClass = 'block text-xs font-semibold text-slate-900 mb-1.5'
 
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Equipment Info */}
-        <Card className="p-3 bg-blue-50 border-blue-200">
+        <Card className="p-3 bg-brand-50 border-brand-200">
           <div className="text-sm">
             <span className="font-semibold text-slate-900">Équipement:</span>
             <span className="text-slate-700 ml-2">{equipmentName}</span>
@@ -117,7 +118,10 @@ export default function QuoteRequestForm({
 
         {/* Client Info Section */}
         <div className="border-t border-slate-200 pt-4">
-          <h3 className="text-sm font-bold text-slate-900 mb-3">📋 Vos informations</h3>
+          <div className="flex items-center gap-2 mb-3">
+            <IconCheck className="w-5 h-5 text-slate-900" />
+            <h3 className="text-sm font-bold text-slate-900">Vos informations</h3>
+          </div>
 
           <div className="space-y-3">
             <div>
@@ -172,7 +176,10 @@ export default function QuoteRequestForm({
 
         {/* Project Details Section */}
         <div className="border-t border-slate-200 pt-4">
-          <h3 className="text-sm font-bold text-slate-900 mb-3">🏗️ Détails du projet</h3>
+          <div className="flex items-center gap-2 mb-3">
+            <img src="/IMAGE1.jpg" alt="Détails du projet" className="w-5 h-5 rounded" />
+            <h3 className="text-sm font-bold text-slate-900">Détails du projet</h3>
+          </div>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -225,13 +232,18 @@ export default function QuoteRequestForm({
         <button
           type="submit"
           disabled={sending}
-          className="w-full py-2.5 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-          style={{ backgroundColor: '#FF8C00' }}
+          className="w-full py-2.5 rounded-lg text-white font-bold transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-6 bg-accent-500 flex items-center justify-center gap-2"
         >
           {sending ? (
-            <>⏳ Envoi en cours...</>
+            <>
+              <IconClock className="w-4 h-4 animate-spin" />
+              Envoi en cours...
+            </>
           ) : (
-            <>✓ Envoyer ma demande de devis</>
+            <>
+              <IconCheck className="w-4 h-4" />
+              Envoyer ma demande de devis
+            </>
           )}
         </button>
       </form>

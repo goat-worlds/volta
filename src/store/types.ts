@@ -2,11 +2,25 @@ export type EquipmentStatus = 'DISPONIBLE' | 'EN_INSPECTION' | 'CATEGORISE' | 'I
 
 export type EquipmentCategory = 'A' | 'B' | 'C' | 'D' | 'E'
 
+export type EquipmentRating = 'GOLD' | 'SILVER' | 'BASIC'
+
 export type QuoteRequestStatus = 'NOUVELLE' | 'TRANSMISE' | 'EN_INSPECTION' | 'RAPPORT_REÇU' | 'CATEGORISEE' | 'TERMINEE'
 
 export type InspectionStatus = 'A_ASSIGNER' | 'ASSIGNEE' | 'EN_COURS' | 'TERMINEE' | 'ASSIGNED' | 'IN_PROGRESS' | 'DONE'
 
 export type Role = 'ADMIN' | 'SUPPLIER' | 'TECHNICAL' | 'CLIENT'
+
+export type EquipmentTier = 'GOLD' | 'SILVER' | 'BASIC'
+
+export interface Review {
+  id: string
+  equipmentId: string
+  author: string
+  rating: number
+  comment: string
+  date: string
+  verified: boolean
+}
 
 export interface User {
   id: string
@@ -45,10 +59,13 @@ export interface Equipment {
   supplierId: string
   status: EquipmentStatus
   category: EquipmentCategory | null
+  rating?: EquipmentRating
   declaredCondition: string
   createdAt: string
   pricePerDay?: number
   level?: 'BASIC' | 'STANDARD' | 'PREMIUM'
+  tier: EquipmentTier
+  likes: number
 }
 
 export type CheckResult = 'CONFORME' | 'A_SURVEILLER' | 'NON_CONFORME' | null

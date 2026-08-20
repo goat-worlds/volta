@@ -1,97 +1,215 @@
+import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { IconCheck, IconHourglass, IconPhone, IconEnvelope } from '../../components/Icons'
 
 const SUPPLIER_ID = 'u-sup-1'
 
 export default function SupplierEquipment() {
   const { quoteRequests, equipment } = useStore()
   const myRequests = quoteRequests.filter((qr) => qr.supplierId === SUPPLIER_ID)
+  const myEquipment = equipment.filter((e) => e.supplierId === SUPPLIER_ID)
 
   return (
-    <div className="max-w-4xl">
+    <div className="mx-auto max-w-4xl p-6 lg:p-8">
       <PageTitle
-        title="Demandes de devis reçues"
-        subtitle={`${myRequests.length} demande(s)`}
+        title="Gestion des équipements et demandes"
+        subtitle={`${myEquipment.length} équipement(s) · ${myRequests.length} demande(s) en attente`}
+        actions={
+          <Link
+            to="/supplier/equipment/new"
+            className="px-4 py-2 rounded-lg bg-brand-600 text-white font-medium hover:bg-brand-700 transition"
+          >
+            + Ajouter équipement
+          </Link>
+        }
       />
 
-      {myRequests.length === 0 ? (
-        <EmptyState
-          title="Aucune demande"
-          subtitle="Les clients qui vous demandent un devis apparaîtront ici."
-        />
-      ) : (
-        <div className="grid gap-4">
-          {myRequests.map((qr) => {
-            const eq = equipment.find((e) => e.id === qr.equipmentId)
-            return (
-              <Card key={qr.id} className="p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold text-slate-900">{qr.reference}</h3>
-                      <QuoteStatusBadge status={qr.status} />
+      {/* Mes équipements */}
+      <div className="mb-12">
+        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <IconCheck className="w-5 h-5" />
+          Mes équipements
+        </h2>
+        {myEquipment.length === 0 ? (
+          <Card className="p-8 text-center bg-slate-50">
+            <div className="flex justify-center mb-3">
+              <IconEnvelope className="w-12 h-12 text-slate-400" />
+            </div>
+            <p className="text-slate-600 font-medium">Vous n'avez pas encore d'équipements listés</p>
+            <p className="text-sm text-slate-500 mt-1">Cliquez sur "Ajouter équipement" pour commencer</p>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {myEquipment.map((eq) => (
+              <Card key={eq.id} className="p-6">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 text-lg">{eq.name}</h3>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
+                        eq.status === 'CATEGORISE' ? 'bg-emerald-100 text-emerald-700' :
+                        eq.status === 'EN_INSPECTION' ? 'bg-amber-100 text-amber-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {eq.status === 'DISPONIBLE' && (
+                          <>
+                            <IconCheck className="w-3 h-3" />
+                            Disponible
+                          </>
+                        )}
+                        {eq.status === 'EN_INSPECTION' && (
+                          <>
+                            <IconHourglass className="w-3 h-3 animate-spin" />
+                            En inspection
+                          </>
+                        )}
+                        {eq.status === 'CATEGORISE' && (
+                          <>
+                            <IconCheck className="w-3 h-3" />
+                            Catégorisé
+                          </>
+                        )}
+                        {eq.status === 'INDISPONIBLE' && (
+                          <>
+                            <span>✗</span>
+                            Indisponible
+                          </>
+                        )}
+                      </span>
                     </div>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Équipement: <span className="font-semibold">{eq?.name}</span>
-                    </p>
+                    <p className="text-sm text-slate-600 mt-1">{eq.brand} {eq.model} • {eq.year} • {eq.hours}h</p>
+                    {eq.category && (
+                      <p className="text-sm text-slate-600 mt-2 flex items-center gap-2">
+                        Catégorie VOLTA: <span className="font-bold">{eq.category}</span>
+                        {eq.rating && (
+                          <>
+                            •
+                            {eq.rating === 'GOLD' && (
+                              <>
+                                Or
+                              </>
+                            )}
+                            {eq.rating === 'SILVER' && (
+                              <>
+                                <IconCheck className="w-3 h-3" />
+                                Argent
+                              </>
+                            )}
+                            {eq.rating === 'BASIC' && 'Standard'}
+                          </>
+                        )}
+                      </p>
+                    )}
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Client</p>
-                    <p className="font-semibold text-slate-900">{qr.clientName}</p>
-                    <p className="text-sm text-slate-600">{qr.clientCompany}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Contact</p>
-                    <p className="text-sm">
-                      <a href={`tel:${qr.clientPhone}`} className="text-blue-600 hover:underline">
-                        📞 {qr.clientPhone}
-                      </a>
-                    </p>
-                    <p className="text-sm">
-                      <a href={`mailto:${qr.clientEmail}`} className="text-blue-600 hover:underline">
-                        📧 {qr.clientEmail}
-                      </a>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Durée demandée</p>
-                    <p className="font-semibold text-slate-900">{qr.duration}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Localisation</p>
-                    <p className="font-semibold text-slate-900">{qr.location}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Date demandée</p>
-                    <p className="font-semibold text-slate-900">{qr.requestedDate}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Créée le</p>
-                    <p className="font-semibold text-slate-900">{new Date(qr.createdAt).toLocaleDateString('fr-FR')}</p>
-                  </div>
-                </div>
-
-                {qr.message && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-xs text-blue-700 font-semibold mb-1">Message du client</p>
-                    <p className="text-sm text-slate-700">{qr.message}</p>
-                  </div>
-                )}
-
-                <div className="text-xs text-slate-500">
-                  💡 Contactez le client directement pour négocier les tarifs et conditions.
+                  <Link
+                    to={`/equipment/${eq.id}`}
+                    className="px-4 py-2 rounded-lg text-brand-600 border-2 border-brand-600 hover:bg-brand-50 transition font-medium"
+                  >
+                    Voir
+                  </Link>
                 </div>
               </Card>
-            )
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Demandes de devis */}
+      <div>
+        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <IconCheck className="w-5 h-5" />
+          Demandes de devis reçues
+        </h2>
+
+        {myRequests.length === 0 ? (
+          <Card className="p-8 text-center bg-slate-50">
+            <div className="flex justify-center mb-3">
+              <IconEnvelope className="w-12 h-12 text-slate-400" />
+            </div>
+            <p className="text-slate-600 font-medium">Aucune demande</p>
+            <p className="text-sm text-slate-500 mt-1">Les clients qui vous demandent un devis apparaîtront ici.</p>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {myRequests.map((qr) => {
+              const eq = equipment.find((e) => e.id === qr.equipmentId)
+              return (
+                <Card key={qr.id} className="p-6">
+                  <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-slate-900">{qr.reference}</h3>
+                        <QuoteStatusBadge status={qr.status} />
+                      </div>
+                      <p className="text-sm text-slate-600 mt-1">
+                        Équipement:{' '}
+                        <Link to={`/equipment/${qr.equipmentId}`} className="font-semibold text-brand-600 hover:underline">
+                          {eq?.name}
+                        </Link>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Client</p>
+                      <p className="font-semibold text-slate-900">{qr.clientName}</p>
+                      <p className="text-sm text-slate-600">{qr.clientCompany}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Contact</p>
+                      <p className="text-sm flex items-center gap-1">
+                        <a href={`tel:${qr.clientPhone}`} className="text-brand-600 hover:underline flex items-center gap-1">
+                          <IconPhone className="w-3 h-3" />
+                          {qr.clientPhone}
+                        </a>
+                      </p>
+                      <p className="text-sm flex items-center gap-1">
+                        <a href={`mailto:${qr.clientEmail}`} className="text-brand-600 hover:underline flex items-center gap-1">
+                          <IconEnvelope className="w-3 h-3" />
+                          {qr.clientEmail}
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Durée demandée</p>
+                      <p className="font-semibold text-slate-900">{qr.duration}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Localisation</p>
+                      <p className="font-semibold text-slate-900">{qr.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Date demandée</p>
+                      <p className="font-semibold text-slate-900">{qr.requestedDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Créée le</p>
+                      <p className="font-semibold text-slate-900">{new Date(qr.createdAt).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  </div>
+
+                  {qr.message && (
+                    <div className="mb-4 p-3 bg-brand-50 rounded-lg border border-brand-200">
+                      <p className="text-xs text-brand-700 font-semibold mb-1">Message du client</p>
+                      <p className="text-sm text-slate-700">{qr.message}</p>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-slate-500 flex items-center gap-1">
+                    <IconCheck className="w-3 h-3" />
+                    Contactez le client directement pour négocier les tarifs et conditions.
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import type {
   Equipment,
   EquipmentStatus,
   EquipmentCategory,
+  EquipmentRating,
   Inspection,
   InspectionStatus,
   Report,
@@ -13,6 +14,7 @@ import type {
   ChecklistItem,
   User,
   Category,
+  Review,
 } from './types'
 import * as seed from './mockData'
 import { CHECKLIST_TEMPLATE } from './mockData'
@@ -25,6 +27,11 @@ interface Store {
   reports: Report[]
   quoteRequests: QuoteRequest[]
   notifications: Notification[]
+  reviews: Review[]
+  likedIds: string[]
+  toggleLike: (equipmentId: string) => void
+  getReviews: (equipmentId: string) => Review[]
+  getRating: (equipmentId: string) => { average: number; count: number }
   createQuoteRequest: (data: Omit<QuoteRequest, 'id' | 'reference' | 'status' | 'createdAt'>) => QuoteRequest
   getQuoteRequestsBySupplier: (supplierId: string) => QuoteRequest[]
   getQuoteRequestsByEquipment: (equipmentId: string) => QuoteRequest[]
@@ -34,6 +41,7 @@ interface Store {
   updateChecklist: (inspectionId: string, checklist: ChecklistItem[]) => void
   submitReport: (inspectionId: string, summary: string, checklist: ChecklistItem[]) => void
   categorizeEquipment: (equipmentId: string, category: EquipmentCategory) => void
+  rateEquipment: (equipmentId: string, rating: EquipmentRating) => void
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -46,6 +54,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<Report[]>(seed.reports)
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>(seed.quoteRequests)
   const [notifications, setNotifications] = useState<Notification[]>(seed.notifications)
+  const [reviews] = useState<Review[]>(seed.reviews)
+  const [likedIds, setLikedIds] = useState<string[]>([])
 
   const store = useMemo<Store>(() => {
     const setEquipmentStatus = (equipmentId: string, status: EquipmentStatus) =>
@@ -68,6 +78,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reports,
       quoteRequests,
       notifications,
+      reviews,
+      likedIds,
+
+      toggleLike(equipmentId: string) {
+        const liked = likedIds.includes(equipmentId)
+        setLikedIds((prev) =>
+          liked ? prev.filter((id) => id !== equipmentId) : [...prev, equipmentId],
+        )
+        setEquipment((prev) =>
+          prev.map((e) =>
+            e.id === equipmentId ? { ...e, likes: e.likes + (liked ? -1 : 1) } : e,
+          ),
+        )
+      },
+
+      getReviews(equipmentId: string) {
+        return reviews.filter((r) => r.equipmentId === equipmentId)
+      },
+
+      getRating(equipmentId: string) {
+        const list = reviews.filter((r) => r.equipmentId === equipmentId)
+        if (list.length === 0) return { average: 0, count: 0 }
+        const average = list.reduce((sum, r) => sum + r.rating, 0) / list.length
+        return { average: Math.round(average * 10) / 10, count: list.length }
+      },
 
       createQuoteRequest(data) {
         const num = 1 + quoteRequests.length
@@ -160,8 +195,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (quote) this.updateQuoteRequestStatus(quote.id, 'CATEGORISEE')
         notify('ADMIN', `${eq?.name} catégorisé en ${category}`)
       },
+
+      rateEquipment(equipmentId: string, rating: EquipmentRating) {
+        const tier: Equipment['tier'] = rating
+        setEquipment((prev) =>
+          prev.map((e) => (e.id === equipmentId ? { ...e, rating, tier } : e)),
+        )
+        const eq = equipment.find((e) => e.id === equipmentId)
+        notify('SUPPLIER', `${eq?.name} notée ${rating} sur VOLTA`)
+      },
     }
-  }, [equipment, inspections, reports, quoteRequests, notifications])
+  }, [equipment, inspections, reports, quoteRequests, notifications, reviews, likedIds])
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
 }

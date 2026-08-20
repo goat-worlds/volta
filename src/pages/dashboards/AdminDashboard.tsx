@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, QuoteStatusBadge } from '../../components/ui'
+import { IconCheck, IconSearch, IconShield, IconMoney } from '../../components/Icons'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -29,27 +30,50 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">👨‍💼 Administration VOLTA</h1>
-          <p className="text-slate-600 mt-1">Contrôle et gestion plateforme</p>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            <IconShield className="w-8 h-8" />
+            Administration VOLTA
+          </h1>
+          <p className="text-slate-400 mt-1">Contrôle et gestion plateforme</p>
         </div>
 
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-            <div className="text-3xl font-bold mb-2">{totalRequests}</div>
-            <div className="text-blue-100">Demandes totales</div>
+          <Card dark className="p-6 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{totalRequests}</div>
+                <div className="text-brand-100 text-sm mt-1">Demandes totales</div>
+              </div>
+              <IconSearch className="w-10 h-10 text-brand-200" />
+            </div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-orange-600 to-orange-700 text-white">
-            <div className="text-3xl font-bold mb-2">{pendingQuotes.length}</div>
-            <div className="text-orange-100">À traiter</div>
+          <Card dark className="p-6 bg-gradient-to-br from-accent-500 to-accent-600 text-white">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{pendingQuotes.length}</div>
+                <div className="text-accent-100 text-sm mt-1">À traiter</div>
+              </div>
+              <IconCheck className="w-10 h-10 text-accent-200" />
+            </div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-purple-600 to-purple-700 text-white">
-            <div className="text-3xl font-bold mb-2">{inInspection.length}</div>
-            <div className="text-purple-100">En inspection</div>
+          <Card dark className="p-6 bg-gradient-to-br from-violet-600 to-violet-700 text-white">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{inInspection.length}</div>
+                <div className="text-violet-100 text-sm mt-1">En inspection</div>
+              </div>
+              <IconShield className="w-10 h-10 text-violet-200" />
+            </div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-green-600 to-green-700 text-white">
-            <div className="text-3xl font-bold mb-2">{toBeReviewed.length}</div>
-            <div className="text-green-100">À valider</div>
+          <Card dark className="p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold">{toBeReviewed.length}</div>
+                <div className="text-emerald-100 text-sm mt-1">À valider</div>
+              </div>
+              <IconMoney className="w-10 h-10 text-emerald-200" />
+            </div>
           </Card>
         </div>
 
@@ -57,8 +81,8 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {/* Pending Quotes */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Demandes en attente de traitement
               </h2>
               {pendingQuotes.length === 0 ? (
@@ -69,7 +93,7 @@ export default function AdminDashboard() {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     const supplier = users.find((u) => u.id === qr.supplierId)
                     return (
-                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                      <Link key={qr.id} to="/admin/quotes" className="block p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-white">{qr.reference}</div>
@@ -80,7 +104,7 @@ export default function AdminDashboard() {
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
@@ -88,8 +112,8 @@ export default function AdminDashboard() {
             </Card>
 
             {/* Inspections in Progress */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Inspections en cours
               </h2>
               {inInspection.length === 0 ? (
@@ -100,20 +124,21 @@ export default function AdminDashboard() {
                     const eq = equipment.find((e) => e.id === qr.equipmentId)
                     const insp = inspections.find((i) => i.quoteRequestId === qr.id)
                     return (
-                      <div key={qr.id} className="p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
+                      <Link key={qr.id} to="/admin/inspections" className="block p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="font-semibold text-white">{qr.reference}</div>
                             <div className="text-xs text-slate-400 mt-1">{eq?.name}</div>
                             {insp && (
-                              <div className="text-xs text-amber-400 mt-1">
-                                📋 Inspection: {insp.status}
+                              <div className="text-xs text-amber-400 mt-1 flex items-center gap-1">
+                                <IconCheck className="w-3 h-3" />
+                                <span>Inspection: {insp.status}</span>
                               </div>
                             )}
                           </div>
                           <QuoteStatusBadge status={qr.status} />
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
@@ -121,8 +146,8 @@ export default function AdminDashboard() {
             </Card>
 
             {/* Reports to Review */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Rapports à valider
               </h2>
               {toBeReviewed.length === 0 ? (
@@ -137,12 +162,14 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="font-semibold text-white">{qr.reference}</div>
                             <div className="text-xs text-slate-400 mt-1">{eq?.name}</div>
-                            <div className="text-xs text-emerald-400 mt-1">📊 Rapport reçu</div>
+                            <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                              <IconCheck className="w-3 h-3" />
+                              <span>Rapport reçu</span>
+                            </div>
                           </div>
                           <Link
                             to={`/admin/validate/${qr.id}`}
-                            className="px-3 py-1 rounded text-white text-sm font-bold transition hover:scale-105"
-                            style={{ backgroundColor: '#FF8C00' }}
+                            className="px-3 py-1 rounded text-white text-sm font-bold transition hover:scale-105 bg-accent-500"
                           >
                             Valider
                           </Link>
@@ -158,8 +185,8 @@ export default function AdminDashboard() {
           {/* Sidebar */}
           <div>
             {/* Platform Overview */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Plateforme
               </h2>
               <div className="space-y-3 text-sm">
@@ -172,53 +199,57 @@ export default function AdminDashboard() {
                   <div className="text-slate-400">Clients inscrits</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-700">
-                  <div className="text-2xl text-green-400 font-bold">{technicians.length}</div>
+                  <div className="text-2xl text-emerald-400 font-bold">{technicians.length}</div>
                   <div className="text-slate-400">Techniciens VOLTA</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-700">
-                  <div className="text-2xl text-orange-400 font-bold">{equipment.length}</div>
+                  <div className="text-2xl text-accent-500 font-bold">{equipment.length}</div>
                   <div className="text-slate-400">Équipements listés</div>
                 </div>
               </div>
             </Card>
 
             {/* Quick Actions */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4" style={{ color: '#FF8C00' }}>
+            <Card dark className="p-6 mb-6">
+              <h2 className="text-xl font-bold text-accent-600 mb-4">
                 Actions rapides
               </h2>
               <div className="space-y-2">
                 <Link
                   to="/admin/quotes"
-                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm"
-                  style={{ backgroundColor: '#FF8C00' }}
+                  className="w-full block p-3 rounded-lg text-white text-center transition hover:scale-105 transform text-sm bg-accent-500 flex items-center justify-center gap-2"
                 >
-                  📋 Toutes les demandes
+                  <IconCheck className="w-4 h-4" />
+                  Toutes les demandes
                 </Link>
                 <Link
                   to="/admin/inspections"
-                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 text-sm"
+                  className="w-full p-3 rounded-lg transition text-white text-center bg-slate-700 hover:bg-slate-600 text-sm flex items-center justify-center gap-2"
                 >
-                  🔍 Inspections
+                  <IconSearch className="w-4 h-4" />
+                  <span>Inspections</span>
                 </Link>
               </div>
             </Card>
 
             {/* Platform Info */}
-            <Card className="p-6 bg-gradient-to-br from-blue-600/20 to-blue-700/20 border border-blue-400/30">
+            <Card dark className="p-6 bg-gradient-to-br from-brand-600/20 to-brand-700/20 border border-brand-500/30">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-2xl">ℹ️</span>
-                <span style={{ color: '#FF8C00' }}>Modèle VOLTA</span>
+                <IconShield className="w-6 h-6" />
+                <span className="text-accent-600">Modèle VOLTA</span>
               </h2>
               <div className="space-y-2 text-xs text-slate-300">
-                <p className="leading-relaxed">
-                  🔍 VOLTA inspecte chaque équipement et assigne une catégorie (A/B/C/D/E).
+                <p className="leading-relaxed flex items-start gap-2">
+                  <IconSearch className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>VOLTA inspecte chaque équipement et assigne une catégorie (A/B/C/D/E).</span>
                 </p>
-                <p className="leading-relaxed">
-                  💰 Zéro commission - Les clients et fournisseurs négocient directement les tarifs.
+                <p className="leading-relaxed flex items-start gap-2">
+                  <IconMoney className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Zéro commission - Les clients et fournisseurs négocient directement les tarifs.</span>
                 </p>
-                <p className="leading-relaxed">
-                  ✓ Votre rôle: Assurer la qualité et la conformité technique.
+                <p className="leading-relaxed flex items-start gap-2">
+                  <IconCheck className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Votre rôle: Assurer la qualité et la conformité technique.</span>
                 </p>
               </div>
             </Card>

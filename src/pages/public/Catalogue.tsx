@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, CategoryBadge, StatusBadge } from '../../components/ui'
 import QuoteRequestForm from '../../components/QuoteRequestForm'
+import { IconMapPin, IconEnvelope, IconEye, IconCheck, IconHourglass, IconSearch, IconHandshake, IconMoney, IconShield, IconClose } from '../../components/Icons'
 
 export default function Catalogue() {
   const { equipment, categories, users } = useStore()
@@ -10,9 +11,10 @@ export default function Catalogue() {
   const [selectedLocation, setSelectedLocation] = useState('')
   const [quoteFormOpen, setQuoteFormOpen] = useState<string | null>(null)
 
-  const locations = [...new Set(equipment.map((e) => e.location))]
+  const approvedEquipment = equipment.filter((e) => e.status === 'CATEGORISE' && e.tier)
+  const locations = [...new Set(approvedEquipment.map((e) => e.location))]
 
-  const filtered = equipment.filter(
+  const filtered = approvedEquipment.filter(
     (e) =>
       (!selectedCategory || e.categoryId === selectedCategory) &&
       (!selectedLocation || e.location === selectedLocation),
@@ -21,12 +23,12 @@ export default function Catalogue() {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-8 pb-16">
       {/* Explanation Banner */}
-      <Card className="mb-8 p-4 bg-blue-50 border border-blue-200">
-        <div className="flex gap-4">
-          <div className="text-3xl">ℹ️</div>
-          <div>
-            <h3 className="font-bold text-slate-900 mb-1">Comment fonctionne VOLTA?</h3>
-            <p className="text-sm text-slate-700">
+      <Card className="mb-8 overflow-hidden border border-brand-200 bg-gradient-to-r from-brand-50 to-brand-100/50 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start">
+          <IconShield className="h-10 w-10 shrink-0 text-brand-600" />
+          <div className="flex-1">
+            <h3 className="font-bold text-slate-900 mb-2">Comment fonctionne VOLTA?</h3>
+            <p className="text-sm text-slate-700 leading-relaxed">
               <strong>VOLTA est une plateforme de mise en relation.</strong> Vous trouvez l'équipement qui vous convient, vous demandez un devis directement au fournisseur. Aucune commission VOLTA - les prix et conditions sont négociés entre vous et le fournisseur. VOLTA assure uniquement la sécurité technique via inspections et certifications (Catégories A/B/C/D/E).
             </p>
           </div>
@@ -35,7 +37,7 @@ export default function Catalogue() {
 
       <PageTitle
         title="Catalogue d'Équipements"
-        subtitle={`${filtered.length} équipement(s) disponible(s) - Catégorisés par inspections VOLTA`}
+        subtitle={`${filtered.length} équipement(s) approuvés - Inspectés et notés par VOLTA`}
       />
 
       {/* Filters */}
@@ -43,12 +45,12 @@ export default function Catalogue() {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           <option value="">Toutes les catégories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.icon} {c.name}
+              {c.name}
             </option>
           ))}
         </select>
@@ -56,12 +58,12 @@ export default function Catalogue() {
         <select
           value={selectedLocation}
           onChange={(e) => setSelectedLocation(e.target.value)}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           <option value="">Toutes les localisations</option>
           {locations.map((l) => (
             <option key={l} value={l}>
-              📍 {l}
+              {l}
             </option>
           ))}
         </select>
@@ -82,7 +84,7 @@ export default function Catalogue() {
             return (
               <Card key={e.id} className="overflow-hidden flex flex-col transition hover:shadow-lg">
                 {/* Image */}
-                <div className="relative h-40 w-full overflow-hidden bg-slate-100">
+                <Link to={`/equipment/${e.id}`} className="relative block h-40 w-full overflow-hidden bg-slate-100">
                   <img
                     src={e.photos[0]}
                     alt={e.name}
@@ -91,13 +93,15 @@ export default function Catalogue() {
                       (img.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22%2364748b%22%3EÉquipement%3C/text%3E%3C/svg%3E'
                     }}
                   />
-                </div>
+                </Link>
 
                 {/* Content */}
                 <div className="flex flex-1 flex-col p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <h3 className="font-bold text-slate-900">{e.name}</h3>
+                      <h3 className="font-bold text-slate-900">
+                        <Link to={`/equipment/${e.id}`} className="hover:text-brand-600 hover:underline">{e.name}</Link>
+                      </h3>
                       <p className="text-xs text-slate-600 mt-1">
                         {cat?.name} · {e.brand} {e.model}
                       </p>
@@ -108,20 +112,26 @@ export default function Catalogue() {
                   {/* Category Badge - Inspection Result */}
                   {e.category && (
                     <div className="mb-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
-                      <div className="text-xs text-slate-600 mb-1">📊 Évaluation technique VOLTA</div>
+                      <div className="text-xs text-slate-600 mb-1"><IconCheck className="w-3 h-3 inline mr-1" />Évaluation technique VOLTA</div>
                       <CategoryBadge category={e.category} />
                     </div>
                   )}
                   {!e.category && (
                     <div className="mb-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
-                      <div className="text-xs text-amber-700">⏳ En cours d'inspection VOLTA</div>
+                      <div className="text-xs text-amber-700 flex items-center gap-1">
+                        <IconHourglass className="w-3 h-3 animate-pulse" />
+                        En cours d'inspection VOLTA
+                      </div>
                     </div>
                   )}
 
                   {/* Status & Location */}
                   <div className="mb-2 flex flex-col gap-1">
                     <StatusBadge status={e.status} />
-                    <p className="text-xs text-slate-600">📍 {e.location}</p>
+                    <p className="text-xs text-slate-600 flex items-center gap-1">
+                      <IconMapPin className="w-3.5 h-3.5" />
+                      {e.location}
+                    </p>
                     <p className="text-xs text-slate-600">Fournisseur: {supplier?.company}</p>
                   </div>
 
@@ -130,13 +140,20 @@ export default function Catalogue() {
                     {e.description}
                   </p>
 
-                  {/* CTA Button */}
+                  {/* CTA Buttons */}
+                  <Link
+                    to={`/equipment/${e.id}`}
+                    className="mb-2 w-full rounded-lg border border-brand-200 py-2 px-3 text-center text-sm font-semibold text-brand-700 transition hover:bg-brand-50 flex items-center justify-center gap-2"
+                  >
+                    <IconEye className="w-4 h-4" />
+                    Consulter la fiche
+                  </Link>
                   <button
                     onClick={() => setQuoteFormOpen(e.id)}
-                    className="w-full py-2.5 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95"
-                    style={{ backgroundColor: '#FF8C00' }}
+                    className="w-full py-2.5 px-3 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95 bg-accent-500 flex items-center justify-center gap-2"
                   >
-                    📧 Demander un devis
+                    <IconEnvelope className="w-4 h-4" />
+                    Demander un devis
                   </button>
                 </div>
               </Card>
@@ -147,19 +164,31 @@ export default function Catalogue() {
 
       {/* Model Explanation Section */}
       <div className="mt-16 mb-12">
-        <div className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border-l-4" style={{ borderLeftColor: '#FF8C00' }}>
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">💡 Le modèle VOLTA expliqué</h2>
+        <div className="p-8 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border-l-4 border-l-accent-500">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <IconCheck className="w-6 h-6" />
+            Le modèle VOLTA expliqué
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div>
-              <div className="font-bold text-slate-900 mb-2">🔍 VOLTA = Inspecteur</div>
+              <div className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <IconSearch className="w-5 h-5 text-brand-600" />
+                VOLTA = Inspecteur
+              </div>
               <p className="text-slate-700">Nous inspectons chaque équipement et assignons une catégorie (A/B/C/D/E)</p>
             </div>
             <div>
-              <div className="font-bold text-slate-900 mb-2">🤝 Vous négociez directement</div>
+              <div className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <IconHandshake className="w-5 h-5 text-brand-600" />
+                Vous négociez directement
+              </div>
               <p className="text-slate-700">Vous contactez le fournisseur. Les prix et conditions sont entre vous</p>
             </div>
             <div>
-              <div className="font-bold text-slate-900 mb-2">💰 Zéro commission</div>
+              <div className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <IconMoney className="w-5 h-5 text-brand-600" />
+                Zéro commission
+              </div>
               <p className="text-slate-700">VOLTA ne prend aucun fonds. Aucune commission sur les transactions</p>
             </div>
           </div>
@@ -173,7 +202,7 @@ export default function Catalogue() {
           <p className="text-sm text-slate-600 mt-1">Équipements disponibles</p>
         </Card>
         <Card className="p-6 text-center">
-          <div className="text-3xl font-bold" style={{ color: '#FF8C00' }}>
+          <div className="text-3xl font-bold text-accent-600">
             {[...new Set(equipment.map(e => e.supplierId))].length}
           </div>
           <p className="text-sm text-slate-600 mt-1">Fournisseurs vérifiés</p>
@@ -185,7 +214,7 @@ export default function Catalogue() {
           <p className="text-sm text-slate-600 mt-1">Équipements catégorisés</p>
         </Card>
         <Card className="p-6 text-center">
-          <div className="text-3xl font-bold text-blue-600">100%</div>
+          <div className="text-3xl font-bold text-brand-600">100%</div>
           <p className="text-sm text-slate-600 mt-1">Inspection technique</p>
         </Card>
       </div>
@@ -202,19 +231,19 @@ export default function Catalogue() {
                 <h2 className="text-xl font-bold">Demander un devis</h2>
                 <button
                   onClick={() => setQuoteFormOpen(null)}
-                  className="text-2xl text-slate-400 hover:text-slate-600"
+                  className="text-slate-400 hover:text-slate-600"
                 >
-                  ✕
+                  <IconClose className="w-6 h-6" />
                 </button>
               </div>
 
               {/* Equipment Quick View */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="mb-4 p-3 bg-brand-50 rounded-lg border border-brand-200">
                 <p className="text-sm text-slate-600">Équipement sélectionné</p>
                 <p className="font-semibold text-slate-900">{selectedEquipment.name}</p>
                 <Link
                   to={`/equipment/${selectedEquipment.id}`}
-                  className="text-xs text-blue-600 hover:underline mt-2 inline-block"
+                  className="text-xs text-brand-600 hover:underline mt-2 inline-block"
                 >
                   Voir le produit →
                 </Link>

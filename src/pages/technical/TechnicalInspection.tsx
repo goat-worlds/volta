@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import { IconCheck, IconWarning } from '../../components/Icons'
 import type { CheckResult, ChecklistItem } from '../../store/types'
 
 const RESULT_OPTIONS: { value: CheckResult; label: string; cls: string }[] = [
@@ -26,10 +27,10 @@ export default function TechnicalInspection() {
 
   if (!inspection || !eq) {
     return (
-      <div>
+      <div className="mx-auto max-w-4xl p-6 lg:p-8">
         <EmptyState title="Inspection introuvable" />
         <div className="mt-4">
-          <Link to="/technical/missions" className="font-medium text-blue-600 hover:underline">← Retour aux missions</Link>
+          <Link to="/technical/missions" className="font-medium text-brand-600 hover:underline">Retour aux missions</Link>
         </div>
       </div>
     )
@@ -57,14 +58,14 @@ export default function TechnicalInspection() {
         checklist,
       )
       setSending(false)
-      setToast('Rapport soumis à VOLTA ✔ L\'engin passe en attente de décision admin.')
+      setToast('Rapport soumis à VOLTA. L\'engin passe en attente de décision admin.')
       setTimeout(() => navigate('/technical/missions'), 1500)
     }, 600)
   }
 
   return (
-    <div className="max-w-4xl">
-      <Link to="/technical/missions" className="text-sm font-medium text-blue-600 hover:underline">← Retour aux missions</Link>
+    <div className="mx-auto max-w-4xl p-6 lg:p-8">
+      <Link to="/technical/missions" className="text-sm font-medium text-brand-600 hover:underline">Retour aux missions</Link>
       <div className="mt-2">
         <PageTitle
           title={`Inspection — ${eq.name}`}
@@ -75,14 +76,17 @@ export default function TechnicalInspection() {
 
       {done ? (
         <Card className="p-6">
-          <div className="font-semibold text-emerald-700">✔ Rapport déjà soumis pour cette mission.</div>
+          <div className="font-semibold text-emerald-700 flex items-center gap-2">
+            <IconCheck className="w-4 h-4" />
+            Rapport déjà soumis pour cette mission.
+          </div>
           <p className="mt-2 text-sm text-slate-600">L'engin est en attente de décision de l'administrateur VOLTA.</p>
         </Card>
       ) : (
         <>
           <Card className="mb-4 flex items-center justify-between p-4 text-sm">
             <span className="font-medium">Progression de la checklist</span>
-            <span className="font-bold text-blue-700">{filled} / {checklist.length} contrôles</span>
+            <span className="font-bold text-brand-700">{filled} / {checklist.length} contrôles</span>
           </Card>
 
           {sections.map((section) => (
@@ -150,12 +154,18 @@ export default function TechnicalInspection() {
               </div>
             )}
             {(measures.length > 0 || anomalies.length > 0) && (
-              <ul className="list-inside list-disc text-sm text-slate-600">
+              <ul className="space-y-2">
                 {measures.map((m, i) => (
-                  <li key={`m-${i}`}>📏 {m}</li>
+                  <li key={`m-${i}`} className="flex items-center gap-2 text-sm text-slate-600">
+                    <IconCheck className="w-3 h-3 flex-shrink-0" />
+                    {m}
+                  </li>
                 ))}
                 {anomalies.map((a, i) => (
-                  <li key={`a-${i}`} className="text-red-600">⚠️ {a}</li>
+                  <li key={`a-${i}`} className="flex items-center gap-2 text-sm text-red-600">
+                    <IconWarning className="w-4 h-4 flex-shrink-0" />
+                    {a}
+                  </li>
                 ))}
               </ul>
             )}

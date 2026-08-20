@@ -1,0 +1,16 @@
+# Build artifacts
+target/
+node_modules/
+.git/
+.gitignore
+README.md
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Dependencies
+*.log
+npm-debug.log
