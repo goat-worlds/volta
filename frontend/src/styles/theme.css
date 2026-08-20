@@ -1,0 +1,49 @@
+/* Light theme - Override all CSS variables */
+[data-theme="light"] {
+  /* Brand colors */
+  --color-brand: #3b82f6;
+  --color-brand-dark: #1e40af;
+  --color-brand-light: #60a5fa;
+
+  /* Background and surface */
+  --color-bg-dark: #ffffff;
+  --color-bg-light: #ffffff;
+  --color-surface-dark: #f3f4f6;
+  --color-surface-light: #f9fafb;
+
+  /* Text colors */
+  --color-text-on-dark: #1f2937;
+  --color-text-on-dark-muted: #6b7280;
+  --color-text-on-light: #111827;
+  --color-text-on-light-muted: #4b5563;
+
+  /* Border colors */
+  --color-border-dark: #d1d5db;
+  --color-border-dark-hover: #9ca3af;
+  --color-border-light: #e5e7eb;
+
+  /* Status colors */
+  --color-status-critical: #dc2626;
+  --color-status-high: #f59e0b;
+  --color-status-compliant: #10b981;
+}
+
+[data-theme="light"] {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+[data-theme="light"] body {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+[data-theme="light"] html {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, fill 0.2s ease;
+}
