@@ -26,8 +26,17 @@ import java.util.List;
 @Configuration
 public class DataSeeder {
 
-    private static String photo(String seed) {
-        return "https://picsum.photos/seed/" + seed + "/640/420";
+    private static final String IMG_EXCAVATOR = unsplash("1580901368919-7738efb0f87e");
+    private static final String IMG_EXCAVATOR_QUARRY = unsplash("1517089596392-fb9a9033e05b");
+    private static final String IMG_MINING_MACHINES = unsplash("1523848309072-c199db53f137");
+    private static final String IMG_TRUCK = unsplash("1616432043562-3671ea2e5242");
+    private static final String IMG_TRUCK_ROAD = unsplash("1519003722824-194d4455a60c");
+    private static final String IMG_CRANES = unsplash("1429497419816-9ca5cfb4571a");
+    private static final String IMG_SITE_WORKERS = unsplash("1504307651254-35680f356dfd");
+    private static final String IMG_SITE_AERIAL = unsplash("1541888946425-d81bb19240f5");
+
+    private static String unsplash(String id) {
+        return "https://images.unsplash.com/photo-" + id + "?w=640&q=70";
     }
 
     private static UserAccount user(String id, String name, String role, String company, String email, String phone, String city) {
@@ -89,50 +98,50 @@ public class DataSeeder {
                     eq("eq-1", "Caterpillar 320D2", "c-pelle", "Caterpillar", "320D2", 2016, 4528,
                             "Abidjan, Côte d'Ivoire", 250000, true, true,
                             "Pelle hydraulique fiable, puissante et économique en carburant. Idéale pour les travaux de terrassement, carrières et grands chantiers.",
-                            List.of(photo("cat320-1"), photo("cat320-2"), photo("cat320-3")),
+                            List.of(IMG_EXCAVATOR, IMG_EXCAVATOR_QUARRY, IMG_MINING_MACHINES),
                             List.of(new DocumentInfo("Certificat CE", "PDF"), new DocumentInfo("Facture d'achat", "PDF"),
                                     new DocumentInfo("Rapport d'inspection 2025", "PDF")),
                             "u-sup-1", "PUBLISHED", "GOLD", "Très bon état", "2026-05-10"),
                     eq("eq-2", "Komatsu PC210LC-8", "c-pelle", "Komatsu", "PC210LC-8", 2018, 3900,
                             "Abidjan, Côte d'Ivoire", 220000, true, false,
                             "Pelle hydraulique polyvalente, entretien à jour, prête pour chantier.",
-                            List.of(photo("komatsu-1"), photo("komatsu-2")),
+                            List.of(IMG_EXCAVATOR_QUARRY, IMG_EXCAVATOR),
                             List.of(new DocumentInfo("Certificat CE", "PDF")),
                             "u-sup-2", "PUBLISHED", "SILVER", "Bon état", "2026-05-12"),
                     eq("eq-3", "Volvo A40G", "c-benne", "Volvo", "A40G", 2019, 2800,
                             "Abidjan, Côte d'Ivoire", 350000, true, true,
                             "Tombereau articulé grande capacité pour transport de matériaux.",
-                            List.of(photo("volvo-1"), photo("volvo-2")),
+                            List.of(IMG_TRUCK, IMG_TRUCK_ROAD),
                             List.of(new DocumentInfo("Manuel d'utilisation", "PDF")),
                             "u-sup-1", "PUBLISHED", "GOLD", "Très bon état", "2026-05-14"),
                     eq("eq-4", "Caterpillar D6T", "c-bulldozer", "Caterpillar", "D6T", 2015, 6100,
                             "Bouaké, Côte d'Ivoire", 180000, false, true,
                             "Bulldozer robuste pour travaux de nivellement et défrichage.",
-                            List.of(photo("d6t-1")),
+                            List.of(IMG_MINING_MACHINES),
                             List.of(new DocumentInfo("Certificat CE", "PDF")),
                             "u-sup-2", "PUBLISHED", "BASIC", "Bon état", "2026-05-15"),
                     eq("eq-5", "Hitachi ZX350LC-5", "c-pelle", "Hitachi", "ZX350LC-5", 2017, 5200,
                             "Abidjan, Côte d'Ivoire", 270000, true, false,
                             "Pelle hydraulique lourde, soumise pour vérification VOLTA.",
-                            List.of(photo("hitachi-1"), photo("hitachi-2")),
+                            List.of(IMG_EXCAVATOR, IMG_MINING_MACHINES),
                             List.of(new DocumentInfo("Facture d'achat", "PDF")),
                             "u-sup-1", "SUBMITTED", null, "Bon état", "2026-08-10"),
                     eq("eq-6", "JCB 3CX", "c-chargeuse", "JCB", "3CX", 2020, 1800,
                             "Abidjan, Côte d'Ivoire", 150000, true, false,
                             "Tractopelle compacte en cours de vérification.",
-                            List.of(photo("jcb-1")),
+                            List.of(IMG_EXCAVATOR_QUARRY),
                             List.of(),
                             "u-sup-1", "PENDING_INSPECTION", null, "Très bon état", "2026-08-11"),
                     eq("eq-7", "Liebherr LTM 1050", "c-grue", "Liebherr", "LTM 1050", 2014, 8000,
                             "Yamoussoukro, Côte d'Ivoire", 500000, true, true,
                             "Grue mobile 50 tonnes. Brouillon en cours de complétion.",
-                            List.of(photo("liebherr-1")),
+                            List.of(IMG_CRANES),
                             List.of(),
                             "u-sup-1", "DRAFT", null, "État moyen", "2026-08-13"),
                     eq("eq-8", "Bomag BW213", "c-compacteur", "Bomag", "BW213", 2016, 4100,
                             "Bouaké, Côte d'Ivoire", 120000, true, false,
                             "Compacteur monocylindre, rapport transmis, en attente de décision.",
-                            List.of(photo("bomag-1")),
+                            List.of(IMG_SITE_AERIAL),
                             List.of(new DocumentInfo("Certificat CE", "PDF")),
                             "u-sup-2", "PENDING_ADMIN_REVIEW", null, "Bon état", "2026-08-08")));
 
@@ -151,7 +160,7 @@ public class DataSeeder {
             insp2.assignedAt = "2026-08-09";
             insp2.status = "DONE";
             insp2.checklist = checklist("CONFORME");
-            insp2.photos = List.of(photo("insp-bomag"));
+            insp2.photos = List.of(IMG_SITE_WORKERS);
             inspections.saveAll(List.of(insp1, insp2));
 
             Report rep1 = new Report();

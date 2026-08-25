@@ -5,6 +5,13 @@ import { Card, PageTitle, ProgressBar } from '../../components/ui'
 
 const SUPPLIER_ID = 'u-sup-1'
 
+const EQUIPMENT_PHOTOS = [
+  'https://images.unsplash.com/photo-1580901368919-7738efb0f87e?w=640&q=70',
+  'https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=640&q=70',
+  'https://images.unsplash.com/photo-1523848309072-c199db53f137?w=640&q=70',
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=640&q=70',
+]
+
 export default function SupplierEquipmentNew() {
   const { categories, addEquipment, submitEquipment } = useStore()
   const navigate = useNavigate()
@@ -31,7 +38,7 @@ export default function SupplierEquipmentNew() {
   const label = 'mb-1 block text-xs font-medium text-slate-500'
 
   const addPhoto = () =>
-    setPhotos((p) => [...p, `https://picsum.photos/seed/new-${Date.now()}-${p.length}/640/420`])
+    setPhotos((p) => [...p, `${EQUIPMENT_PHOTOS[p.length % EQUIPMENT_PHOTOS.length]}`])
   const addDocument = (name: string) => setDocuments((d) => [...d, { name, type: 'PDF' }])
 
   const finish = async (submit: boolean) => {
@@ -39,7 +46,7 @@ export default function SupplierEquipmentNew() {
     try {
       const eq = await addEquipment({
         ...form,
-        photos: photos.length ? photos : ['https://picsum.photos/seed/default-eq/640/420'],
+        photos: photos.length ? photos : [EQUIPMENT_PHOTOS[0]],
         documents,
         supplierId: SUPPLIER_ID,
       })

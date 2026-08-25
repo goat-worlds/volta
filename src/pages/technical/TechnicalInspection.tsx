@@ -124,7 +124,7 @@ export default function TechnicalInspection() {
             />
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => setPhotos((p) => [...p, `https://picsum.photos/seed/insp-${Date.now()}/320/220`])}
+                onClick={() => setPhotos((p) => [...p, `https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=320&q=70&t=${Date.now()}`])}
                 className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200"
               >
                 + Photo (mock)
