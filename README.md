@@ -1,3 +1,24 @@
+# VOLTA
+
+Plateforme de gestion et location d'engins industriels.
+
+- **Frontend** : React + TypeScript + Vite (racine du repo)
+- **Backend** : Spring Boot 4 (Java 17) + H2 dans `backend/`
+
+## Démarrage
+
+```bash
+# Backend (port 8080)
+cd backend && ./mvnw spring-boot:run
+
+# Frontend (port 5173, proxy /api -> localhost:8080)
+npm install && npm run dev
+```
+
+Le backend expose l'API REST sous `/api` (users, categories, equipment, inspections, reports, rental-requests, notifications) et initialise automatiquement les données de démonstration au premier lancement (base H2 persistée dans `backend/data/`).
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.

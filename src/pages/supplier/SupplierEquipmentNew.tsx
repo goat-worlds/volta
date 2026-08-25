@@ -34,18 +34,20 @@ export default function SupplierEquipmentNew() {
     setPhotos((p) => [...p, `https://picsum.photos/seed/new-${Date.now()}-${p.length}/640/420`])
   const addDocument = (name: string) => setDocuments((d) => [...d, { name, type: 'PDF' }])
 
-  const finish = (submit: boolean) => {
+  const finish = async (submit: boolean) => {
     setSaving(true)
-    setTimeout(() => {
-      const eq = addEquipment({
+    try {
+      const eq = await addEquipment({
         ...form,
         photos: photos.length ? photos : ['https://picsum.photos/seed/default-eq/640/420'],
         documents,
         supplierId: SUPPLIER_ID,
       })
-      if (submit) submitEquipment(eq.id)
+      if (submit) await submitEquipment(eq.id)
       navigate('/supplier/equipment')
-    }, 500)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

@@ -1,8 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type {
   Equipment,
-  EquipmentStatus,
   Inspection,
   Report,
   RentalRequest,
@@ -12,8 +11,7 @@ import type {
   User,
   Category,
 } from './types'
-import * as seed from './mockData'
-import { CHECKLIST_TEMPLATE } from './mockData'
+import { apiGet, apiPost, apiPut } from './api'
 
 interface Store {
   users: User[]
@@ -23,165 +21,165 @@ interface Store {
   reports: Report[]
   rentalRequests: RentalRequest[]
   notifications: Notification[]
-  addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Equipment
-  submitEquipment: (equipmentId: string) => void
-  assignInspection: (equipmentId: string, technicalTeamId: string) => void
-  startInspection: (inspectionId: string) => void
-  updateChecklist: (inspectionId: string, checklist: ChecklistItem[]) => void
-  submitReport: (inspectionId: string, summary: string, checklist: ChecklistItem[]) => void
-  rejectEquipment: (equipmentId: string) => void
-  referenceEquipment: (equipmentId: string, level: Level) => void
-  publishEquipment: (equipmentId: string) => void
-  unpublishEquipment: (equipmentId: string) => void
+  loading: boolean
+  error: string | null
+  reload: () => Promise<void>
+  addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Promise<Equipment>
+  submitEquipment: (equipmentId: string) => Promise<void>
+  assignInspection: (equipmentId: string, technicalTeamId: string) => Promise<void>
+  startInspection: (inspectionId: string) => Promise<void>
+  updateChecklist: (inspectionId: string, checklist: ChecklistItem[]) => Promise<void>
+  submitReport: (inspectionId: string, summary: string, checklist: ChecklistItem[]) => Promise<void>
+  rejectEquipment: (equipmentId: string) => Promise<void>
+  referenceEquipment: (equipmentId: string, level: Level) => Promise<void>
+  publishEquipment: (equipmentId: string) => Promise<void>
+  unpublishEquipment: (equipmentId: string) => Promise<void>
   createRentalRequest: (
     r: Omit<RentalRequest, 'id' | 'reference' | 'status' | 'createdAt' | 'supplierId'>,
-  ) => RentalRequest
+  ) => Promise<RentalRequest>
 }
 
 const StoreContext = createContext<Store | null>(null)
 
-const today = () => new Date().toISOString().slice(0, 10)
-
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [equipment, setEquipment] = useState<Equipment[]>(seed.equipment)
-  const [inspections, setInspections] = useState<Inspection[]>(seed.inspections)
-  const [reports, setReports] = useState<Report[]>(seed.reports)
-  const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>(seed.rentalRequests)
-  const [notifications, setNotifications] = useState<Notification[]>(seed.notifications)
+  const [users, setUsers] = useState<User[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [equipment, setEquipment] = useState<Equipment[]>([])
+  const [inspections, setInspections] = useState<Inspection[]>([])
+  const [reports, setReports] = useState<Report[]>([])
+  const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const store = useMemo<Store>(() => {
-    const setStatus = (equipmentId: string, status: EquipmentStatus) =>
-      setEquipment((prev) => prev.map((e) => (e.id === equipmentId ? { ...e, status } : e)))
-
-    const notify = (role: Notification['role'], message: string) =>
-      setNotifications((prev) => [
-        { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, role, message, date: today(), read: false },
-        ...prev,
+  const reload = useCallback(async () => {
+    try {
+      const [u, c, e, i, rep, req, n] = await Promise.all([
+        apiGet<User[]>('/users'),
+        apiGet<Category[]>('/categories'),
+        apiGet<Equipment[]>('/equipment'),
+        apiGet<Inspection[]>('/inspections'),
+        apiGet<Report[]>('/reports'),
+        apiGet<RentalRequest[]>('/rental-requests'),
+        apiGet<Notification[]>('/notifications'),
       ])
+      setUsers(u)
+      setCategories(c)
+      setEquipment(e)
+      setInspections(i)
+      setReports(rep)
+      setRentalRequests(req)
+      setNotifications(n)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de connexion au serveur')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-    return {
-      users: seed.users,
-      categories: seed.categories,
+  useEffect(() => {
+    void reload()
+  }, [reload])
+
+  const store = useMemo<Store>(
+    () => ({
+      users,
+      categories,
       equipment,
       inspections,
       reports,
       rentalRequests,
       notifications,
+      loading,
+      error,
+      reload,
 
-      addEquipment(data) {
-        const eq: Equipment = {
-          ...data,
-          id: `eq-${Date.now()}`,
-          status: 'DRAFT',
-          level: null,
-          createdAt: today(),
-        }
-        setEquipment((prev) => [eq, ...prev])
+      async addEquipment(data) {
+        const eq = await apiPost<Equipment>('/equipment', data)
+        await reload()
         return eq
       },
 
-      submitEquipment(equipmentId) {
-        setStatus(equipmentId, 'SUBMITTED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('ADMIN', `${eq?.name ?? 'Un engin'} soumis pour vérification`)
+      async submitEquipment(equipmentId) {
+        await apiPost(`/equipment/${equipmentId}/submit`)
+        await reload()
       },
 
-      assignInspection(equipmentId, technicalTeamId) {
-        const insp: Inspection = {
-          id: `insp-${Date.now()}`,
-          equipmentId,
-          technicalTeamId,
-          assignedAt: today(),
-          status: 'ASSIGNED',
-          checklist: CHECKLIST_TEMPLATE.map((c) => ({ ...c })),
-          photos: [],
-          anomalies: [],
-        }
-        setInspections((prev) => [insp, ...prev])
-        setStatus(equipmentId, 'PENDING_INSPECTION')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('TECHNICAL', `Nouvelle mission assignée : ${eq?.name ?? equipmentId}`)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} est en attente d'inspection`)
+      async assignInspection(equipmentId, technicalTeamId) {
+        await apiPost('/inspections', { equipmentId, technicalTeamId })
+        await reload()
       },
 
-      startInspection(inspectionId) {
-        setInspections((prev) =>
-          prev.map((i) => (i.id === inspectionId ? { ...i, status: 'IN_PROGRESS' } : i)),
-        )
-        const insp = inspections.find((i) => i.id === inspectionId)
-        if (insp) setStatus(insp.equipmentId, 'INSPECTION_IN_PROGRESS')
+      async startInspection(inspectionId) {
+        await apiPost(`/inspections/${inspectionId}/start`)
+        await reload()
       },
 
-      updateChecklist(inspectionId, checklist) {
-        setInspections((prev) =>
-          prev.map((i) => (i.id === inspectionId ? { ...i, checklist } : i)),
-        )
+      async updateChecklist(inspectionId, checklist) {
+        await apiPut(`/inspections/${inspectionId}/checklist`, checklist)
+        await reload()
       },
 
-      submitReport(inspectionId, summary, checklist) {
-        const insp = inspections.find((i) => i.id === inspectionId)
-        if (!insp) return
-        const report: Report = {
-          id: `rep-${Date.now()}`,
-          inspectionId,
-          equipmentId: insp.equipmentId,
-          submittedAt: today(),
-          summary,
-          checklist,
-        }
-        setReports((prev) => [report, ...prev])
-        setInspections((prev) =>
-          prev.map((i) => (i.id === inspectionId ? { ...i, status: 'DONE', checklist } : i)),
-        )
-        setStatus(insp.equipmentId, 'PENDING_ADMIN_REVIEW')
-        const eq = equipment.find((e) => e.id === insp.equipmentId)
-        notify('ADMIN', `Rapport d'inspection transmis pour ${eq?.name ?? insp.equipmentId}`)
+      async submitReport(inspectionId, summary, checklist) {
+        await apiPost(`/inspections/${inspectionId}/report`, { summary, checklist })
+        await reload()
       },
 
-      rejectEquipment(equipmentId) {
-        setStatus(equipmentId, 'REJECTED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} a été refusé après vérification`)
+      async rejectEquipment(equipmentId) {
+        await apiPost(`/equipment/${equipmentId}/reject`)
+        await reload()
       },
 
-      referenceEquipment(equipmentId, level) {
-        setEquipment((prev) =>
-          prev.map((e) => (e.id === equipmentId ? { ...e, status: 'REFERENCED', level } : e)),
-        )
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} a été référencé ${level}`)
+      async referenceEquipment(equipmentId, level) {
+        await apiPost(`/equipment/${equipmentId}/reference`, { level })
+        await reload()
       },
 
-      publishEquipment(equipmentId) {
-        setStatus(equipmentId, 'PUBLISHED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} est publié sur le catalogue`)
+      async publishEquipment(equipmentId) {
+        await apiPost(`/equipment/${equipmentId}/publish`)
+        await reload()
       },
 
-      unpublishEquipment(equipmentId) {
-        setStatus(equipmentId, 'UNPUBLISHED')
-        const eq = equipment.find((e) => e.id === equipmentId)
-        notify('SUPPLIER', `${eq?.name ?? 'Votre engin'} a été dépublié du catalogue`)
+      async unpublishEquipment(equipmentId) {
+        await apiPost(`/equipment/${equipmentId}/unpublish`)
+        await reload()
       },
 
-      createRentalRequest(data) {
-        const eq = equipment.find((e) => e.id === data.equipmentId)
-        const num = 124 + rentalRequests.length
-        const request: RentalRequest = {
-          ...data,
-          supplierId: eq?.supplierId ?? '',
-          id: `req-${Date.now()}`,
-          reference: `VOL-2026-${String(num).padStart(5, '0')}`,
-          status: 'PENDING',
-          createdAt: today(),
-        }
-        setRentalRequests((prev) => [request, ...prev])
-        notify('ADMIN', `Nouvelle demande de location ${request.reference} — ${eq?.name ?? ''}`)
-        notify('SUPPLIER', `Nouvelle demande de location ${request.reference} — ${eq?.name ?? ''}`)
+      async createRentalRequest(data) {
+        const request = await apiPost<RentalRequest>('/rental-requests', data)
+        await reload()
         return request
       },
-    }
-  }, [equipment, inspections, reports, rentalRequests, notifications])
+    }),
+    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, reload],
+  )
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">
+        Chargement des données…
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="text-sm font-medium text-red-600">Impossible de contacter le serveur VOLTA.</p>
+        <p className="text-xs text-slate-500">{error}</p>
+        <button
+          onClick={() => {
+            setLoading(true)
+            void reload()
+          }}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          Réessayer
+        </button>
+      </div>
+    )
+  }
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
 }

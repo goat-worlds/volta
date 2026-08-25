@@ -37,16 +37,17 @@ export default function EquipmentDetail() {
   const cat = categories.find((c) => c.id === eq.categoryId)
   const supplier = users.find((u) => u.id === eq.supplierId)
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSending(true)
-    setTimeout(() => {
-      const req = createRentalRequest({ ...form, equipmentId: eq.id })
-      setSending(false)
+    try {
+      const req = await createRentalRequest({ ...form, equipmentId: eq.id })
       setModalOpen(false)
       setToast(`Demande de devis ${req.reference} envoyée ! Le fournisseur et VOLTA ont été notifiés.`)
       setTimeout(() => setToast(null), 5000)
-    }, 600)
+    } finally {
+      setSending(false)
+    }
   }
 
   const input = 'w-full rounded-lg border border-slate-300 p-2 text-sm'
