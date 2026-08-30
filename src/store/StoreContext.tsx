@@ -11,7 +11,7 @@ import type {
   User,
   Category,
 } from './types'
-import { apiGet, apiPost, apiPut } from './api'
+import { apiGet, apiPost, apiPut, getToken, setToken, clearToken } from './api'
 
 interface Store {
   users: User[]
@@ -23,7 +23,11 @@ interface Store {
   notifications: Notification[]
   loading: boolean
   error: string | null
+  currentUser: User | null
   reload: () => Promise<void>
+  login: (email: string, password: string) => Promise<User>
+  register: (name: string, email: string, phone: string, password: string) => Promise<User>
+  logout: () => Promise<void>
   addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Promise<Equipment>
   submitEquipment: (equipmentId: string) => Promise<void>
   assignInspection: (equipmentId: string, technicalTeamId: string) => Promise<void>
@@ -37,6 +41,8 @@ interface Store {
   createRentalRequest: (
     r: Omit<RentalRequest, 'id' | 'reference' | 'status' | 'createdAt' | 'supplierId'>,
   ) => Promise<RentalRequest>
+  requestCorrection: (equipmentId: string) => Promise<void>
+  respondRentalRequest: (requestId: string, accepted: boolean) => Promise<void>
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -51,6 +57,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   const reload = useCallback(async () => {
     try {
@@ -80,6 +87,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void reload()
+    if (getToken()) {
+      apiGet<User>('/auth/me')
+        .then(setCurrentUser)
+        .catch(() => clearToken())
+    }
   }, [reload])
 
   const store = useMemo<Store>(
@@ -93,7 +105,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       notifications,
       loading,
       error,
+      currentUser,
       reload,
+
+      async login(email, password) {
+        const res = await apiPost<{ token: string; user: User }>('/auth/login', { email, password })
+        setToken(res.token)
+        setCurrentUser(res.user)
+        return res.user
+      },
+
+      async register(name, email, phone, password) {
+        const res = await apiPost<{ token: string; user: User }>('/auth/register', { name, email, phone, password })
+        setToken(res.token)
+        setCurrentUser(res.user)
+        await reload()
+        return res.user
+      },
+
+      async logout() {
+        try {
+          await apiPost('/auth/logout')
+        } finally {
+          clearToken()
+          setCurrentUser(null)
+        }
+      },
 
       async addEquipment(data) {
         const eq = await apiPost<Equipment>('/equipment', data)
@@ -151,8 +188,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         await reload()
         return request
       },
+
+      async requestCorrection(equipmentId) {
+        await apiPost(`/equipment/${equipmentId}/request-correction`)
+        await reload()
+      },
+
+      async respondRentalRequest(requestId, accepted) {
+        await apiPost(`/rental-requests/${requestId}/${accepted ? 'accept' : 'decline'}`)
+        await reload()
+      },
     }),
-    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, reload],
+    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, reload],
   )
 
   if (loading) {

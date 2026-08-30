@@ -108,56 +108,76 @@ export function TechnicalLayout() {
 }
 
 function publicNavClass({ isActive }: { isActive: boolean }) {
-  return `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-    isActive ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+  return `rounded-lg px-3 py-2 text-sm font-medium transition ${
+    isActive ? 'text-slate-900 underline decoration-yellow-400 decoration-2 underline-offset-8' : 'text-slate-600 hover:text-slate-900'
   }`
 }
 
 export function PublicLayout() {
+  const { currentUser, logout } = useStore()
+  const spaceLink =
+    currentUser?.role === 'ADMIN'
+      ? '/admin'
+      : currentUser?.role === 'SUPPLIER'
+        ? '/supplier'
+        : currentUser?.role === 'TECHNICAL'
+          ? '/technical'
+          : '/catalogue'
   return (
-    <div className="flex min-h-screen">
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex">
-        <Link to="/" className="mb-6 flex items-center gap-2 px-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
-          <span className="text-lg font-bold text-slate-900">VOLTA</span>
-        </Link>
-        <nav className="flex flex-col gap-1">
-          <NavLink to="/" end className={publicNavClass}>🏠 Accueil</NavLink>
-          <NavLink to="/catalogue" className={publicNavClass}>🚜 Équipements</NavLink>
-          <NavLink to="/fournisseurs" className={publicNavClass}>🏢 Fournisseurs</NavLink>
-        </nav>
-        <div className="mt-6 border-t border-slate-200 pt-4">
-          <div className="mb-2 px-3 text-xs font-semibold uppercase text-slate-400">Espaces</div>
-          <nav className="flex flex-col gap-1">
-            <NavLink to="/supplier" className={publicNavClass}>👷 Fournisseur</NavLink>
-            <NavLink to="/technical" className={publicNavClass}>🔧 Équipe technique</NavLink>
-            <NavLink to="/admin" className={publicNavClass}>🛡️ Admin</NavLink>
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-yellow-400 font-black text-slate-900">V</span>
+            <span className="text-xl font-black tracking-tight text-slate-900">VOLTA</span>
+          </Link>
+          <nav className="hidden items-center gap-1 md:flex">
+            <NavLink to="/" end className={publicNavClass}>Accueil</NavLink>
+            <NavLink to="/catalogue" className={publicNavClass}>Équipements</NavLink>
+            <NavLink to="/fournisseurs" className={publicNavClass}>Fournisseurs</NavLink>
           </nav>
-        </div>
-        <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
-          Des milliers d'équipements vérifiés par VOLTA pour vos projets.
-        </div>
-      </aside>
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-40 border-b border-slate-200 bg-white md:hidden">
-          <div className="flex items-center justify-between px-4 py-3">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">V</span>
-              <span className="text-lg font-bold text-slate-900">VOLTA</span>
-            </Link>
-            <nav className="flex items-center gap-1 text-sm font-medium">
-              <NavLink to="/catalogue" className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100">Équipements</NavLink>
-              <NavLink to="/admin" className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700">Admin</NavLink>
-            </nav>
+          <div className="flex items-center gap-2">
+            {currentUser ? (
+              <>
+                <Link to={spaceLink} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                  {currentUser.name}
+                </Link>
+                <button
+                  onClick={() => void logout()}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/connexion" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                  Se connecter
+                </Link>
+                <Link
+                  to="/inscription"
+                  className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-yellow-500"
+                >
+                  S'inscrire
+                </Link>
+              </>
+            )}
           </div>
-        </header>
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-500">
-          © 2026 VOLTA — Équipements de chantier vérifiés en Côte d'Ivoire
-        </footer>
-      </div>
+        </div>
+      </header>
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <footer className="mt-16 border-t border-slate-200 bg-slate-900 py-10 text-center text-sm text-slate-400">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-400 font-black text-slate-900">V</span>
+            <span className="text-lg font-black text-white">VOLTA</span>
+          </div>
+          <p>Référencer → Vérifier → Décider → Publier → Rechercher → Mettre en relation</p>
+          <p className="mt-2">© 2026 VOLTA — Équipements de chantier vérifiés en Côte d'Ivoire</p>
+        </div>
+      </footer>
     </div>
   )
 }

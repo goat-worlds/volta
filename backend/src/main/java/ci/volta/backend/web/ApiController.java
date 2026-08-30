@@ -120,6 +120,11 @@ public class ApiController {
         return service.rejectEquipment(id);
     }
 
+    @PostMapping("/equipment/{id}/request-correction")
+    public Equipment requestCorrection(@PathVariable String id) {
+        return service.requestCorrection(id);
+    }
+
     @PostMapping("/equipment/{id}/reference")
     public Equipment referenceEquipment(@PathVariable String id, @RequestBody ReferenceRequest body) {
         return service.referenceEquipment(id, body.level());
@@ -161,5 +166,15 @@ public class ApiController {
     @ResponseStatus(HttpStatus.CREATED)
     public RentalRequest createRentalRequest(@RequestBody RentalRequest request) {
         return service.createRentalRequest(request);
+    }
+
+    @PostMapping("/rental-requests/{id}/accept")
+    public RentalRequest acceptRentalRequest(@PathVariable String id) {
+        return service.respondRentalRequest(id, true);
+    }
+
+    @PostMapping("/rental-requests/{id}/decline")
+    public RentalRequest declineRentalRequest(@PathVariable String id) {
+        return service.respondRentalRequest(id, false);
     }
 }

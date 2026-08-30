@@ -14,6 +14,7 @@ export default function AdminEquipment() {
     referenceEquipment,
     publishEquipment,
     unpublishEquipment,
+    requestCorrection,
   } = useStore()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [teamId, setTeamId] = useState('u-tech-1')
@@ -47,6 +48,7 @@ export default function AdminEquipment() {
             <option value="REFERENCED">Référencé</option>
             <option value="PUBLISHED">Publié</option>
             <option value="REJECTED">Refusé</option>
+            <option value="CORRECTIONS_REQUESTED">Corrections demandées</option>
             <option value="UNPUBLISHED">Dépublié</option>
             <option value="DRAFT">Brouillon</option>
           </select>
@@ -179,6 +181,16 @@ export default function AdminEquipment() {
                   >
                     Refuser
                   </button>
+                  <button
+                    onClick={() => {
+                      requestCorrection(selected.id)
+                      setSelectedId(null)
+                      showToast('Corrections demandées au fournisseur.')
+                    }}
+                    className="flex-1 rounded-lg border border-amber-500 py-2 text-sm font-semibold text-amber-600 hover:bg-amber-50"
+                  >
+                    Corrections
+                  </button>
                 </div>
               </div>
             )}
@@ -216,6 +228,9 @@ export default function AdminEquipment() {
             )}
             {selected.status === 'DRAFT' && (
               <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Brouillon non soumis par le fournisseur.</p>
+            )}
+            {selected.status === 'CORRECTIONS_REQUESTED' && (
+              <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">Corrections demandées au fournisseur.</p>
             )}
             {selected.status === 'REJECTED' && (
               <p className="rounded-lg bg-red-50 p-3 text-xs text-red-600">Engin refusé après vérification.</p>

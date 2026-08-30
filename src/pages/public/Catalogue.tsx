@@ -7,6 +7,7 @@ export default function Catalogue() {
   const { equipment, categories, users } = useStore()
   const [params] = useSearchParams()
   const [category, setCategory] = useState(params.get('categorie') ?? '')
+  const [query, setQuery] = useState(params.get('q') ?? '')
   const [location, setLocation] = useState('')
   const [level, setLevel] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
@@ -16,8 +17,14 @@ export default function Catalogue() {
   const published = equipment.filter((e) => e.status === 'PUBLISHED')
   const locations = [...new Set(published.map((e) => e.location))]
 
+  const q = query.trim().toLowerCase()
   const filtered = published.filter(
     (e) =>
+      (!q ||
+        e.name.toLowerCase().includes(q) ||
+        e.brand.toLowerCase().includes(q) ||
+        e.model.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q)) &&
       (!category || e.categoryId === category) &&
       (!location || e.location === location) &&
       (!level || e.level === level) &&
@@ -32,6 +39,13 @@ export default function Catalogue() {
       <div className="flex flex-col gap-6 lg:flex-row">
         <Card className="h-fit w-full shrink-0 p-4 lg:w-64">
           <div className="mb-3 font-semibold">Filtres</div>
+          <label className="mb-1 block text-xs font-medium text-slate-500">Recherche</label>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Pelle, grue, camion…"
+            className="mb-3 w-full rounded-lg border border-slate-300 p-2 text-sm"
+          />
           <label className="mb-1 block text-xs font-medium text-slate-500">Catégorie</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="mb-3 w-full rounded-lg border border-slate-300 p-2 text-sm">
             <option value="">Toutes</option>

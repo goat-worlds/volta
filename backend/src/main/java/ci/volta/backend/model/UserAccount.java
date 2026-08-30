@@ -1,5 +1,6 @@
 package ci.volta.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -15,4 +16,6 @@ public class UserAccount {
     public String email;
     public String phone;
     public String city;
+    @JsonIgnore
+    public String passwordHash;
 }

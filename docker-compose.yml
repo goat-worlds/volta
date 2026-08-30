@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: volta-mysql
+    environment:
+      MYSQL_DATABASE: volta
+      MYSQL_USER: volta
+      MYSQL_PASSWORD: volta
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - volta-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uvolta", "-pvolta"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  volta-mysql-data:

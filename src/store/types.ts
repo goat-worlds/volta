@@ -6,6 +6,7 @@ export type EquipmentStatus =
   | 'REPORT_SUBMITTED'
   | 'PENDING_ADMIN_REVIEW'
   | 'REJECTED'
+  | 'CORRECTIONS_REQUESTED'
   | 'REFERENCED'
   | 'PUBLISHED'
   | 'UNPUBLISHED'
@@ -97,6 +98,16 @@ export interface RentalRequest {
   clientEmail: string
   status: 'PENDING' | 'ACCEPTED' | 'DECLINED'
   createdAt: string
+}
+
+export interface AuthUser {
+  id: string
+  name: string
+  role: Role
+  company: string
+  email: string
+  phone: string
+  city: string
 }
 
 export interface Notification {

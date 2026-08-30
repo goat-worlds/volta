@@ -1,11 +1,24 @@
+import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle } from '../../components/ui'
+import { Card, EmptyState, PageTitle, Toast } from '../../components/ui'
 
 const SUPPLIER_ID = 'u-sup-1'
 
+const REQUEST_STATUS = {
+  PENDING: { label: 'En attente', cls: 'bg-amber-100 text-amber-700' },
+  ACCEPTED: { label: 'Acceptée', cls: 'bg-emerald-100 text-emerald-700' },
+  DECLINED: { label: 'Refusée', cls: 'bg-red-100 text-red-700' },
+} as const
+
 export default function SupplierRequests() {
-  const { rentalRequests, equipment } = useStore()
+  const { rentalRequests, equipment, respondRentalRequest } = useStore()
+  const [toast, setToast] = useState<string | null>(null)
   const mine = rentalRequests.filter((r) => r.supplierId === SUPPLIER_ID)
+
+  const showToast = (m: string) => {
+    setToast(m)
+    setTimeout(() => setToast(null), 4000)
+  }
 
   return (
     <div>
@@ -23,6 +36,7 @@ export default function SupplierRequests() {
                 <th className="px-4 py-3">Période</th>
                 <th className="px-4 py-3">Lieu</th>
                 <th className="px-4 py-3">Statut</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -37,7 +51,35 @@ export default function SupplierRequests() {
                   <td className="px-4 py-3">{r.startDate} → {r.endDate}</td>
                   <td className="px-4 py-3">{r.location}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">En attente</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${REQUEST_STATUS[r.status].cls}`}>
+                      {REQUEST_STATUS[r.status].label}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.status === 'PENDING' ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            void respondRentalRequest(r.id, true)
+                            showToast('Demande acceptée ✔')
+                          }}
+                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                        >
+                          Accepter
+                        </button>
+                        <button
+                          onClick={() => {
+                            void respondRentalRequest(r.id, false)
+                            showToast('Demande refusée.')
+                          }}
+                          className="rounded-lg border border-red-600 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                        >
+                          Refuser
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -45,6 +87,7 @@ export default function SupplierRequests() {
           </table>
         </Card>
       )}
+      <Toast message={toast} />
     </div>
   )
 }

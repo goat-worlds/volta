@@ -1,53 +1,57 @@
 # VOLTA
 
-Plateforme de gestion et location d'engins industriels.
+Plateforme de gestion et location d'engins industriels en Côte d'Ivoire.
+
+**La Volta = Référencer → Vérifier → Décider → Publier → Rechercher → Mettre en relation.**
 
 - **Frontend** : React + TypeScript + Vite (racine du repo)
-- **Backend** : Spring Boot 4 (Java 17) + H2 dans `backend/`
+- **Backend** : Spring Boot 4 (Java 17) + MySQL dans `backend/`
+- **Base de données** : MySQL 8.4 via Docker Compose (persistance dans le volume `volta-mysql-data`)
 
 ## Démarrage
 
 ```bash
-# Backend (port 8080)
+# 1. Base de données MySQL (port 3306)
+docker compose up -d
+
+# 2. Backend (port 8080)
 cd backend && ./mvnw spring-boot:run
 
-# Frontend (port 5173, proxy /api -> localhost:8080)
+# 3. Frontend (port 5173, proxy /api -> localhost:8080)
 npm install && npm run dev
 ```
 
-Le backend expose l'API REST sous `/api` (users, categories, equipment, inspections, reports, rental-requests, notifications) et initialise automatiquement les données de démonstration au premier lancement (base H2 persistée dans `backend/data/`).
+### Variables d'environnement backend
 
----
+| Variable | Défaut |
+|---|---|
+| `DB_URL` | `jdbc:mysql://localhost:3306/volta?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false` |
+| `DB_USER` | `volta` |
+| `DB_PASSWORD` | `volta` |
+| `SESSION_DURATION_DAYS` | `7` |
 
-# React + TypeScript + Vite
+## API REST (`/api`)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+- Données : `users`, `categories`, `equipment`, `inspections`, `reports`, `rental-requests`, `notifications`
+- Processus opérationnel : `equipment/{id}/submit|reject|request-correction|reference|publish|unpublish`, `inspections/{id}/start|checklist|report`, `rental-requests/{id}/accept|decline`
+- Authentification (sessions persistées en base, header `X-Session-Token`) :
+  - `POST /api/auth/register` — création de compte client
+  - `POST /api/auth/login` — connexion (email + mot de passe)
+  - `GET /api/auth/me` — utilisateur courant (prolonge la session)
+  - `POST /api/auth/logout` — déconnexion
+- Webhooks (notifications HTTP sortantes sur les événements métier) :
+  - `GET/POST /api/webhooks`, `DELETE /api/webhooks/{id}`, `POST /api/webhooks/{id}/test`
+  - Événements : `EQUIPMENT_SUBMITTED`, `INSPECTION_ASSIGNED`, `REPORT_SUBMITTED`, `EQUIPMENT_REJECTED`, `CORRECTIONS_REQUESTED`, `EQUIPMENT_REFERENCED`, `EQUIPMENT_PUBLISHED`, `EQUIPMENT_UNPUBLISHED`, `RENTAL_REQUEST_CREATED`, `RENTAL_REQUEST_ACCEPTED`, `RENTAL_REQUEST_DECLINED` (souscription à un événement précis ou `*`)
 
-Currently, two official plugins are available:
+Le backend initialise automatiquement des données de démonstration au premier lancement.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Comptes de démonstration
 
-## React Compiler
+Mot de passe commun : `volta123`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+| Rôle | Email |
+|---|---|
+| Admin | `admin@volta.ci` |
+| Fournisseur | `contact@btpci.ci`, `contact@afriquemateriel.ci` |
+| Équipe technique | `inspection@abc.ci` |
+| Client | `jean@konan.ci` |
