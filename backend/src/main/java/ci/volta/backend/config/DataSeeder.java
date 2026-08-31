@@ -72,17 +72,34 @@ public class DataSeeder {
             NotificationRepository notifications,
             AuthService authService) {
         return args -> {
-            if (users.count() > 0) {
+            String defaultHash = authService.encodePassword("password123");
+
+            if (users.findByEmailIgnoreCase("dg@volta.com").isEmpty()) {
+                UserAccount dgUser = user("u-dg", "DG Test", "DG", "VOLTA", "dg@volta.com", "+225 07 00 00 00", "Abidjan");
+                dgUser.passwordHash = defaultHash;
+                users.save(dgUser);
+            }
+            if (users.findByEmailIgnoreCase("supplier@volta.com").isEmpty()) {
+                UserAccount supplierUser = user("u-supplier", "Supplier Test", "SUPPLIER", "Test Supplier", "supplier@volta.com", "+225 07 00 00 01", "Abidjan");
+                supplierUser.passwordHash = defaultHash;
+                users.save(supplierUser);
+            }
+            if (users.findByEmailIgnoreCase("verificateur@volta.com").isEmpty()) {
+                UserAccount techUser = user("u-tech", "Tech Test", "VERIFICATEUR", "Test Tech", "verificateur@volta.com", "+225 07 00 00 02", "Abidjan");
+                techUser.passwordHash = defaultHash;
+                users.save(techUser);
+            }
+
+            if (users.count() > 3) {
                 return;
             }
 
             List<UserAccount> seededUsers = List.of(
-                    user("u-admin", "Kouadio Félix", "ADMIN", "VOLTA", "admin@volta.ci", "+225 07 00 00 01", "Abidjan"),
-                    user("u-sup-1", "Boss Diarra", "SUPPLIER", "BTP CI SARL", "contact@btpci.ci", "+225 07 00 00 02", "Abidjan"),
-                    user("u-sup-2", "Awa Koné", "SUPPLIER", "Afrique Matériel", "contact@afriquemateriel.ci", "+225 07 00 00 03", "Yamoussoukro"),
-                    user("u-tech-1", "Yao Kouassi", "TECHNICAL", "Société Technique ABC", "inspection@abc.ci", "+225 07 00 00 04", "Abidjan"),
-                    user("u-client-1", "Jean Konan", "CLIENT", "Entreprise BTP Konan", "jean@konan.ci", "+225 07 00 00 05", "Abidjan"));
-            String defaultHash = authService.encodePassword("volta123");
+                    user("u-admin", "Kouadio Félix", "ADMIN", "VOLTA", "admin@volta.ci", "+225 07 00 00 03", "Abidjan"),
+                    user("u-sup-1", "Boss Diarra", "SUPPLIER", "BTP CI SARL", "contact@btpci.ci", "+225 07 00 00 04", "Abidjan"),
+                    user("u-sup-2", "Awa Koné", "SUPPLIER", "Afrique Matériel", "contact@afriquemateriel.ci", "+225 07 00 00 05", "Yamoussoukro"),
+                    user("u-tech-1", "Yao Kouassi", "TECHNICAL", "Société Technique ABC", "inspection@abc.ci", "+225 07 00 00 06", "Abidjan"),
+                    user("u-client-1", "Jean Konan", "CLIENT", "Entreprise BTP Konan", "jean@konan.ci", "+225 07 00 00 07", "Abidjan"));
             seededUsers.forEach(u -> u.passwordHash = defaultHash);
             users.saveAll(seededUsers);
 

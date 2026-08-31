@@ -39,9 +39,16 @@ public final class JsonConverters {
                 return new ArrayList<>();
             }
             try {
-                return MAPPER.readValue(dbData, typeRef);
+                String cleaned = dbData
+                    .replaceAll("(?s)/\\*.*?\\*/", "")
+                    .replaceAll("//[^\\n]*", "")
+                    .trim();
+                if (cleaned.isEmpty() || cleaned.equals("[]")) {
+                    return new ArrayList<>();
+                }
+                return MAPPER.readValue(cleaned, typeRef);
             } catch (Exception e) {
-                throw new IllegalStateException("Failed to deserialize list", e);
+                return new ArrayList<>();
             }
         }
     }

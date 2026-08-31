@@ -7,6 +7,7 @@ import EquipmentDetail from './pages/public/EquipmentDetail'
 import Suppliers from './pages/public/Suppliers'
 import Login from './pages/public/Login'
 import Register from './pages/public/Register'
+import QuickLogin from './pages/public/QuickLogin'
 import SupplierDashboard from './pages/supplier/SupplierDashboard'
 import SupplierEquipment from './pages/supplier/SupplierEquipment'
 import SupplierEquipmentNew from './pages/supplier/SupplierEquipmentNew'
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
             <Route path="/fournisseurs" element={<Suppliers />} />
             <Route path="/connexion" element={<Login />} />
+            <Route path="/quick-login" element={<QuickLogin />} />
             <Route path="/inscription" element={<Register />} />
           </Route>
           <Route element={<SupplierLayout />}>

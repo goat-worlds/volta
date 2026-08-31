@@ -17,12 +17,28 @@ export default function Login() {
     setError(null)
     try {
       const user = await login(email, password)
-      if (user.role === 'ADMIN') navigate('/admin')
+      if (user.role === 'DG' || user.role === 'ADMIN') navigate('/admin')
       else if (user.role === 'SUPPLIER') navigate('/supplier')
-      else if (user.role === 'TECHNICAL') navigate('/technical')
+      else if (user.role === 'VERIFICATEUR' || user.role === 'TECHNICAL') navigate('/technical')
       else navigate('/catalogue')
     } catch {
       setError('Email ou mot de passe incorrect.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const quickLogin = async (email: string, password: string) => {
+    setBusy(true)
+    setError(null)
+    try {
+      const user = await login(email, password)
+      if (user.role === 'DG' || user.role === 'ADMIN') navigate('/admin')
+      else if (user.role === 'SUPPLIER') navigate('/supplier')
+      else if (user.role === 'VERIFICATEUR' || user.role === 'TECHNICAL') navigate('/technical')
+      else navigate('/catalogue')
+    } catch {
+      setError('Erreur de connexion rapide.')
     } finally {
       setBusy(false)
     }
@@ -72,8 +88,37 @@ export default function Login() {
           Pas encore de compte ?{' '}
           <Link to="/inscription" className="font-semibold text-yellow-600 hover:underline">S'inscrire</Link>
         </p>
+        <div className="mt-6 space-y-2">
+          <p className="text-center text-xs font-semibold text-slate-600">Connexion Rapide - Rôles de Test</p>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => quickLogin('dg@volta.com', 'password123')}
+              disabled={busy}
+              className="rounded bg-blue-500 py-2 text-xs font-semibold text-white hover:bg-blue-600 disabled:opacity-60"
+            >
+              DG
+            </button>
+            <button
+              type="button"
+              onClick={() => quickLogin('supplier@volta.com', 'password123')}
+              disabled={busy}
+              className="rounded bg-green-500 py-2 text-xs font-semibold text-white hover:bg-green-600 disabled:opacity-60"
+            >
+              SUPPLIER
+            </button>
+            <button
+              type="button"
+              onClick={() => quickLogin('verificateur@volta.com', 'password123')}
+              disabled={busy}
+              className="rounded bg-purple-500 py-2 text-xs font-semibold text-white hover:bg-purple-600 disabled:opacity-60"
+            >
+              TECH
+            </button>
+          </div>
+        </div>
         <p className="mt-4 rounded-lg bg-slate-50 p-3 text-center text-xs text-slate-400">
-          Comptes de démonstration : admin@volta.ci, contact@btpci.ci, inspection@abc.ci, jean@konan.ci — mot de passe : volta123
+          Comptes de démonstration IDs: DG-001, SUPPLIER-001, TECH-001
         </p>
       </Card>
     </div>

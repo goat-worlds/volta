@@ -61,22 +61,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(async () => {
     try {
-      const [u, c, e, i, rep, req, n] = await Promise.all([
-        apiGet<User[]>('/users'),
-        apiGet<Category[]>('/categories'),
-        apiGet<Equipment[]>('/equipment'),
-        apiGet<Inspection[]>('/inspections'),
-        apiGet<Report[]>('/reports'),
-        apiGet<RentalRequest[]>('/rental-requests'),
-        apiGet<Notification[]>('/notifications'),
+      const [c, e] = await Promise.all([
+        apiGet<Category[]>('/categories').catch(() => []),
+        apiGet<Equipment[]>('/equipment').catch(() => []),
       ])
-      setUsers(u)
       setCategories(c)
       setEquipment(e)
-      setInspections(i)
-      setReports(rep)
-      setRentalRequests(req)
-      setNotifications(n)
+
+      // Load authenticated data only if user is logged in
+      if (getToken()) {
+        Promise.all([
+          apiGet<User[]>('/users').catch(() => []),
+          apiGet<Inspection[]>('/inspections').catch(() => []),
+          apiGet<Report[]>('/reports').catch(() => []),
+          apiGet<RentalRequest[]>('/rental-requests').catch(() => []),
+          apiGet<Notification[]>('/notifications').catch(() => []),
+        ]).then(([u, i, rep, req, n]) => {
+          setUsers(u)
+          setInspections(i)
+          setReports(rep)
+          setRentalRequests(req)
+          setNotifications(n)
+        })
+      }
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion au serveur')

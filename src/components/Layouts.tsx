@@ -1,11 +1,25 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import type { Role } from '../store/types'
+import Header from './Header'
+import Footer from './Footer'
 
 function navClass({ isActive }: { isActive: boolean }) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
     isActive ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
   }`
+}
+
+export function PublicLayout() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  )
 }
 
 function Sidebar({
@@ -107,77 +121,3 @@ export function TechnicalLayout() {
   )
 }
 
-function publicNavClass({ isActive }: { isActive: boolean }) {
-  return `rounded-lg px-3 py-2 text-sm font-medium transition ${
-    isActive ? 'text-slate-900 underline decoration-yellow-400 decoration-2 underline-offset-8' : 'text-slate-600 hover:text-slate-900'
-  }`
-}
-
-export function PublicLayout() {
-  const { currentUser, logout } = useStore()
-  const spaceLink =
-    currentUser?.role === 'ADMIN'
-      ? '/admin'
-      : currentUser?.role === 'SUPPLIER'
-        ? '/supplier'
-        : currentUser?.role === 'TECHNICAL'
-          ? '/technical'
-          : '/catalogue'
-  return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-yellow-400 font-black text-slate-900">V</span>
-            <span className="text-xl font-black tracking-tight text-slate-900">VOLTA</span>
-          </Link>
-          <nav className="hidden items-center gap-1 md:flex">
-            <NavLink to="/" end className={publicNavClass}>Accueil</NavLink>
-            <NavLink to="/catalogue" className={publicNavClass}>Équipements</NavLink>
-            <NavLink to="/fournisseurs" className={publicNavClass}>Fournisseurs</NavLink>
-          </nav>
-          <div className="flex items-center gap-2">
-            {currentUser ? (
-              <>
-                <Link to={spaceLink} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
-                  {currentUser.name}
-                </Link>
-                <button
-                  onClick={() => void logout()}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-                >
-                  Déconnexion
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/connexion" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
-                  Se connecter
-                </Link>
-                <Link
-                  to="/inscription"
-                  className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-yellow-500"
-                >
-                  S'inscrire
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <footer className="mt-16 border-t border-slate-200 bg-slate-900 py-10 text-center text-sm text-slate-400">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="mb-3 flex items-center justify-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-400 font-black text-slate-900">V</span>
-            <span className="text-lg font-black text-white">VOLTA</span>
-          </div>
-          <p>Référencer → Vérifier → Décider → Publier → Rechercher → Mettre en relation</p>
-          <p className="mt-2">© 2026 VOLTA — Équipements de chantier vérifiés en Côte d'Ivoire</p>
-        </div>
-      </footer>
-    </div>
-  )
-}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="catGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dbeafe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bfdbfe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#catGrad)"/>
+  <circle cx="100" cy="60" r="25" fill="#3b82f6" opacity="0.6"/>
+  <rect x="70" y="90" width="60" height="50" fill="#3b82f6" opacity="0.6" rx="5"/>
+  <circle cx="85" cy="115" r="8" fill="#60a5fa"/>
+  <circle cx="115" cy="115" r="8" fill="#60a5fa"/>
+  <text x="100" y="160" font-family="Arial" font-size="12" fill="#1e40af" text-anchor="middle" font-weight="bold">
+    Catégorie
+  </text>
+</svg>

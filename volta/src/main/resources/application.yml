@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: volta
+  datasource:
+    url: jdbc:postgresql://localhost:5432/volta
+    username: volta_user
+    password: volta_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+  flyway:
+    locations: classpath:db/migration
+    enabled: true
+
+jwt:
+  secret: volta-super-secret-key-change-in-production-at-least-32-characters-long-key
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    com.volta: DEBUG
+    org.springframework.security: DEBUG

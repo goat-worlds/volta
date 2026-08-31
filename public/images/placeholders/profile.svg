@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="profileGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f3e8ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9d5ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#profileGrad)"/>
+  <circle cx="100" cy="70" r="28" fill="#a78bfa" opacity="0.7"/>
+  <path d="M 50 130 Q 50 110 70 110 L 130 110 Q 150 110 150 130 L 150 160 Q 150 170 140 170 L 60 170 Q 50 170 50 160 Z" fill="#a78bfa" opacity="0.6"/>
+  <text x="100" y="190" font-family="Arial" font-size="12" fill="#7c3aed" text-anchor="middle" font-weight="bold">
+    Profil
+  </text>
+</svg>
