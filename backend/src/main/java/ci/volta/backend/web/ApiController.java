@@ -5,6 +5,8 @@ import ci.volta.backend.model.ChecklistItem;
 import ci.volta.backend.model.Equipment;
 import ci.volta.backend.model.Inspection;
 import ci.volta.backend.model.Notification;
+import ci.volta.backend.model.Quote;
+import ci.volta.backend.model.QuoteRequest;
 import ci.volta.backend.model.RentalRequest;
 import ci.volta.backend.model.Report;
 import ci.volta.backend.model.UserAccount;
@@ -12,6 +14,8 @@ import ci.volta.backend.repository.CategoryRepository;
 import ci.volta.backend.repository.EquipmentRepository;
 import ci.volta.backend.repository.InspectionRepository;
 import ci.volta.backend.repository.NotificationRepository;
+import ci.volta.backend.repository.QuoteRepository;
+import ci.volta.backend.repository.QuoteRequestRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.ReportRepository;
 import ci.volta.backend.repository.UserRepository;
@@ -41,6 +45,12 @@ public class ApiController {
     public record ReportRequest(String summary, List<ChecklistItem> checklist) {
     }
 
+    public record CreateQuoteRequestBody(String equipmentId, String clientId, String message, int quantity, String startDate, String endDate, String clientName, String clientPhone, String clientEmail) {
+    }
+
+    public record CreateQuoteBody(String quoteRequestId, String supplierId, long price, int deliveryTime, String conditions, String validUntil) {
+    }
+
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final EquipmentRepository equipmentRepository;
@@ -48,6 +58,8 @@ public class ApiController {
     private final ReportRepository reportRepository;
     private final RentalRequestRepository rentalRequestRepository;
     private final NotificationRepository notificationRepository;
+    private final QuoteRequestRepository quoteRequestRepository;
+    private final QuoteRepository quoteRepository;
     private final VoltaService service;
 
     public ApiController(
@@ -58,6 +70,8 @@ public class ApiController {
             ReportRepository reportRepository,
             RentalRequestRepository rentalRequestRepository,
             NotificationRepository notificationRepository,
+            QuoteRequestRepository quoteRequestRepository,
+            QuoteRepository quoteRepository,
             VoltaService service) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
@@ -66,6 +80,8 @@ public class ApiController {
         this.reportRepository = reportRepository;
         this.rentalRequestRepository = rentalRequestRepository;
         this.notificationRepository = notificationRepository;
+        this.quoteRequestRepository = quoteRequestRepository;
+        this.quoteRepository = quoteRepository;
         this.service = service;
     }
 
@@ -176,5 +192,72 @@ public class ApiController {
     @PostMapping("/rental-requests/{id}/decline")
     public RentalRequest declineRentalRequest(@PathVariable String id) {
         return service.respondRentalRequest(id, false);
+    }
+
+    @GetMapping("/quote-requests")
+    public List<QuoteRequest> listQuoteRequests() {
+        return quoteRequestRepository.findAll();
+    }
+
+    @PostMapping("/quote-requests")
+    @ResponseStatus(HttpStatus.CREATED)
+    public QuoteRequest createQuoteRequest(@RequestBody CreateQuoteRequestBody body) {
+        return service.createQuoteRequest(
+                body.equipmentId(),
+                body.clientId(),
+                body.message(),
+                body.quantity(),
+                body.startDate(),
+                body.endDate(),
+                body.clientName(),
+                body.clientPhone(),
+                body.clientEmail());
+    }
+
+    @GetMapping("/quote-requests/client/{clientId}")
+    public List<QuoteRequest> listQuoteRequestsByClient(@PathVariable String clientId) {
+        return service.listQuoteRequestsByClient(clientId);
+    }
+
+    @GetMapping("/quote-requests/supplier/{supplierId}")
+    public List<QuoteRequest> listQuoteRequestsBySupplier(@PathVariable String supplierId) {
+        return service.listQuoteRequestsBySupplier(supplierId);
+    }
+
+    @GetMapping("/quotes")
+    public List<Quote> listQuotes() {
+        return quoteRepository.findAll();
+    }
+
+    @GetMapping("/quotes/{id}")
+    public Quote getQuote(@PathVariable String id) {
+        return service.getQuote(id);
+    }
+
+    @PostMapping("/quotes")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Quote createQuote(@RequestBody CreateQuoteBody body) {
+        return service.createQuote(
+                body.quoteRequestId(),
+                body.supplierId(),
+                body.price(),
+                body.deliveryTime(),
+                body.conditions(),
+                body.validUntil());
+    }
+
+    @GetMapping("/quotes/supplier/{supplierId}")
+    public List<Quote> listQuotesBySupplier(@PathVariable String supplierId) {
+        return service.listQuotesBySupplier(supplierId);
+    }
+
+    @PostMapping("/quotes/{id}/accept")
+    public Quote acceptQuote(@PathVariable String id) {
+        return service.acceptQuote(id);
+    }
+
+    @PostMapping("/quotes/{id}/reject")
+    public Quote rejectQuote(@PathVariable String id) {
+        return service.rejectQuote(id);
     }
 }

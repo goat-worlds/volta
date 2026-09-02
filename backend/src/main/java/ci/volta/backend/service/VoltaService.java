@@ -4,11 +4,15 @@ import ci.volta.backend.model.ChecklistItem;
 import ci.volta.backend.model.Equipment;
 import ci.volta.backend.model.Inspection;
 import ci.volta.backend.model.Notification;
+import ci.volta.backend.model.Quote;
+import ci.volta.backend.model.QuoteRequest;
 import ci.volta.backend.model.RentalRequest;
 import ci.volta.backend.model.Report;
 import ci.volta.backend.repository.EquipmentRepository;
 import ci.volta.backend.repository.InspectionRepository;
 import ci.volta.backend.repository.NotificationRepository;
+import ci.volta.backend.repository.QuoteRepository;
+import ci.volta.backend.repository.QuoteRequestRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.ReportRepository;
 import org.springframework.http.HttpStatus;
@@ -50,6 +54,8 @@ public class VoltaService {
     private final ReportRepository reportRepository;
     private final RentalRequestRepository rentalRequestRepository;
     private final NotificationRepository notificationRepository;
+    private final QuoteRequestRepository quoteRequestRepository;
+    private final QuoteRepository quoteRepository;
     private final WebhookService webhookService;
 
     public VoltaService(
@@ -58,12 +64,16 @@ public class VoltaService {
             ReportRepository reportRepository,
             RentalRequestRepository rentalRequestRepository,
             NotificationRepository notificationRepository,
+            QuoteRequestRepository quoteRequestRepository,
+            QuoteRepository quoteRepository,
             WebhookService webhookService) {
         this.equipmentRepository = equipmentRepository;
         this.inspectionRepository = inspectionRepository;
         this.reportRepository = reportRepository;
         this.rentalRequestRepository = rentalRequestRepository;
         this.notificationRepository = notificationRepository;
+        this.quoteRequestRepository = quoteRequestRepository;
+        this.quoteRepository = quoteRepository;
         this.webhookService = webhookService;
     }
 
@@ -251,5 +261,128 @@ public class VoltaService {
                 "equipmentId", eq.id,
                 "equipmentName", eq.name));
         return request;
+    }
+
+    public QuoteRequest createQuoteRequest(String equipmentId, String clientId, String message, int quantity, String startDate, String endDate, String clientName, String clientPhone, String clientEmail) {
+        Equipment eq = getEquipment(equipmentId);
+        QuoteRequest req = new QuoteRequest();
+        req.id = newId("qreq");
+        req.equipmentId = equipmentId;
+        req.clientId = clientId;
+        req.supplierId = eq.supplierId;
+        req.status = "PENDING";
+        req.message = message;
+        req.quantity = quantity;
+        req.startDate = startDate;
+        req.endDate = endDate;
+        req.clientName = clientName;
+        req.clientPhone = clientPhone;
+        req.clientEmail = clientEmail;
+        req.createdAt = today();
+        req = quoteRequestRepository.save(req);
+        notify("SUPPLIER", "Nouvelle demande de devis pour " + eq.name);
+        notify("ADMIN", "Demande de devis reçue pour " + eq.name);
+        webhookService.dispatch("QUOTE_REQUEST_CREATED", Map.of(
+                "requestId", req.id,
+                "equipmentId", eq.id,
+                "equipmentName", eq.name,
+                "clientName", clientName == null ? "" : clientName));
+        return req;
+    }
+
+    public List<QuoteRequest> listQuoteRequestsByClient(String clientId) {
+        return quoteRequestRepository.findByClientId(clientId);
+    }
+
+    public List<QuoteRequest> listQuoteRequestsBySupplier(String supplierId) {
+        return quoteRequestRepository.findBySupplierId(supplierId);
+    }
+
+    public Quote createQuote(String quoteRequestId, String supplierId, long price, int deliveryTime, String conditions, String validUntil) {
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+
+        Quote quote = new Quote();
+        quote.id = newId("q");
+        quote.quoteRequestId = quoteRequestId;
+        quote.supplierId = supplierId;
+        quote.price = price;
+        quote.deliveryTime = deliveryTime;
+        quote.conditions = conditions;
+        quote.status = "SENT";
+        quote.validUntil = validUntil;
+        quote.createdAt = today();
+        quote = quoteRepository.save(quote);
+
+        Equipment eq = getEquipment(qreq.equipmentId);
+        notify("CLIENT", "Nouveau devis pour " + eq.name);
+        notify("ADMIN", "Devis créé pour " + eq.name);
+        webhookService.dispatch("QUOTE_CREATED", Map.of(
+                "quoteId", quote.id,
+                "quoteRequestId", quoteRequestId,
+                "equipmentId", eq.id,
+                "price", price));
+        return quote;
+    }
+
+    public List<Quote> listQuotesBySupplier(String supplierId) {
+        return quoteRepository.findBySupplierId(supplierId);
+    }
+
+    public Quote getQuote(String quoteId) {
+        return quoteRepository.findById(quoteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote not found: " + quoteId));
+    }
+
+    public Quote acceptQuote(String quoteId) {
+        Quote quote = getQuote(quoteId);
+        quote.status = "ACCEPTED";
+        quote = quoteRepository.save(quote);
+
+        QuoteRequest qreq = quoteRequestRepository.findById(quote.quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found"));
+
+        Equipment eq = getEquipment(qreq.equipmentId);
+
+        // Créer automatiquement une demande de location
+        RentalRequest rental = new RentalRequest();
+        long num = 124 + rentalRequestRepository.count();
+        rental.id = newId("rental");
+        rental.reference = String.format("VOL-2026-%05d", num);
+        rental.equipmentId = qreq.equipmentId;
+        rental.supplierId = qreq.supplierId;
+        rental.startDate = qreq.startDate;
+        rental.endDate = qreq.endDate;
+        rental.comment = qreq.message;
+        rental.clientName = qreq.clientName;
+        rental.clientPhone = qreq.clientPhone;
+        rental.clientEmail = qreq.clientEmail;
+        rental.status = "PENDING";
+        rental.createdAt = today();
+        rentalRequestRepository.save(rental);
+
+        notify("SUPPLIER", "Devis accepté pour " + eq.name);
+        notify("ADMIN", "Devis accepté pour " + eq.name + " - Demande de location créée");
+        webhookService.dispatch("QUOTE_ACCEPTED", Map.of(
+                "quoteId", quoteId,
+                "equipmentId", eq.id,
+                "rentalRequestId", rental.id));
+        return quote;
+    }
+
+    public Quote rejectQuote(String quoteId) {
+        Quote quote = getQuote(quoteId);
+        quote.status = "REJECTED";
+        quote = quoteRepository.save(quote);
+
+        QuoteRequest qreq = quoteRequestRepository.findById(quote.quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found"));
+        Equipment eq = getEquipment(qreq.equipmentId);
+
+        notify("SUPPLIER", "Devis refusé pour " + eq.name);
+        webhookService.dispatch("QUOTE_REJECTED", Map.of(
+                "quoteId", quoteId,
+                "equipmentId", eq.id));
+        return quote;
     }
 }
