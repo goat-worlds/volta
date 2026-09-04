@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { StoreProvider } from './store/StoreContext'
-import { AdminLayout, PublicLayout, SupplierLayout, TechnicalLayout } from './components/Layouts'
+import { AdminLayout, ClientLayout, PublicLayout, SupplierLayout, TechnicalLayout } from './components/Layouts'
 import Home from './pages/public/Home'
 import Catalogue from './pages/public/Catalogue'
 import EquipmentDetail from './pages/public/EquipmentDetail'
@@ -8,6 +8,12 @@ import Suppliers from './pages/public/Suppliers'
 import Login from './pages/public/Login'
 import Register from './pages/public/Register'
 import QuickLogin from './pages/public/QuickLogin'
+import ClientDashboard from './pages/client/ClientDashboard'
+import ClientQuoteRequests from './pages/client/ClientQuoteRequests'
+import ClientQuoteRequestDetail from './pages/client/ClientQuoteRequestDetail'
+import ClientNewQuoteRequest from './pages/client/ClientNewQuoteRequest'
+import ClientQuotes from './pages/client/ClientQuotes'
+import ClientRentals from './pages/client/ClientRentals'
 import SupplierDashboard from './pages/supplier/SupplierDashboard'
 import SupplierEquipment from './pages/supplier/SupplierEquipment'
 import SupplierEquipmentNew from './pages/supplier/SupplierEquipmentNew'
@@ -35,6 +41,20 @@ export default function App() {
             <Route path="/connexion" element={<Login />} />
             <Route path="/quick-login" element={<QuickLogin />} />
             <Route path="/inscription" element={<Register />} />
+          </Route>
+          <Route element={<ClientLayout />}>
+            <Route path="/client" element={<ClientDashboard />} />
+            {/* Le catalogue et la fiche produit sont ceux du public : les
+                dupliquer ferait deux vues à maintenir pour un même contenu. */}
+            <Route path="/client/catalogue" element={<Catalogue />} />
+            <Route path="/client/equipment/:id" element={<EquipmentDetail />} />
+            {/* La route « nouvelle » précède « :id », sinon elle serait
+                interprétée comme un identifiant de demande. */}
+            <Route path="/client/demandes/nouvelle" element={<ClientNewQuoteRequest />} />
+            <Route path="/client/demandes/:id" element={<ClientQuoteRequestDetail />} />
+            <Route path="/client/demandes" element={<ClientQuoteRequests />} />
+            <Route path="/client/devis" element={<ClientQuotes />} />
+            <Route path="/client/locations" element={<ClientRentals />} />
           </Route>
           <Route element={<SupplierLayout />}>
             <Route path="/supplier" element={<SupplierDashboard />} />

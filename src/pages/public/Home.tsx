@@ -5,7 +5,7 @@ import EquipmentCard from '../../components/EquipmentCard'
 import HowItWorks from '../../components/HowItWorks'
 import VerificationLevels from '../../components/VerificationLevels'
 import SupplierCTA from '../../components/SupplierCTA'
-import { Package, Truck, Layers, Hammer, Building2, Zap } from 'lucide-react'
+import { Package, Truck, Hammer, Building2, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const ICON_MAP: Record<string, any> = {

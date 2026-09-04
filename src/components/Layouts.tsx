@@ -1,4 +1,9 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import {
+  LayoutDashboard, Truck, Plus, Inbox, Bell, FileText, ClipboardCheck,
+  Users, Package, Search, Receipt, CalendarCheck, Heart, Wrench,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
 import type { Role } from '../store/types'
 import Header from './Header'
@@ -30,7 +35,7 @@ function Sidebar({
 }: {
   title: string
   color: string
-  links: { to: string; label: string; end?: boolean }[]
+  links: { to: string; label: string; end?: boolean; icon: LucideIcon }[]
   role: Role
 }) {
   const { notifications } = useStore()
@@ -47,12 +52,14 @@ function Sidebar({
       <nav className="flex flex-col gap-1">
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.end} className={navClass}>
+            <l.icon size={16} className="shrink-0" />
             {l.label}
           </NavLink>
         ))}
       </nav>
-      <div className="mt-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-300">
-        🔔 {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
+      <div className="mt-auto flex items-center gap-2 rounded-lg bg-slate-800 p-3 text-xs text-slate-300">
+        <Bell size={14} className="shrink-0" />
+        {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
       </div>
     </aside>
   )
@@ -66,10 +73,10 @@ export function SupplierLayout() {
         color="bg-blue-600"
         role="SUPPLIER"
         links={[
-          { to: '/supplier', label: '📊 Tableau de bord', end: true },
-          { to: '/supplier/equipment', label: '🚜 Mes engins', end: true },
-          { to: '/supplier/equipment/new', label: '➕ Ajouter un engin' },
-          { to: '/supplier/requests', label: '📩 Demandes reçues' },
+          { to: '/supplier', label: 'Tableau de bord', end: true, icon: LayoutDashboard },
+          { to: '/supplier/equipment', label: 'Mes engins', end: true, icon: Truck },
+          { to: '/supplier/equipment/new', label: 'Ajouter un engin', icon: Plus },
+          { to: '/supplier/requests', label: 'Demandes reçues', icon: Inbox },
         ]}
       />
       <main className="flex-1 p-6 lg:p-8">
@@ -87,12 +94,12 @@ export function AdminLayout() {
         color="bg-indigo-600"
         role="ADMIN"
         links={[
-          { to: '/admin', label: '📊 Tableau de bord', end: true },
-          { to: '/admin/equipment', label: '🚜 Engins' },
-          { to: '/admin/inspections', label: '🔍 Inspections' },
-          { to: '/admin/reports', label: '📄 Rapports' },
-          { to: '/admin/requests', label: '📩 Demandes' },
-          { to: '/admin/users', label: '👥 Utilisateurs' },
+          { to: '/admin', label: 'Tableau de bord', end: true, icon: LayoutDashboard },
+          { to: '/admin/equipment', label: 'Engins', icon: Truck },
+          { to: '/admin/inspections', label: 'Inspections', icon: ClipboardCheck },
+          { to: '/admin/reports', label: 'Rapports', icon: FileText },
+          { to: '/admin/requests', label: 'Demandes', icon: Inbox },
+          { to: '/admin/users', label: 'Utilisateurs', icon: Users },
         ]}
       />
       <main className="flex-1 p-6 lg:p-8">
@@ -110,8 +117,8 @@ export function TechnicalLayout() {
         color="bg-emerald-600"
         role="TECHNICAL"
         links={[
-          { to: '/technical', label: '📊 Tableau de bord', end: true },
-          { to: '/technical/missions', label: '🧰 Missions' },
+          { to: '/technical', label: 'Tableau de bord', end: true, icon: LayoutDashboard },
+          { to: '/technical/missions', label: 'Missions', icon: Wrench },
         ]}
       />
       <main className="flex-1 p-6 lg:p-8">
@@ -121,3 +128,33 @@ export function TechnicalLayout() {
   )
 }
 
+
+/**
+ * Espace client.
+ *
+ * Ce rôle était le seul sans interface, alors que dix endpoints l'attendaient.
+ * La navigation suit le parcours réel : on cherche un engin, on demande un
+ * devis, on compare, on suit sa location.
+ */
+export function ClientLayout() {
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar
+        title="Espace Client"
+        color="bg-blue-600"
+        role="CLIENT"
+        links={[
+          { to: '/client', label: 'Tableau de bord', end: true, icon: LayoutDashboard },
+          { to: '/client/catalogue', label: 'Catalogue', icon: Search },
+          { to: '/client/demandes', label: 'Mes demandes', end: true, icon: Package },
+          { to: '/client/devis', label: 'Mes devis', icon: Receipt },
+          { to: '/client/locations', label: 'Mes locations', icon: CalendarCheck },
+          { to: '/client/favoris', label: 'Favoris', icon: Heart },
+        ]}
+      />
+      <main className="flex-1 bg-slate-50 p-6 lg:p-8">
+        <Outlet />
+      </main>
+    </div>
+  )
+}

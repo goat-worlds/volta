@@ -2,13 +2,13 @@ import { useStore } from '../../store/StoreContext'
 import AdminSidebar from '../../components/Admin/AdminSidebar'
 import AdminHeader from '../../components/Admin/AdminHeader'
 import StatCard from '../../components/Admin/StatCard'
-import { Package, AlertCircle, CheckCircle, Building2 } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function AdminDashboard() {
   const { equipment, currentUser } = useStore()
 
-  if (!currentUser || (currentUser.role !== 'DG' && currentUser.role !== 'ADMIN')) {
+  if (!currentUser || currentUser.role !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-slate-600">Accès refusé. Vous n'êtes pas administrateur.</p>

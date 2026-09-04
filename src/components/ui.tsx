@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import type { EquipmentStatus, Level } from '../store/types'
+import { Inbox } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
   DRAFT: 'Brouillon',
@@ -56,21 +58,55 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   return <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</div>
 }
 
-export function StatCard({ label, value, accent = 'text-blue-700' }: { label: string; value: ReactNode; accent?: string }) {
+export function StatCard({
+  label,
+  value,
+  accent = 'text-blue-700',
+  icon: Icon,
+}: {
+  label: string
+  value: ReactNode
+  accent?: string
+  /** Facultative : les usages existants ne la passent pas. */
+  icon?: LucideIcon
+}) {
   return (
     <Card className="p-4">
-      <div className={`text-2xl font-bold ${accent}`}>{value}</div>
-      <div className="mt-1 text-sm text-slate-500">{label}</div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className={`text-2xl font-bold ${accent}`}>{value}</div>
+          <div className="mt-1 text-sm text-slate-500">{label}</div>
+        </div>
+        {Icon && (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50">
+            <Icon size={18} className="text-slate-400" />
+          </span>
+        )}
+      </div>
     </Card>
   )
 }
 
-export function EmptyState({ title, subtitle }: { title: string; subtitle?: string }) {
+export function EmptyState({
+  title,
+  subtitle,
+  icon: Icon = Inbox,
+  action,
+}: {
+  title: string
+  subtitle?: string
+  icon?: LucideIcon
+  /** Un état vide qui propose l'action qui le remplira vaut mieux qu'un constat. */
+  action?: ReactNode
+}) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-      <div className="text-3xl">📭</div>
-      <div className="mt-2 font-semibold text-slate-700">{title}</div>
-      {subtitle && <div className="mt-1 text-sm text-slate-500">{subtitle}</div>}
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+        <Icon size={22} className="text-slate-400" />
+      </span>
+      <div className="mt-3 font-semibold text-slate-700">{title}</div>
+      {subtitle && <div className="mt-1 max-w-sm text-sm text-slate-500">{subtitle}</div>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   )
 }
@@ -132,3 +168,32 @@ export function Toast({ message }: { message: string | null }) {
 }
 
 export const fmtPrice = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`
+
+/**
+ * Badge des statuts du workflow de devis.
+ *
+ * Distinct de StatusBadge, qui porte les statuts d'équipement : les deux
+ * ensembles ne se recouvrent pas, et les confondre ferait afficher un libellé
+ * d'équipement sur un devis.
+ */
+export function QuoteStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, { label: string; className: string }> = {
+    // Demande de devis
+    PENDING: { label: 'En attente', className: 'bg-amber-50 text-amber-700 ring-amber-200' },
+    DECLINED: { label: 'Refusée', className: 'bg-slate-100 text-slate-600 ring-slate-200' },
+    // Devis
+    SENT: { label: 'Reçu', className: 'bg-blue-50 text-blue-700 ring-blue-200' },
+    ACCEPTED: { label: 'Accepté', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+    REJECTED: { label: 'Refusé', className: 'bg-red-50 text-red-700 ring-red-200' },
+  }
+
+  // Un statut inconnu s'affiche tel quel plutôt que de disparaître : mieux vaut
+  // une étiquette brute qu'une case vide devant l'utilisateur.
+  const style = styles[status] ?? { label: status, className: 'bg-slate-100 text-slate-600 ring-slate-200' }
+
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${style.className}`}>
+      {style.label}
+    </span>
+  )
+}

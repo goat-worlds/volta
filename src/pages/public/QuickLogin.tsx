@@ -1,5 +1,5 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { setToken } from '../../store/api';
 
 export default function QuickLogin() {
   const navigate = useNavigate();
@@ -41,9 +41,14 @@ export default function QuickLogin() {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard');
+        // La clé doit être celle que lit api.ts, sinon le jeton est stocké mais
+        // jamais envoyé et l'utilisateur reste anonyme pour le backend.
+        setToken(data.token);
+        // /dashboard n'existe pas dans le routage : la redirection dépend du rôle.
+        navigate(data.user.role === 'ADMIN' ? '/admin'
+          : data.user.role === 'SUPPLIER' ? '/supplier'
+          : data.user.role === 'TECHNICAL' ? '/technical'
+          : '/client');
       }
     } catch (error) {
       console.error('Login failed:', error);

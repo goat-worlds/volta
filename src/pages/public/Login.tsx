@@ -17,10 +17,13 @@ export default function Login() {
     setError(null)
     try {
       const user = await login(email, password)
-      if (user.role === 'DG' || user.role === 'ADMIN') navigate('/admin')
+      // Les rôles DG et VERIFICATEUR n'existent pas dans le modèle : ces
+      // comparaisons étaient toujours fausses. Le client atterrit désormais
+      // dans son espace plutôt que sur le catalogue public.
+      if (user.role === 'ADMIN') navigate('/admin')
       else if (user.role === 'SUPPLIER') navigate('/supplier')
-      else if (user.role === 'VERIFICATEUR' || user.role === 'TECHNICAL') navigate('/technical')
-      else navigate('/catalogue')
+      else if (user.role === 'TECHNICAL') navigate('/technical')
+      else navigate('/client')
     } catch {
       setError('Email ou mot de passe incorrect.')
     } finally {
@@ -33,10 +36,13 @@ export default function Login() {
     setError(null)
     try {
       const user = await login(email, password)
-      if (user.role === 'DG' || user.role === 'ADMIN') navigate('/admin')
+      // Les rôles DG et VERIFICATEUR n'existent pas dans le modèle : ces
+      // comparaisons étaient toujours fausses. Le client atterrit désormais
+      // dans son espace plutôt que sur le catalogue public.
+      if (user.role === 'ADMIN') navigate('/admin')
       else if (user.role === 'SUPPLIER') navigate('/supplier')
-      else if (user.role === 'VERIFICATEUR' || user.role === 'TECHNICAL') navigate('/technical')
-      else navigate('/catalogue')
+      else if (user.role === 'TECHNICAL') navigate('/technical')
+      else navigate('/client')
     } catch {
       setError('Erreur de connexion rapide.')
     } finally {
