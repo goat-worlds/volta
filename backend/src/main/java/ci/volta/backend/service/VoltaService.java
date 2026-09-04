@@ -1,5 +1,7 @@
 package ci.volta.backend.service;
 
+import ci.volta.backend.domain.QuoteValidation;
+import ci.volta.backend.domain.QuoteWorkflow;
 import ci.volta.backend.model.ChecklistItem;
 import ci.volta.backend.model.Equipment;
 import ci.volta.backend.model.Inspection;
@@ -15,6 +17,7 @@ import ci.volta.backend.repository.QuoteRepository;
 import ci.volta.backend.repository.QuoteRequestRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.ReportRepository;
+import ci.volta.backend.security.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +61,8 @@ public class VoltaService {
     private final QuoteRepository quoteRepository;
     private final WebhookService webhookService;
 
+    private final CurrentUser currentUser;
+
     public VoltaService(
             EquipmentRepository equipmentRepository,
             InspectionRepository inspectionRepository,
@@ -66,7 +71,8 @@ public class VoltaService {
             NotificationRepository notificationRepository,
             QuoteRequestRepository quoteRequestRepository,
             QuoteRepository quoteRepository,
-            WebhookService webhookService) {
+            WebhookService webhookService,
+            CurrentUser currentUser) {
         this.equipmentRepository = equipmentRepository;
         this.inspectionRepository = inspectionRepository;
         this.reportRepository = reportRepository;
@@ -75,6 +81,7 @@ public class VoltaService {
         this.quoteRequestRepository = quoteRequestRepository;
         this.quoteRepository = quoteRepository;
         this.webhookService = webhookService;
+        this.currentUser = currentUser;
     }
 
     private static String today() {
@@ -108,7 +115,17 @@ public class VoltaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inspection not found: " + id));
     }
 
+    /**
+     * Enregistre un équipement au nom du fournisseur authentifié.
+     *
+     * Le supplierId présent dans le corps de la requête est écrasé : le laisser
+     * passer permettait d'inscrire un équipement au catalogue d'un concurrent.
+     * Seul l'administrateur peut désigner un autre fournisseur.
+     */
     public Equipment addEquipment(Equipment equipment) {
+        if (!currentUser.isAdmin() || equipment.supplierId == null || equipment.supplierId.isBlank()) {
+            equipment.supplierId = currentUser.requireId();
+        }
         equipment.id = newId("eq");
         equipment.status = "DRAFT";
         equipment.level = null;
@@ -116,8 +133,10 @@ public class VoltaService {
         return equipmentRepository.save(equipment);
     }
 
+    /** Soumet un équipement à validation. Réservé à son propriétaire. */
     public Equipment submitEquipment(String equipmentId) {
         Equipment eq = getEquipment(equipmentId);
+        currentUser.requireOwnership(eq.supplierId, "cet équipement");
         eq.status = "SUBMITTED";
         notify("ADMIN", eq.name + " soumis pour vérification");
         eq = equipmentRepository.save(eq);
@@ -263,12 +282,28 @@ public class VoltaService {
         return request;
     }
 
+    /**
+     * Crée une demande de devis pour le compte de l'utilisateur authentifié.
+     *
+     * Le clientId reçu en paramètre est ignoré : un identifiant transmis par le
+     * client se falsifie, et rien n'empêchait jusqu'ici de déposer une demande
+     * au nom d'un autre. Seul l'administrateur peut désigner un autre client,
+     * pour les saisies faites au téléphone.
+     */
     public QuoteRequest createQuoteRequest(String equipmentId, String clientId, String message, int quantity, String startDate, String endDate, String clientName, String clientPhone, String clientEmail) {
+        QuoteValidation.checkRequired(equipmentId, "L'équipement");
+        QuoteValidation.checkQuantity(quantity);
+        QuoteValidation.checkPeriod(startDate, endDate);
+
+        String effectiveClientId = currentUser.isAdmin() && clientId != null && !clientId.isBlank()
+                ? clientId
+                : currentUser.requireId();
+
         Equipment eq = getEquipment(equipmentId);
         QuoteRequest req = new QuoteRequest();
         req.id = newId("qreq");
         req.equipmentId = equipmentId;
-        req.clientId = clientId;
+        req.clientId = effectiveClientId;
         req.supplierId = eq.supplierId;
         req.status = "PENDING";
         req.message = message;
@@ -290,26 +325,56 @@ public class VoltaService {
         return req;
     }
 
+    /** Demandes d'un client. Nul ne consulte celles d'un autre, hors administration. */
     public List<QuoteRequest> listQuoteRequestsByClient(String clientId) {
+        currentUser.requireOwnership(clientId, "cette liste de demandes");
         return quoteRequestRepository.findByClientId(clientId);
     }
 
+    /** Demandes adressées à un fournisseur, réservées à ce fournisseur. */
     public List<QuoteRequest> listQuoteRequestsBySupplier(String supplierId) {
+        currentUser.requireOwnership(supplierId, "cette liste de demandes");
         return quoteRequestRepository.findBySupplierId(supplierId);
     }
 
+    /**
+     * Enregistre un devis en réponse à une demande.
+     *
+     * Le supplierId reçu est ignoré au profit de l'utilisateur authentifié :
+     * il permettait de déposer un devis au nom d'un autre fournisseur. Seul
+     * l'administrateur peut désigner un tiers.
+     *
+     * Le fournisseur doit par ailleurs être celui à qui la demande est adressée :
+     * répondre à la demande d'un confrère reviendrait à s'inviter dans une
+     * relation commerciale qui ne le concerne pas.
+     */
     public Quote createQuote(String quoteRequestId, String supplierId, long price, int deliveryTime, String conditions, String validUntil) {
+        QuoteValidation.checkRequired(quoteRequestId, "La demande de devis");
+        QuoteValidation.checkPrice(price);
+        QuoteValidation.checkDeliveryTime(deliveryTime);
+        QuoteValidation.checkValidUntil(validUntil);
+
         QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+
+        String effectiveSupplierId = currentUser.isAdmin() && supplierId != null && !supplierId.isBlank()
+                ? supplierId
+                : currentUser.requireId();
+
+        currentUser.requireOwnership(qreq.supplierId, "cette demande de devis");
+
+        // Une demande déjà tranchée n'accueille plus de devis : le client a
+        // choisi, en rouvrir un créerait deux locations pour un seul besoin.
+        QuoteWorkflow.checkRequestAcceptsQuotes(qreq.status);
 
         Quote quote = new Quote();
         quote.id = newId("q");
         quote.quoteRequestId = quoteRequestId;
-        quote.supplierId = supplierId;
+        quote.supplierId = effectiveSupplierId;
         quote.price = price;
         quote.deliveryTime = deliveryTime;
         quote.conditions = conditions;
-        quote.status = "SENT";
+        quote.status = QuoteWorkflow.QUOTE_SENT;
         quote.validUntil = validUntil;
         quote.createdAt = today();
         quote = quoteRepository.save(quote);
@@ -325,7 +390,14 @@ public class VoltaService {
         return quote;
     }
 
+    /**
+     * Devis émis par un fournisseur.
+     *
+     * Sans ce contrôle, un concurrent pouvait lire les prix pratiqués par un
+     * autre en changeant simplement l'identifiant dans l'URL.
+     */
     public List<Quote> listQuotesBySupplier(String supplierId) {
+        currentUser.requireOwnership(supplierId, "cette liste de devis");
         return quoteRepository.findBySupplierId(supplierId);
     }
 
@@ -334,13 +406,57 @@ public class VoltaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote not found: " + quoteId));
     }
 
+    /**
+     * Accepte un devis et crée la demande de location correspondante.
+     *
+     * Trois protections que l'implémentation précédente n'avait pas :
+     *
+     *   - la ligne du devis est verrouillée avant lecture. Sans cela, deux
+     *     acceptations simultanées liraient toutes deux le statut SENT et
+     *     créeraient chacune une location : vérifier un statut ne sert à rien si
+     *     la transaction voisine peut encore l'invalider ;
+     *   - la décision revient au client destinataire, pas au fournisseur ni à
+     *     un tiers ;
+     *   - un devis déjà accepté ou refusé ne peut plus l'être, et un devis
+     *     concurrent déjà accepté pour la même demande bloque les autres.
+     *
+     * La méthode hérite du @Transactional porté par la classe : le verrou tient
+     * jusqu'au commit, et l'échec de la création de location annule aussi
+     * l'acceptation.
+     */
     public Quote acceptQuote(String quoteId) {
-        Quote quote = getQuote(quoteId);
-        quote.status = "ACCEPTED";
-        quote = quoteRepository.save(quote);
+        Quote quote = quoteRepository.findByIdForUpdate(quoteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote not found: " + quoteId));
 
         QuoteRequest qreq = quoteRequestRepository.findById(quote.quoteRequestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found"));
+
+        // Le devis s'adresse au client qui a émis la demande : c'est lui, et lui
+        // seul, qui tranche.
+        currentUser.requireOwnership(qreq.clientId, "ce devis");
+
+        QuoteWorkflow.checkQuoteTransition(quote.status, QuoteWorkflow.QUOTE_ACCEPTED);
+        QuoteWorkflow.checkStillValid(quote.validUntil);
+
+        // Seconde barrière : deux devis distincts de la même demande
+        // verrouilleraient chacun leur propre ligne sans jamais se croiser.
+        // L'identifiant est copié car `quote` est réassigné plus bas et ne peut
+        // donc pas être capturé par la lambda.
+        final String currentQuoteId = quote.id;
+        quoteRepository.findFirstByQuoteRequestIdAndStatus(
+                        quote.quoteRequestId, QuoteWorkflow.QUOTE_ACCEPTED)
+                .filter(accepted -> !accepted.id.equals(currentQuoteId))
+                .ifPresent(accepted -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "Un devis a déjà été accepté pour cette demande");
+                });
+
+        quote.status = QuoteWorkflow.QUOTE_ACCEPTED;
+        quote = quoteRepository.save(quote);
+
+        // La demande passe à ACCEPTED : elle n'accueille plus de nouveau devis.
+        qreq.status = QuoteWorkflow.REQUEST_ACCEPTED;
+        quoteRequestRepository.save(qreq);
 
         Equipment eq = getEquipment(qreq.equipmentId);
 
@@ -370,13 +486,29 @@ public class VoltaService {
         return quote;
     }
 
+    /**
+     * Refuse un devis.
+     *
+     * Même verrou et même contrôle de propriété que l'acceptation : refuser est
+     * une décision aussi définitive qu'accepter, et elle appartient au client
+     * destinataire.
+     *
+     * La demande reste PENDING : le client refuse une offre, pas son besoin, et
+     * d'autres fournisseurs peuvent encore répondre.
+     */
     public Quote rejectQuote(String quoteId) {
-        Quote quote = getQuote(quoteId);
-        quote.status = "REJECTED";
-        quote = quoteRepository.save(quote);
+        Quote quote = quoteRepository.findByIdForUpdate(quoteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote not found: " + quoteId));
 
         QuoteRequest qreq = quoteRequestRepository.findById(quote.quoteRequestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found"));
+
+        currentUser.requireOwnership(qreq.clientId, "ce devis");
+        QuoteWorkflow.checkQuoteTransition(quote.status, QuoteWorkflow.QUOTE_REJECTED);
+
+        quote.status = QuoteWorkflow.QUOTE_REJECTED;
+        quote = quoteRepository.save(quote);
+
         Equipment eq = getEquipment(qreq.equipmentId);
 
         notify("SUPPLIER", "Devis refusé pour " + eq.name);

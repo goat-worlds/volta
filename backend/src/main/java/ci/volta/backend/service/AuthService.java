@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -79,6 +80,33 @@ public class AuthService {
         sessionRepository.save(session);
         return userRepository.findById(session.userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Session invalide"));
+    }
+
+    /**
+     * Résout l'utilisateur d'un jeton sans prolonger la session ni lever
+     * d'exception.
+     *
+     * Destiné au filtre d'authentification, appelé à chaque requête : y
+     * réutiliser {@link #me(String)} écrirait en base à chaque appel et
+     * transformerait un simple GET en écriture. Un jeton absent ou expiré rend
+     * un Optional vide, la chaîne de sécurité décidant seule du code de retour.
+     */
+    @Transactional(readOnly = true)
+    public Optional<UserAccount> resolveUser(String token) {
+        if (token == null || token.isBlank()) {
+            return Optional.empty();
+        }
+        return sessionRepository.findById(token)
+                .filter(s -> {
+                    try {
+                        return Instant.parse(s.expiresAt).isAfter(Instant.now());
+                    } catch (RuntimeException e) {
+                        // Date illisible : la session est traitée comme invalide
+                        // plutôt que de faire échouer la requête.
+                        return false;
+                    }
+                })
+                .flatMap(s -> userRepository.findById(s.userId));
     }
 
     public void logout(String token) {
