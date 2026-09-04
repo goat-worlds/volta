@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, LevelBadge, Modal, PageTitle, StatusBadge, Toast, fmtPrice } from '../../components/ui'
+import InspectionReview from '../../components/Admin/InspectionReview'
 import type { Equipment, Level } from '../../store/types'
 
 export default function AdminEquipment() {
@@ -9,6 +10,7 @@ export default function AdminEquipment() {
     users,
     categories,
     reports,
+    inspections,
     assignInspection,
     rejectEquipment,
     referenceEquipment,
@@ -25,6 +27,8 @@ export default function AdminEquipment() {
   const selected: Equipment | undefined = equipment.find((e) => e.id === selectedId)
   const technicalTeams = users.filter((u) => u.role === 'TECHNICAL')
   const report = selected ? reports.find((r) => r.equipmentId === selected.id) : undefined
+  const inspection = selected ? inspections.find((i) => i.equipmentId === selected.id) : undefined
+  const inspector = inspection ? users.find((u) => u.id === inspection.technicalTeamId) : undefined
 
   const showToast = (m: string) => {
     setToast(m)
@@ -143,12 +147,14 @@ export default function AdminEquipment() {
 
             {selected.status === 'PENDING_ADMIN_REVIEW' && (
               <div className="rounded-lg bg-slate-50 p-4">
-                <div className="mb-2 text-sm font-semibold">Décision après rapport</div>
-                {report ? (
-                  <p className="mb-3 text-xs text-slate-600">Rapport du {report.submittedAt} : {report.summary}</p>
-                ) : (
-                  <p className="mb-3 text-xs text-slate-500">Rapport disponible dans l'onglet Rapports.</p>
-                )}
+                <div className="mb-3 text-sm font-semibold">Constats d'inspection</div>
+                <div className="mb-4">
+                  <InspectionReview inspection={inspection} report={report} inspector={inspector} />
+                </div>
+
+                <div className="mb-3 border-t border-slate-200 pt-4 text-sm font-semibold">
+                  Décision administrative
+                </div>
                 <div className="mb-3 flex items-center gap-2 text-sm">
                   <span className="text-slate-500">Niveau :</span>
                   {(['BASIC', 'SILVER', 'GOLD'] as Level[]).map((l) => (
