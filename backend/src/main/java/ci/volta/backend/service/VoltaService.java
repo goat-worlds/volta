@@ -1,5 +1,6 @@
 package ci.volta.backend.service;
 
+import ci.volta.backend.domain.EquipmentWorkflow;
 import ci.volta.backend.domain.QuoteValidation;
 import ci.volta.backend.domain.QuoteWorkflow;
 import ci.volta.backend.model.ChecklistItem;
@@ -10,6 +11,7 @@ import ci.volta.backend.model.Quote;
 import ci.volta.backend.model.QuoteRequest;
 import ci.volta.backend.model.RentalRequest;
 import ci.volta.backend.model.Report;
+import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.EquipmentRepository;
 import ci.volta.backend.repository.InspectionRepository;
 import ci.volta.backend.repository.NotificationRepository;
@@ -17,6 +19,7 @@ import ci.volta.backend.repository.QuoteRepository;
 import ci.volta.backend.repository.QuoteRequestRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.ReportRepository;
+import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.security.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -64,6 +67,7 @@ public class VoltaService {
     /** Seul statut visible au catalogue public. */
     public static final String STATUS_PUBLISHED = "PUBLISHED";
 
+    private final UserRepository userRepository;
     private final CurrentUser currentUser;
 
     public VoltaService(
@@ -75,6 +79,7 @@ public class VoltaService {
             QuoteRequestRepository quoteRequestRepository,
             QuoteRepository quoteRepository,
             WebhookService webhookService,
+            UserRepository userRepository,
             CurrentUser currentUser) {
         this.equipmentRepository = equipmentRepository;
         this.inspectionRepository = inspectionRepository;
@@ -84,6 +89,7 @@ public class VoltaService {
         this.quoteRequestRepository = quoteRequestRepository;
         this.quoteRepository = quoteRepository;
         this.webhookService = webhookService;
+        this.userRepository = userRepository;
         this.currentUser = currentUser;
     }
 
@@ -186,8 +192,28 @@ public class VoltaService {
         return eq;
     }
 
+    /**
+     * Assigne une inspection à un membre de l'équipe technique.
+     *
+     * Trois vérifications absentes jusqu'ici : seule l'administration assigne,
+     * l'équipement doit avoir été soumis, et le destinataire doit réellement
+     * appartenir à l'équipe technique — assigner à un fournisseur lui aurait
+     * donné la main sur la vérification de son propre matériel.
+     */
     public Inspection assignInspection(String equipmentId, String technicalTeamId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+
         Equipment eq = getEquipment(equipmentId);
+        EquipmentWorkflow.checkTransition(eq.status, EquipmentWorkflow.PENDING_INSPECTION);
+
+        UserAccount inspector = userRepository.findById(technicalTeamId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Membre de l'équipe technique introuvable"));
+        if (!CurrentUser.ROLE_TECHNICAL.equalsIgnoreCase(inspector.role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Une inspection ne peut être assignée qu'à un membre de l'équipe technique");
+        }
+
         Inspection inspection = new Inspection();
         inspection.id = newId("insp");
         inspection.equipmentId = equipmentId;
@@ -206,8 +232,19 @@ public class VoltaService {
         return inspection;
     }
 
+    /**
+     * Démarre une inspection. Réservée à l'inspecteur qui en est chargé.
+     *
+     * Sans ce contrôle, n'importe quel technicien pouvait ouvrir la mission d'un
+     * autre, et la traçabilité de qui a examiné quoi devenait inexploitable.
+     */
     public Inspection startInspection(String inspectionId) {
         Inspection inspection = getInspection(inspectionId);
+        currentUser.requireOwnership(inspection.technicalTeamId, "cette inspection");
+
+        Equipment target = getEquipment(inspection.equipmentId);
+        EquipmentWorkflow.checkTransition(target.status, EquipmentWorkflow.INSPECTION_IN_PROGRESS);
+
         inspection.status = "IN_PROGRESS";
         inspection = inspectionRepository.save(inspection);
         Equipment eq = getEquipment(inspection.equipmentId);
@@ -216,14 +253,41 @@ public class VoltaService {
         return inspection;
     }
 
+    /**
+     * Enregistre l'avancement de la checklist.
+     *
+     * Une inspection close n'est plus modifiable : le rapport transmis à
+     * l'administration doit correspondre à ce qui a été constaté.
+     */
     public Inspection updateChecklist(String inspectionId, List<ChecklistItem> checklist) {
         Inspection inspection = getInspection(inspectionId);
+        currentUser.requireOwnership(inspection.technicalTeamId, "cette inspection");
+
+        if ("DONE".equals(inspection.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette inspection est close : son rapport a déjà été transmis");
+        }
+
         inspection.checklist = checklist;
         return inspectionRepository.save(inspection);
     }
 
+    /**
+     * Transmet le rapport d'inspection à l'administration.
+     *
+     * L'équipe technique constate ; elle n'attribue pas le niveau commercial et
+     * ne publie pas. Le rapport passe l'équipement en revue administrative,
+     * l'admin décidant ensuite du classement et de la publication.
+     */
     public Report submitReport(String inspectionId, String summary, List<ChecklistItem> checklist) {
         Inspection inspection = getInspection(inspectionId);
+        currentUser.requireOwnership(inspection.technicalTeamId, "cette inspection");
+
+        if ("DONE".equals(inspection.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Le rapport de cette inspection a déjà été transmis");
+        }
+
         Report report = new Report();
         report.id = newId("rep");
         report.inspectionId = inspectionId;
@@ -243,7 +307,14 @@ public class VoltaService {
         return report;
     }
 
+    /**
+     * Refuse un équipement. Décision administrative.
+     *
+     * Le fournisseur reprend la main : le refus le renvoie en brouillon plutôt
+     * que de figer le dossier — refuser un engin ne bannit pas son propriétaire.
+     */
     public Equipment rejectEquipment(String equipmentId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         Equipment eq = getEquipment(equipmentId);
         eq.status = "REJECTED";
         notify("SUPPLIER", eq.name + " a été refusé après vérification");
@@ -252,7 +323,9 @@ public class VoltaService {
         return eq;
     }
 
+    /** Demande de correction au fournisseur. Décision administrative. */
     public Equipment requestCorrection(String equipmentId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         Equipment eq = getEquipment(equipmentId);
         eq.status = "CORRECTIONS_REQUESTED";
         notify("SUPPLIER", "Des corrections sont demandées pour " + eq.name);
@@ -261,8 +334,19 @@ public class VoltaService {
         return eq;
     }
 
+    /**
+     * Attribue le niveau commercial BASIC, SILVER ou GOLD.
+     *
+     * C'est une décision d'administration, pas un résultat d'inspection :
+     * l'équipe technique constate l'état, l'administration en tire un
+     * positionnement. Le classement suppose toutefois qu'une inspection ait eu
+     * lieu — sans quoi le niveau affiché au catalogue ne garantirait rien.
+     */
     public Equipment referenceEquipment(String equipmentId, String level) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        EquipmentWorkflow.checkLevel(level);
         Equipment eq = getEquipment(equipmentId);
+        EquipmentWorkflow.checkCanBeReferenced(eq.status);
         eq.status = "REFERENCED";
         eq.level = level;
         notify("SUPPLIER", eq.name + " a été référencé " + level);
@@ -271,8 +355,17 @@ public class VoltaService {
         return eq;
     }
 
+    /**
+     * Publie l'équipement au catalogue public.
+     *
+     * Dernière étape du parcours de vérification : elle exige un niveau
+     * attribué, faute de quoi l'engin apparaîtrait sans la mention qui justifie
+     * sa présence au catalogue.
+     */
     public Equipment publishEquipment(String equipmentId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         Equipment eq = getEquipment(equipmentId);
+        EquipmentWorkflow.checkCanBePublished(eq.status, eq.level);
         eq.status = "PUBLISHED";
         notify("SUPPLIER", eq.name + " est publié sur le catalogue");
         eq = equipmentRepository.save(eq);
@@ -280,8 +373,11 @@ public class VoltaService {
         return eq;
     }
 
+    /** Retire l'équipement du catalogue. Décision administrative. */
     public Equipment unpublishEquipment(String equipmentId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         Equipment eq = getEquipment(equipmentId);
+        EquipmentWorkflow.checkTransition(eq.status, EquipmentWorkflow.UNPUBLISHED);
         eq.status = "UNPUBLISHED";
         notify("SUPPLIER", eq.name + " a été dépublié du catalogue");
         eq = equipmentRepository.save(eq);
