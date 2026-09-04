@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -26,8 +25,14 @@ import java.util.List;
  * Le filtre se contente de poser l'identité quand le jeton est valide. Il ne
  * refuse rien lui-même : décider du 401 ou du 403 revient à la chaîne de
  * sécurité, qui seule connaît les règles de la route demandée.
+ *
+ * Volontairement pas annoté @Component : Spring Boot l'enregistrerait alors
+ * dans la chaîne servlet globale en plus de la chaîne de sécurité. Comme
+ * OncePerRequestFilter ne s'exécute qu'une fois par requête, l'identité serait
+ * posée dans la première chaîne puis effacée par SecurityContextHolderFilter,
+ * la seconde exécution étant sautée — la requête arriverait anonyme aux règles
+ * d'autorisation. Il est instancié explicitement par SecurityConfig.
  */
-@Component
 public class SessionAuthFilter extends OncePerRequestFilter {
 
     private static final String HEADER = "Authorization";
@@ -59,6 +64,19 @@ public class SessionAuthFilter extends OncePerRequestFilter {
         }
 
         chain.doFilter(request, response);
+    }
+
+    /**
+     * Applique aussi le filtre au dispatch d'erreur.
+     *
+     * Par défaut, OncePerRequestFilter ignore ce second passage. L'identité
+     * n'était donc pas reposée lorsque Spring redirigeait vers /error après une
+     * exception du contrôleur : la page d'erreur arrivait anonyme aux règles
+     * d'autorisation, et son 401 écrasait le 404 ou le 409 réellement levé.
+     */
+    @Override
+    protected boolean shouldNotFilterErrorDispatch() {
+        return false;
     }
 
     private String extractToken(HttpServletRequest request) {

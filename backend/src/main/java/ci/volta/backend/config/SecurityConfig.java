@@ -1,8 +1,8 @@
 package ci.volta.backend.config;
 
 import ci.volta.backend.security.SessionAuthFilter;
+import ci.volta.backend.service.AuthService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -40,10 +40,12 @@ public class SecurityConfig {
     private final SessionAuthFilter sessionAuthFilter;
     private final String allowedOrigins;
 
-    public SecurityConfig(SessionAuthFilter sessionAuthFilter,
+    public SecurityConfig(AuthService authService,
                           @Value("${volta.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
                           String allowedOrigins) {
-        this.sessionAuthFilter = sessionAuthFilter;
+        // Instancié ici plutôt qu'injecté : le filtre n'est pas un bean, afin de
+        // n'exister que dans la chaîne de sécurité.
+        this.sessionAuthFilter = new SessionAuthFilter(authService);
         this.allowedOrigins = allowedOrigins;
     }
 
@@ -62,6 +64,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/equipment").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
+                // Spring redirige vers /error après une exception du contrôleur.
+                // Protéger cette route ferait répondre 401 à la place du statut
+                // réellement levé — un 404 ou un 409 deviendrait un 401.
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // --- Administration ---
@@ -133,25 +139,6 @@ public class SecurityConfig {
                 "{\"status\":" + status
                 + ",\"error\":\"" + error + "\""
                 + ",\"message\":\"" + safeMessage + "\"}");
-    }
-
-    /**
-     * Empêche l'enregistrement automatique du filtre dans la chaîne servlet.
-     *
-     * Annoté @Component, SessionAuthFilter était enregistré deux fois : une fois
-     * par Spring Boot dans la chaîne servlet globale, une fois par
-     * addFilterBefore dans la chaîne de sécurité. Comme OncePerRequestFilter ne
-     * s'exécute qu'une seule fois par requête, l'identité était posée trop tôt,
-     * puis effacée par SecurityContextHolderFilter — la seconde exécution étant
-     * ignorée, la requête arrivait anonyme aux règles d'autorisation.
-     *
-     * Seule l'inscription dans la chaîne de sécurité est conservée.
-     */
-    @Bean
-    public FilterRegistrationBean<SessionAuthFilter> disableAutoRegistration(SessionAuthFilter filter) {
-        FilterRegistrationBean<SessionAuthFilter> registration = new FilterRegistrationBean<>(filter);
-        registration.setEnabled(false);
-        return registration;
     }
 
     @Bean
