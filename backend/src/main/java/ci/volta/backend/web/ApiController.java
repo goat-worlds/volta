@@ -95,9 +95,10 @@ public class ApiController {
         return categoryRepository.findAll();
     }
 
+    /** Catalogue filtré selon l'appelant : voir VoltaService.listVisibleEquipment. */
     @GetMapping("/equipment")
     public List<Equipment> equipment() {
-        return equipmentRepository.findAll();
+        return service.listVisibleEquipment();
     }
 
     @GetMapping("/inspections")
@@ -212,6 +213,18 @@ public class ApiController {
                 body.clientName(),
                 body.clientPhone(),
                 body.clientEmail());
+    }
+
+    /** Détail d'une demande, réservé à ses deux parties. */
+    @GetMapping("/quote-requests/{id}")
+    public QuoteRequest quoteRequest(@PathVariable String id) {
+        return service.getQuoteRequest(id);
+    }
+
+    /** Devis reçus pour une demande : c'est la vue de comparaison du client. */
+    @GetMapping("/quotes/request/{requestId}")
+    public List<Quote> quotesByRequest(@PathVariable String requestId) {
+        return service.listQuotesByRequest(requestId);
     }
 
     @GetMapping("/quote-requests/client/{clientId}")

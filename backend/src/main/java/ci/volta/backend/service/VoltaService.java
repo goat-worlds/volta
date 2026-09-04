@@ -61,6 +61,9 @@ public class VoltaService {
     private final QuoteRepository quoteRepository;
     private final WebhookService webhookService;
 
+    /** Seul statut visible au catalogue public. */
+    public static final String STATUS_PUBLISHED = "PUBLISHED";
+
     private final CurrentUser currentUser;
 
     public VoltaService(
@@ -113,6 +116,45 @@ public class VoltaService {
     private Inspection getInspection(String id) {
         return inspectionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inspection not found: " + id));
+    }
+
+    /**
+     * Équipements visibles par l'appelant.
+     *
+     * Le catalogue public ne montre que les équipements publiés : un matériel en
+     * DRAFT ou SUBMITTED n'a été ni inspecté ni classé, et l'exposer
+     * contredirait la promesse d'équipements vérifiés.
+     *
+     * Un fournisseur voit en plus les siens, quel que soit leur statut — il doit
+     * pouvoir suivre ce qui est en cours de vérification. L'administrateur et
+     * l'équipe technique voient tout, c'est leur métier.
+     */
+    @Transactional(readOnly = true)
+    public List<Equipment> listVisibleEquipment() {
+        String role;
+        String userId;
+        try {
+            role = currentUser.role();
+            userId = currentUser.requireId();
+        } catch (RuntimeException notAuthenticated) {
+            // Visiteur non identifié : catalogue public seulement.
+            return equipmentRepository.findByStatus(STATUS_PUBLISHED);
+        }
+
+        if (CurrentUser.ROLE_ADMIN.equals(role) || CurrentUser.ROLE_TECHNICAL.equals(role)) {
+            return equipmentRepository.findAll();
+        }
+
+        if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
+            List<Equipment> visible = new java.util.ArrayList<>(
+                    equipmentRepository.findByStatus(STATUS_PUBLISHED));
+            equipmentRepository.findBySupplierId(userId).stream()
+                    .filter(eq -> !STATUS_PUBLISHED.equals(eq.status))
+                    .forEach(visible::add);
+            return visible;
+        }
+
+        return equipmentRepository.findByStatus(STATUS_PUBLISHED);
     }
 
     /**
@@ -323,6 +365,48 @@ public class VoltaService {
                 "equipmentName", eq.name,
                 "clientName", clientName == null ? "" : clientName));
         return req;
+    }
+
+    /**
+     * Détail d'une demande de devis.
+     *
+     * Accessible au client qui l'a émise et au fournisseur à qui elle s'adresse :
+     * ce sont les deux parties de la relation. Toute autre personne reçoit un
+     * 403, sans indication sur l'existence de la demande.
+     */
+    @Transactional(readOnly = true)
+    public QuoteRequest getQuoteRequest(String quoteRequestId) {
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+
+        if (!currentUser.owns(qreq.clientId) && !currentUser.owns(qreq.supplierId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Accès refusé : cette demande ne vous concerne pas");
+        }
+        return qreq;
+    }
+
+    /**
+     * Devis reçus pour une demande donnée.
+     *
+     * Le client compare ici les offres qui répondent à SA demande. Renvoyer tous
+     * les devis, ou ceux d'une autre demande, exposerait les prix pratiqués entre
+     * concurrents.
+     *
+     * Un fournisseur consultant cette demande ne voit que ses propres devis : il
+     * n'a pas à connaître les offres de ses concurrents avant décision.
+     */
+    @Transactional(readOnly = true)
+    public List<Quote> listQuotesByRequest(String quoteRequestId) {
+        QuoteRequest qreq = getQuoteRequest(quoteRequestId);
+        List<Quote> quotes = quoteRepository.findByQuoteRequestId(quoteRequestId);
+
+        if (currentUser.owns(qreq.clientId)) {
+            return quotes;
+        }
+        String me = currentUser.requireId();
+        return quotes.stream().filter(q -> me.equals(q.supplierId)).toList();
     }
 
     /** Demandes d'un client. Nul ne consulte celles d'un autre, hors administration. */
