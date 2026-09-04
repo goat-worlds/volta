@@ -20,12 +20,12 @@ public class Inspection {
     public String assignedAt;
     public String status;
     @Convert(converter = JsonConverters.ChecklistConverter.class)
-    @Column(length = 16000)
+    @Column(columnDefinition = "TEXT")
     public List<ChecklistItem> checklist = new ArrayList<>();
     @Convert(converter = JsonConverters.StringListConverter.class)
-    @Column(length = 8000)
+    @Column(columnDefinition = "TEXT")
     public List<String> photos = new ArrayList<>();
     @Convert(converter = JsonConverters.StringListConverter.class)
-    @Column(length = 8000)
+    @Column(columnDefinition = "TEXT")
     public List<String> anomalies = new ArrayList<>();
 }

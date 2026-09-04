@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 public class WebhookEndpoint {
     @Id
     public String id;
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     public String url;
     /** Event name to subscribe to, or "*" for all events. */
     public String event;

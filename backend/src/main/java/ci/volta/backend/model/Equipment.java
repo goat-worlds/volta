@@ -26,13 +26,13 @@ public class Equipment {
     public long pricePerDay;
     public boolean available;
     public boolean withOperator;
-    @Column(length = 4000)
+    @Column(columnDefinition = "TEXT")
     public String description;
     @Convert(converter = JsonConverters.StringListConverter.class)
-    @Column(length = 8000)
+    @Column(columnDefinition = "TEXT")
     public List<String> photos = new ArrayList<>();
     @Convert(converter = JsonConverters.DocumentListConverter.class)
-    @Column(length = 8000)
+    @Column(columnDefinition = "TEXT")
     public List<DocumentInfo> documents = new ArrayList<>();
     public String supplierId;
     public String status;

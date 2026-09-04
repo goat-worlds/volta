@@ -2,6 +2,7 @@ package ci.volta.backend.config;
 
 import ci.volta.backend.security.SessionAuthFilter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -132,6 +133,25 @@ public class SecurityConfig {
                 "{\"status\":" + status
                 + ",\"error\":\"" + error + "\""
                 + ",\"message\":\"" + safeMessage + "\"}");
+    }
+
+    /**
+     * Empêche l'enregistrement automatique du filtre dans la chaîne servlet.
+     *
+     * Annoté @Component, SessionAuthFilter était enregistré deux fois : une fois
+     * par Spring Boot dans la chaîne servlet globale, une fois par
+     * addFilterBefore dans la chaîne de sécurité. Comme OncePerRequestFilter ne
+     * s'exécute qu'une seule fois par requête, l'identité était posée trop tôt,
+     * puis effacée par SecurityContextHolderFilter — la seconde exécution étant
+     * ignorée, la requête arrivait anonyme aux règles d'autorisation.
+     *
+     * Seule l'inscription dans la chaîne de sécurité est conservée.
+     */
+    @Bean
+    public FilterRegistrationBean<SessionAuthFilter> disableAutoRegistration(SessionAuthFilter filter) {
+        FilterRegistrationBean<SessionAuthFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

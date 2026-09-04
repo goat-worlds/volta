@@ -18,7 +18,7 @@ public class RentalRequest {
     public String location;
     public boolean withOperator;
     public boolean transport;
-    @Column(length = 4000)
+    @Column(columnDefinition = "TEXT")
     public String comment;
     public String clientName;
     public String clientPhone;

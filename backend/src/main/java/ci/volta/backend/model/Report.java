@@ -18,9 +18,9 @@ public class Report {
     public String inspectionId;
     public String equipmentId;
     public String submittedAt;
-    @Column(length = 4000)
+    @Column(columnDefinition = "TEXT")
     public String summary;
     @Convert(converter = JsonConverters.ChecklistConverter.class)
-    @Column(length = 16000)
+    @Column(columnDefinition = "TEXT")
     public List<ChecklistItem> checklist = new ArrayList<>();
 }

@@ -14,7 +14,7 @@ public class Quote {
     public String supplierId;
     public long price;
     public int deliveryTime; // jours
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     public String conditions;
     public String status; // SENT, ACCEPTED, REJECTED
     public String validUntil;

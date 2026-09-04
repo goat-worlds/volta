@@ -14,7 +14,7 @@ public class QuoteRequest {
     public String clientId;
     public String supplierId;
     public String status; // PENDING, ACCEPTED, DECLINED
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     public String message;
     public int quantity;
     public String startDate;

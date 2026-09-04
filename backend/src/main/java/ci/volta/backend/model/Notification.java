@@ -11,9 +11,10 @@ public class Notification {
     @Id
     public String id;
     public String role;
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     public String message;
     public String date;
+    @Column(name = "is_read")
     public boolean read;
 
     public Notification() {

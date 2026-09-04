@@ -75,7 +75,7 @@ public class DataSeeder {
             String defaultHash = authService.encodePassword("password123");
 
             if (users.findByEmailIgnoreCase("dg@volta.com").isEmpty()) {
-                UserAccount dgUser = user("u-dg", "DG Test", "DG", "VOLTA", "dg@volta.com", "+225 07 00 00 00", "Abidjan");
+                UserAccount dgUser = user("u-dg", "Direction", "ADMIN", "VOLTA", "dg@volta.com", "+225 07 00 00 00", "Abidjan");
                 dgUser.passwordHash = defaultHash;
                 users.save(dgUser);
             }
@@ -85,12 +85,15 @@ public class DataSeeder {
                 users.save(supplierUser);
             }
             if (users.findByEmailIgnoreCase("verificateur@volta.com").isEmpty()) {
-                UserAccount techUser = user("u-tech", "Tech Test", "VERIFICATEUR", "Test Tech", "verificateur@volta.com", "+225 07 00 00 02", "Abidjan");
+                UserAccount techUser = user("u-tech", "Équipe technique", "TECHNICAL", "VOLTA", "verificateur@volta.com", "+225 07 00 00 02", "Abidjan");
                 techUser.passwordHash = defaultHash;
                 users.save(techUser);
             }
 
-            if (users.count() > 3) {
+            // La garde porte sur le catalogue, pas sur les comptes : les trois
+            // comptes de test créés ci-dessus la déclenchaient et le matériel
+            // n'était jamais seedé.
+            if (equipment.count() > 0) {
                 return;
             }
 
