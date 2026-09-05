@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Bell, ExternalLink, LogOut, Menu, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
+import { useShellBadges } from '../store/useShellBadges'
 import type { Role } from '../store/types'
 
 /**
@@ -52,6 +53,8 @@ export default function RoleShell({
   // La coque connaît le compteur : chaque espace n'a qu'à déclarer son lien
   // « Notifications », sans le recalculer quatre fois.
   const notificationsTo = links.find((l) => l.to.endsWith('/notifications'))?.to
+  // Ce qui reste ouvert dans chaque rubrique, indépendamment des notifications.
+  const badges = useShellBadges(role)
 
   // Le titre de la page vient du lien actif : il est déjà écrit une fois dans
   // la navigation, le redéclarer dans chaque page les ferait diverger.
@@ -62,7 +65,7 @@ export default function RoleShell({
   const nav = (
     <nav className="flex flex-col gap-1">
       {links.map((l) => {
-        const badge = l.to === notificationsTo ? unread : 0
+        const badge = l.to === notificationsTo ? unread : (badges[l.to] ?? 0)
         return (
           <NavLink
             key={l.to}
@@ -77,12 +80,22 @@ export default function RoleShell({
               }`
             }
           >
-            <l.icon size={16} className="shrink-0" />
-            <span className="flex-1">{l.label}</span>
-            {badge > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-btp-500 px-1.5 text-[11px] font-bold text-white">
-                {badge > 99 ? '99+' : badge}
-              </span>
+            {({ isActive }) => (
+              <>
+                <l.icon size={16} className="shrink-0" />
+                <span className="flex-1">{l.label}</span>
+                {badge > 0 && (
+                  // Sur le lien actif, le fond est déjà ambré : la pastille
+                  // s'inverse pour rester lisible.
+                  <span
+                    className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
+                      isActive ? 'bg-slate-900 text-amber-300' : 'bg-btp-500 text-white'
+                    }`}
+                  >
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                )}
+              </>
             )}
           </NavLink>
         )

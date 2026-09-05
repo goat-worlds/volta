@@ -35,6 +35,14 @@ interface Store {
   favorites: string[]
   isFavorite: (equipmentId: string) => boolean
   toggleFavorite: (equipmentId: string) => void
+  /**
+   * Demandes de devis et devis concernant l'utilisateur connecté.
+   *
+   * Chargés ici et non page par page : les pastilles de la navigation doivent
+   * connaître ce qui attend l'utilisateur avant qu'il n'ouvre la rubrique.
+   */
+  myQuoteRequests: QuoteRequest[]
+  myQuotes: Quote[]
   /** Notifications adressées au rôle de l'utilisateur connecté, récentes d'abord. */
   myNotifications: Notification[]
   /** Celles qu'il n'a pas encore ouvertes — c'est le compteur affiché. */
@@ -152,6 +160,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const [readNotificationIds, setReadNotificationIds] = useState<string[]>([])
+  const [myQuoteRequests, setMyQuoteRequests] = useState<QuoteRequest[]>([])
+  const [myQuotes, setMyQuotes] = useState<Quote[]>([])
 
   // La sélection suit l'utilisateur : à la connexion on charge la sienne, à la
   // déconnexion elle disparaît de l'écran sans être effacée du navigateur.
@@ -176,6 +186,53 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [currentUser?.id],
   )
+
+  /**
+   * Demandes de devis et devis de l'utilisateur, rechargés à chaque changement
+   * de jeu de données. Un échec laisse les listes vides : une pastille absente
+   * vaut mieux qu'un écran en erreur.
+   */
+  useEffect(() => {
+    if (!currentUser) {
+      setMyQuoteRequests([])
+      setMyQuotes([])
+      return
+    }
+    let cancelled = false
+
+    const load = async () => {
+      const path =
+        currentUser.role === 'SUPPLIER'
+          ? `/quote-requests/supplier/${currentUser.id}`
+          : currentUser.role === 'CLIENT'
+            ? `/quote-requests/client/${currentUser.id}`
+            : null
+      if (!path) {
+        setMyQuoteRequests([])
+        setMyQuotes([])
+        return
+      }
+
+      const requests = await apiGet<QuoteRequest[]>(path).catch(() => [])
+      if (cancelled) return
+      setMyQuoteRequests(requests ?? [])
+
+      // Le serveur expose les devis par demande : c'est ce qui empêche de voir
+      // les offres d'autrui. On agrège donc côté client.
+      const results = await Promise.allSettled(
+        (requests ?? []).map((r) => apiGet<Quote[]>(`/quotes/request/${r.id}`)),
+      )
+      if (cancelled) return
+      setMyQuotes(
+        results.flatMap((r) => (r.status === 'fulfilled' ? (r.value ?? []) : [])),
+      )
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [currentUser, equipment])
 
   /** Les notifications adressées au rôle de l'utilisateur connecté. */
   const myNotifications = useMemo(
@@ -271,6 +328,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       isFavorite: (equipmentId: string) => favorites.includes(equipmentId),
       toggleFavorite,
 
+      myQuoteRequests,
+      myQuotes,
       myNotifications,
       unreadNotifications,
       markNotificationsRead,
@@ -416,7 +475,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return quote
       },
     }),
-    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, favorites, toggleFavorite, myNotifications, unreadNotifications, markNotificationsRead, reload],
+    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, favorites, toggleFavorite, myQuoteRequests, myQuotes, myNotifications, unreadNotifications, markNotificationsRead, reload],
   )
 
   if (loading) {

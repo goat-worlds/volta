@@ -679,7 +679,9 @@ public class VoltaService {
         request.status = "PENDING";
         request.createdAt = today();
         request = rentalRequestRepository.save(request);
-        notify("ADMIN", "Nouvelle demande de location " + request.reference + " — " + eq.name);
+        // Un événement, une notification, adressée à qui doit agir. La location
+        // se traite entre le client et le fournisseur : l'administration la suit
+        // par les webhooks, pas en doublant chaque message dans son journal.
         notify("SUPPLIER", "Nouvelle demande de location " + request.reference + " — " + eq.name);
         webhookService.dispatch("RENTAL_REQUEST_CREATED", Map.of(
                 "requestId", request.id,
@@ -696,7 +698,9 @@ public class VoltaService {
         request.status = accepted ? "ACCEPTED" : "DECLINED";
         request = rentalRequestRepository.save(request);
         Equipment eq = getEquipment(request.equipmentId);
-        notify("ADMIN", "Demande " + request.reference + " " + (accepted ? "acceptée" : "refusée") + " — " + eq.name);
+        // Le fournisseur vient de trancher lui-même : le notifier de sa propre
+        // action n'apprend rien, et l'administration n'a rien à faire de cette
+        // décision commerciale.
         webhookService.dispatch(accepted ? "RENTAL_REQUEST_ACCEPTED" : "RENTAL_REQUEST_DECLINED", Map.of(
                 "requestId", request.id,
                 "reference", request.reference,
@@ -739,7 +743,6 @@ public class VoltaService {
         req.createdAt = today();
         req = quoteRequestRepository.save(req);
         notify("SUPPLIER", "Nouvelle demande de devis pour " + eq.name);
-        notify("ADMIN", "Demande de devis reçue pour " + eq.name);
         webhookService.dispatch("QUOTE_REQUEST_CREATED", Map.of(
                 "requestId", req.id,
                 "equipmentId", eq.id,
@@ -846,7 +849,6 @@ public class VoltaService {
 
         Equipment eq = getEquipment(qreq.equipmentId);
         notify("CLIENT", "Nouveau devis pour " + eq.name);
-        notify("ADMIN", "Devis créé pour " + eq.name);
         webhookService.dispatch("QUOTE_CREATED", Map.of(
                 "quoteId", quote.id,
                 "quoteRequestId", quoteRequestId,
@@ -942,8 +944,7 @@ public class VoltaService {
         rental.createdAt = today();
         rentalRequestRepository.save(rental);
 
-        notify("SUPPLIER", "Devis accepté pour " + eq.name);
-        notify("ADMIN", "Devis accepté pour " + eq.name + " - Demande de location créée");
+        notify("SUPPLIER", "Devis accepté pour " + eq.name + " — demande de location créée");
         webhookService.dispatch("QUOTE_ACCEPTED", Map.of(
                 "quoteId", quoteId,
                 "equipmentId", eq.id,
