@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { MapPin } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, LevelBadge, PageTitle, fmtPrice } from '../../components/ui'
 
@@ -99,7 +100,10 @@ export default function Catalogue() {
                         <div className="mt-1 text-xs text-slate-500">
                           {cat?.name} · {e.brand} {e.model} · {e.year}
                         </div>
-                        <div className="text-xs text-slate-500">📍 {e.location} · {supplier?.company}</div>
+                        <div className="flex items-center gap-1 text-xs text-slate-500">
+                          <MapPin size={12} className="shrink-0 text-slate-400" />
+                          {e.location} · {supplier?.company}
+                        </div>
                         <div className="mt-2 flex items-center justify-between">
                           <span className="font-bold text-blue-700">{fmtPrice(e.pricePerDay)} / jour</span>
                           <span className={`text-xs font-medium ${e.available ? 'text-emerald-600' : 'text-red-500'}`}>

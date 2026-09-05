@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 
 export default function SupplierCTA() {
   return (
@@ -14,20 +14,20 @@ export default function SupplierCTA() {
 
             <div className="mt-6 space-y-3">
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center rounded-full bg-yellow-400 w-8 h-8">
-                  <span className="text-sm font-bold text-slate-900">✓</span>
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-btp-400">
+                  <Check size={16} strokeWidth={3} className="text-acier-900" />
                 </span>
                 <span>Accès à un réseau professionnel</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center rounded-full bg-yellow-400 w-8 h-8">
-                  <span className="text-sm font-bold text-slate-900">✓</span>
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-btp-400">
+                  <Check size={16} strokeWidth={3} className="text-acier-900" />
                 </span>
                 <span>Certification de qualité VOLTA</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center rounded-full bg-yellow-400 w-8 h-8">
-                  <span className="text-sm font-bold text-slate-900">✓</span>
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-btp-400">
+                  <Check size={16} strokeWidth={3} className="text-acier-900" />
                 </span>
                 <span>Support et accompagnement</span>
               </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AlertTriangle, CheckCircle2, Ruler } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, StatusBadge, Toast } from '../../components/ui'
 import type { CheckResult, ChecklistItem } from '../../store/types'
@@ -23,6 +24,7 @@ export default function TechnicalInspection() {
   const [anomalies, setAnomalies] = useState<string[]>(inspection?.anomalies ?? [])
   const [toast, setToast] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   if (!inspection || !eq) {
     return (
@@ -39,27 +41,47 @@ export default function TechnicalInspection() {
   const filled = checklist.filter((c) => c.result !== null).length
   const complete = filled === checklist.length
 
-  const setResult = (index: number, result: CheckResult) => {
+  const setResult = async (index: number, result: CheckResult) => {
     const next = checklist.map((c, i) => (i === index ? { ...c, result } : c))
+    const previous = checklist
     setChecklist(next)
-    updateChecklist(inspection.id, next)
-    if (inspection.status === 'ASSIGNED') startInspection(inspection.id)
+    try {
+      if (inspection.status === 'ASSIGNED') await startInspection(inspection.id)
+      await updateChecklist(inspection.id, next)
+      setSaveError(null)
+    } catch {
+      // Un contrôle noté sur le terrain qui n'atteint pas le serveur doit se
+      // voir : sans ce retour, l'inspecteur croit sa saisie enregistrée et la
+      // perd en quittant l'écran.
+      setChecklist(previous)
+      setSaveError("Ce contrôle n'a pas pu être enregistré. Vérifiez la connexion et réessayez.")
+    }
   }
 
   const sections = [...new Set(checklist.map((c) => c.section))]
 
-  const submit = () => {
+  const submit = async () => {
     setSending(true)
-    setTimeout(() => {
-      submitReport(
+    try {
+      await submitReport(
         inspection.id,
         observations || 'Inspection réalisée. Voir la checklist détaillée.',
         checklist,
       )
-      setSending(false)
-      setToast('Rapport soumis à VOLTA ✔ L\'engin passe en attente de décision admin.')
+      setSaveError(null)
+      setToast("Rapport soumis à VOLTA. L'engin passe en attente de décision.")
       setTimeout(() => navigate('/technical/missions'), 1500)
-    }, 600)
+    } catch (error) {
+      // L'écran annonçait la soumission avant même de savoir si elle avait
+      // abouti : une panne réseau effaçait une inspection entière sans un mot.
+      setSaveError(
+        error instanceof Error
+          ? `Le rapport n'a pas été transmis : ${error.message}`
+          : "Le rapport n'a pas été transmis. Réessayez.",
+      )
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -75,7 +97,10 @@ export default function TechnicalInspection() {
 
       {done ? (
         <Card className="p-6">
-          <div className="font-semibold text-emerald-700">✔ Rapport déjà soumis pour cette mission.</div>
+          <div className="flex items-center gap-2 font-semibold text-emerald-700">
+            <CheckCircle2 size={18} />
+            Rapport déjà soumis pour cette mission.
+          </div>
           <p className="mt-2 text-sm text-slate-600">L'engin est en attente de décision de l'administrateur VOLTA.</p>
         </Card>
       ) : (
@@ -150,16 +175,29 @@ export default function TechnicalInspection() {
               </div>
             )}
             {(measures.length > 0 || anomalies.length > 0) && (
-              <ul className="list-inside list-disc text-sm text-slate-600">
+              <ul className="space-y-1 text-sm text-slate-600">
                 {measures.map((m, i) => (
-                  <li key={`m-${i}`}>📏 {m}</li>
+                  <li key={`m-${i}`} className="flex items-center gap-2">
+                    <Ruler size={14} className="shrink-0 text-slate-400" />
+                    {m}
+                  </li>
                 ))}
                 {anomalies.map((a, i) => (
-                  <li key={`a-${i}`} className="text-red-600">⚠️ {a}</li>
+                  <li key={`a-${i}`} className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle size={14} className="shrink-0" />
+                    {a}
+                  </li>
                 ))}
               </ul>
             )}
           </Card>
+
+          {saveError && (
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-600" />
+              <p className="text-sm font-medium text-red-700">{saveError}</p>
+            </div>
+          )}
 
           <button
             onClick={submit}
