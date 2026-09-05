@@ -1,7 +1,80 @@
 @import "tailwindcss";
 
+/**
+ * Palette BTP.
+ *
+ * Les engins de chantier ont leurs couleurs : l'ambre haute visibilité des
+ * carrosseries, l'acier sombre des châssis. La plateforme les reprend plutôt
+ * que le bleu générique des applications de gestion — un loueur reconnaît son
+ * métier à l'écran.
+ *
+ * Ces jetons s'ajoutent à la palette Tailwind, ils ne la remplacent pas : les
+ * écrans déjà écrits en slate/amber continuent de fonctionner à l'identique.
+ */
+@theme {
+  /* Ambre chantier — couleur d'action et d'accent. */
+  --color-btp-50: #fff9ed;
+  --color-btp-100: #fff0d1;
+  --color-btp-200: #ffdd9e;
+  --color-btp-300: #ffc45c;
+  --color-btp-400: #ffa726;
+  --color-btp-500: #f98a07;
+  --color-btp-600: #dd6a02;
+  --color-btp-700: #b74c06;
+  --color-btp-800: #943c0c;
+  --color-btp-900: #7a330d;
+
+  /* Acier — fonds sombres, navigation, texte fort. */
+  --color-acier-50: #f2f6fb;
+  --color-acier-100: #e3ecf6;
+  --color-acier-200: #c1d5e9;
+  --color-acier-300: #8db3d6;
+  --color-acier-400: #528bbe;
+  --color-acier-500: #316da3;
+  --color-acier-600: #235688;
+  --color-acier-700: #1d456e;
+  --color-acier-800: #12294d;
+  --color-acier-900: #0b1f3a;
+
+  /* Jaune signal — réservé aux marquages et bandes de sécurité. */
+  --color-signal-400: #ffe14d;
+  --color-signal-500: #ffd500;
+  --color-signal-600: #e0ba00;
+}
+
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: #f8fafc;
   color: #0f172a;
+}
+
+/**
+ * Bande de sécurité, comme sur les engins et les zones de chantier.
+ * Utilisée en filet haut de section pour signer les écrans publics.
+ */
+.btp-hazard-stripe {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-signal-500) 0 12px,
+    #0b1f3a 12px 24px
+  );
+}
+
+/**
+ * Piste de carrousel : le défilement est natif, aligné sur les cartes.
+ * La barre de défilement est masquée — les flèches et les points la remplacent.
+ */
+.btp-carousel-track {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.btp-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btp-carousel-track {
+    scroll-behavior: auto;
+  }
 }

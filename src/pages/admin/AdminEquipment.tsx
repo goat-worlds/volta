@@ -136,7 +136,7 @@ export default function AdminEquipment() {
                   onClick={() => {
                     assignInspection(selected.id, teamId)
                     setSelectedId(null)
-                    showToast('Inspection assignée ✔ L\'équipe technique a été notifiée.')
+                    showToast("Inspection assignée. L'équipe technique a été notifiée.")
                   }}
                   className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
                 >
@@ -171,7 +171,7 @@ export default function AdminEquipment() {
                   <button
                     onClick={() => {
                       referenceEquipment(selected.id, level)
-                      showToast(`Engin référencé ${level} ✔`)
+                      showToast(`Engin référencé au niveau ${level}.`)
                     }}
                     className="flex-1 rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
                   >
@@ -206,7 +206,7 @@ export default function AdminEquipment() {
                 onClick={() => {
                   publishEquipment(selected.id)
                   setSelectedId(null)
-                  showToast('Engin publié sur le catalogue ✔')
+                  showToast('Engin publié sur le catalogue.')
                 }}
                 className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
               >

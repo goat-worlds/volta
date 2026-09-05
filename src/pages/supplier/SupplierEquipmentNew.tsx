@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FileText } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, ProgressBar } from '../../components/ui'
 
@@ -186,7 +187,10 @@ export default function SupplierEquipmentNew() {
               ) : (
                 <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
                   {documents.map((d, i) => (
-                    <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">📄 {d.name} <span className="text-xs text-slate-400">({d.type})</span></li>
+                    <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">
+                      <FileText size={15} className="shrink-0 text-slate-400" />
+                      {d.name} <span className="text-xs text-slate-400">({d.type})</span>
+                    </li>
                   ))}
                 </ul>
               )}

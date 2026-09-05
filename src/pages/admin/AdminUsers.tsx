@@ -64,10 +64,10 @@ export default function AdminUsers() {
     try {
       if (editing.id) {
         await updateUser(editing.id, editing.form)
-        showToast('Compte mis à jour ✔')
+        showToast('Compte mis à jour.')
       } else {
         await createUser(editing.form)
-        showToast('Compte créé ✔')
+        showToast('Compte créé.')
       }
       setEditing(null)
     } catch {

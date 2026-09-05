@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { EquipmentStatus, Level } from '../store/types'
-import { Inbox } from 'lucide-react'
+import { Inbox, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
@@ -148,8 +148,12 @@ export function Modal({
       <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-bold">{title}</h3>
-          <button onClick={onClose} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-            ✕
+          <button
+            onClick={onClose}
+            aria-label="Fermer"
+            className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+          >
+            <X size={18} />
           </button>
         </div>
         {children}

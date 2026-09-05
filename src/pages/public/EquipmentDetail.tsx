@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import {
+  BadgeCheck, Calendar, CheckCircle2, Gauge, HardHat, Mail, MapPin, Phone, User, Wrench, XCircle,
+} from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, LevelBadge, Modal, Toast, fmtPrice } from '../../components/ui'
 
@@ -93,18 +96,43 @@ export default function EquipmentDetail() {
           </div>
           <div className="mt-3 text-2xl font-bold text-blue-700">{fmtPrice(eq.pricePerDay)} / jour</div>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <Card className="p-3">📍 {eq.location}</Card>
-            <Card className="p-3">📅 Année : {eq.year}</Card>
-            <Card className="p-3">⏱️ {eq.hours.toLocaleString('fr-FR')} h compteur</Card>
-            <Card className="p-3">🔧 {eq.declaredCondition}</Card>
-            <Card className="p-3">{eq.available ? '✅ Disponible' : '❌ Indisponible'}</Card>
-            <Card className="p-3">{eq.withOperator ? '👷 Avec opérateur' : 'Sans opérateur'}</Card>
+            <Card className="flex items-center gap-2 p-3">
+              <MapPin size={15} className="shrink-0 text-slate-400" />
+              {eq.location}
+            </Card>
+            <Card className="flex items-center gap-2 p-3">
+              <Calendar size={15} className="shrink-0 text-slate-400" />
+              Année : {eq.year}
+            </Card>
+            <Card className="flex items-center gap-2 p-3">
+              <Gauge size={15} className="shrink-0 text-slate-400" />
+              {eq.hours.toLocaleString('fr-FR')} h compteur
+            </Card>
+            <Card className="flex items-center gap-2 p-3">
+              <Wrench size={15} className="shrink-0 text-slate-400" />
+              {eq.declaredCondition}
+            </Card>
+            <Card className="flex items-center gap-2 p-3">
+              {eq.available ? (
+                <CheckCircle2 size={15} className="shrink-0 text-emerald-600" />
+              ) : (
+                <XCircle size={15} className="shrink-0 text-red-500" />
+              )}
+              {eq.available ? 'Disponible' : 'Indisponible'}
+            </Card>
+            <Card className="flex items-center gap-2 p-3">
+              <HardHat size={15} className="shrink-0 text-slate-400" />
+              {eq.withOperator ? 'Avec opérateur' : 'Sans opérateur'}
+            </Card>
           </div>
           <p className="mt-4 text-sm text-slate-600">{eq.description}</p>
           <Card className="mt-4 p-4 text-sm">
             <div className="font-semibold">Fournisseur</div>
             <div className="mt-1 text-slate-600">{supplier?.company} — {supplier?.city}</div>
-            <div className="text-xs text-emerald-600">✔ Fournisseur vérifié VOLTA</div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-emerald-600">
+              <BadgeCheck size={14} />
+              Fournisseur vérifié VOLTA
+            </div>
           </Card>
           <div className="mt-5 grid gap-2">
             <button
@@ -127,11 +155,26 @@ export default function EquipmentDetail() {
         <div className="grid gap-3 text-sm">
           <Card className="p-4">
             <div className="font-semibold">{supplier?.company}</div>
-            <div className="mt-1 text-slate-600">👤 {supplier?.name}</div>
-            <div className="text-slate-600">📍 {supplier?.city}</div>
-            <div className="text-slate-600">📞 {supplier?.phone}</div>
-            <div className="text-slate-600">✉️ {supplier?.email}</div>
-            <div className="mt-2 text-xs text-emerald-600">✔ Fournisseur vérifié VOLTA</div>
+            <div className="mt-1 flex items-center gap-2 text-slate-600">
+              <User size={14} className="shrink-0 text-slate-400" />
+              {supplier?.name}
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <MapPin size={14} className="shrink-0 text-slate-400" />
+              {supplier?.city}
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <Phone size={14} className="shrink-0 text-slate-400" />
+              {supplier?.phone}
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <Mail size={14} className="shrink-0 text-slate-400" />
+              {supplier?.email}
+            </div>
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600">
+              <BadgeCheck size={14} />
+              Fournisseur vérifié VOLTA
+            </div>
           </Card>
           <p className="text-xs text-slate-500">
             VOLTA met en relation : contactez directement le fournisseur pour discuter de vos besoins. Aucune réservation ni paiement ne passe par la plateforme.

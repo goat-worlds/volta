@@ -5,7 +5,8 @@ import EquipmentCard from '../../components/EquipmentCard'
 import HowItWorks from '../../components/HowItWorks'
 import VerificationLevels from '../../components/VerificationLevels'
 import SupplierCTA from '../../components/SupplierCTA'
-import { Package, Truck, Hammer, Building2, Zap } from 'lucide-react'
+import Carousel from '../../components/Carousel'
+import { Package, Truck, Hammer, Building2, Zap, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const ICON_MAP: Record<string, any> = {
@@ -50,18 +51,24 @@ export default function Home() {
 
         {published.length > 0 && (
           <section className="mx-auto max-w-7xl px-4 py-16 md:py-24">
-            <div className="mb-12 flex items-center justify-between">
+            <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">Équipements en vedette</h2>
+                <h2 className="text-3xl font-bold text-acier-900 md:text-4xl">Équipements en vedette</h2>
                 <p className="mt-2 text-lg text-slate-600">Les meilleurs engins vérifiés et certifiés par VOLTA.</p>
               </div>
-              <Link to="/catalogue" className="text-sm font-semibold text-yellow-600 hover:text-yellow-700">
-                Voir tous les équipements →
+              <Link
+                to="/catalogue"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-btp-600 transition hover:text-btp-700"
+              >
+                Voir tous les équipements <ArrowRight size={15} />
               </Link>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {published.slice(0, 4).map((e) => (
+            {/* Le catalogue publié dépasse vite quatre engins : une grille figée
+                en cachait le reste derrière un lien. Le carrousel les fait
+                défiler sur place. */}
+            <Carousel ariaLabel="Équipements en vedette">
+              {published.slice(0, 12).map((e) => (
                 <EquipmentCard
                   key={e.id}
                   id={e.id}
@@ -72,7 +79,7 @@ export default function Home() {
                   level={e.level as 'BASIC' | 'SILVER' | 'GOLD'}
                 />
               ))}
-            </div>
+            </Carousel>
           </section>
         )}
 

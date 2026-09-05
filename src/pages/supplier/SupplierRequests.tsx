@@ -59,7 +59,7 @@ export default function SupplierRequests() {
                         <button
                           onClick={() => {
                             void respondRentalRequest(r.id, true)
-                            showToast('Demande acceptée ✔')
+                            showToast('Demande acceptée.')
                           }}
                           className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
                         >

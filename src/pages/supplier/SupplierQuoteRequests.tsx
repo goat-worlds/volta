@@ -122,7 +122,7 @@ export default function SupplierQuoteRequests() {
       })
       setReplyTo(null)
       await load()
-      showToast('Devis envoyé au client ✔')
+      showToast('Devis envoyé au client.')
     } catch {
       setFormError("L'envoi a échoué. La demande a peut-être déjà été tranchée.")
     } finally {
