@@ -35,6 +35,12 @@ interface Store {
   favorites: string[]
   isFavorite: (equipmentId: string) => boolean
   toggleFavorite: (equipmentId: string) => void
+  /** Notifications adressées au rôle de l'utilisateur connecté, récentes d'abord. */
+  myNotifications: Notification[]
+  /** Celles qu'il n'a pas encore ouvertes — c'est le compteur affiché. */
+  unreadNotifications: Notification[]
+  /** Appelé à l'ouverture de l'onglet : remet le compteur à zéro. */
+  markNotificationsRead: () => void
   addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Promise<Equipment>
   submitEquipment: (equipmentId: string) => Promise<void>
   assignInspection: (equipmentId: string, technicalTeamId: string) => Promise<void>
@@ -94,10 +100,21 @@ export interface RegisterInput {
  */
 const favoritesKey = (userId: string) => `volta_favorites_${userId}`
 
-function readFavorites(userId: string | undefined): string[] {
-  if (!userId) return []
+/**
+ * Notifications lues.
+ *
+ * Une notification vise un rôle, pas une personne : trois administrateurs
+ * partagent les mêmes. Le drapeau `read` du serveur est donc commun, et aucun
+ * endpoint ne permet de le lever — le faire effacerait de toute façon le compteur
+ * d'un collègue qui n'a rien lu. La lecture est propre à chacun : elle vit dans
+ * son navigateur, comme la sélection de favoris.
+ */
+const notificationsReadKey = (userId: string) => `volta_notifications_read_${userId}`
+
+/** Liste d'identifiants stockée localement, tolérante à un contenu abîmé. */
+function readIdList(key: string): string[] {
   try {
-    const raw = localStorage.getItem(favoritesKey(userId))
+    const raw = localStorage.getItem(key)
     const parsed: unknown = raw ? JSON.parse(raw) : []
     return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
   } catch {
@@ -105,6 +122,19 @@ function readFavorites(userId: string | undefined): string[] {
     // réponse correcte, l'écran s'affiche.
     return []
   }
+}
+
+function writeIdList(key: string, ids: string[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(ids))
+  } catch {
+    // Écriture refusée (navigation privée, stockage plein) : la valeur reste
+    // valable pour la session en cours.
+  }
+}
+
+function readFavorites(userId: string | undefined): string[] {
+  return userId ? readIdList(favoritesKey(userId)) : []
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -121,11 +151,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>([])
 
   // La sélection suit l'utilisateur : à la connexion on charge la sienne, à la
   // déconnexion elle disparaît de l'écran sans être effacée du navigateur.
   useEffect(() => {
     setFavorites(readFavorites(currentUser?.id))
+    setReadNotificationIds(
+      currentUser?.id ? readIdList(notificationsReadKey(currentUser.id)) : [],
+    )
   }, [currentUser?.id])
 
   const toggleFavorite = useCallback(
@@ -136,17 +170,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const next = previous.includes(equipmentId)
           ? previous.filter((id) => id !== equipmentId)
           : [...previous, equipmentId]
-        try {
-          localStorage.setItem(favoritesKey(userId), JSON.stringify(next))
-        } catch {
-          // Écriture refusée (navigation privée, stockage plein) : la sélection
-          // reste valable pour la session en cours.
-        }
+        writeIdList(favoritesKey(userId), next)
         return next
       })
     },
     [currentUser?.id],
   )
+
+  /** Les notifications adressées au rôle de l'utilisateur connecté. */
+  const myNotifications = useMemo(
+    () => (currentUser ? notifications.filter((n) => n.role === currentUser.role) : []),
+    [notifications, currentUser],
+  )
+
+  /**
+   * Non lues : ni marquées côté serveur, ni ouvertes par cet utilisateur.
+   * Le drapeau du serveur reste respecté — il sert au jeu de données initial.
+   */
+  const unreadNotifications = useMemo(
+    () => myNotifications.filter((n) => !n.read && !readNotificationIds.includes(n.id)),
+    [myNotifications, readNotificationIds],
+  )
+
+  const markNotificationsRead = useCallback(() => {
+    const userId = currentUser?.id
+    if (!userId) return
+    setReadNotificationIds((previous) => {
+      const fresh = myNotifications.map((n) => n.id).filter((id) => !previous.includes(id))
+      if (fresh.length === 0) return previous
+      const next = [...previous, ...fresh]
+      writeIdList(notificationsReadKey(userId), next)
+      return next
+    })
+  }, [currentUser?.id, myNotifications])
 
   const reload = useCallback(async () => {
     try {
@@ -214,6 +270,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       favorites,
       isFavorite: (equipmentId: string) => favorites.includes(equipmentId),
       toggleFavorite,
+
+      myNotifications,
+      unreadNotifications,
+      markNotificationsRead,
 
       async register(input) {
         const res = await apiPost<{ token: string; user: User }>('/auth/register', input)
@@ -356,7 +416,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return quote
       },
     }),
-    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, favorites, toggleFavorite, reload],
+    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, favorites, toggleFavorite, myNotifications, unreadNotifications, markNotificationsRead, reload],
   )
 
   if (loading) {

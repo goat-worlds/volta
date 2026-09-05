@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import {
   LayoutDashboard, Truck, Plus, Inbox, FileText, ClipboardCheck,
-  Users, Package, Search, Receipt, CalendarCheck, Heart, Wrench,
+  Users, Package, Search, Receipt, CalendarCheck, Heart, Wrench, Bell,
 } from 'lucide-react'
 import Header from './Header'
 import Footer from './Footer'
@@ -35,11 +35,13 @@ const SUPPLIER_LINKS: ShellLink[] = [
   { to: '/supplier/demandes', label: 'Demandes de devis', icon: Inbox },
   { to: '/supplier/devis', label: 'Mes devis', icon: Receipt },
   { to: '/supplier/locations', label: 'Locations', icon: CalendarCheck },
+  { to: '/supplier/notifications', label: 'Notifications', icon: Bell },
 ]
 
 const TECHNICAL_LINKS: ShellLink[] = [
   { to: '/technical', label: 'Tableau de bord', end: true, icon: LayoutDashboard },
   { to: '/technical/missions', label: 'Mes missions', icon: Wrench },
+  { to: '/technical/notifications', label: 'Notifications', icon: Bell },
 ]
 
 const ADMIN_LINKS: ShellLink[] = [
@@ -49,6 +51,7 @@ const ADMIN_LINKS: ShellLink[] = [
   { to: '/admin/reports', label: 'Rapports', icon: FileText },
   { to: '/admin/requests', label: 'Demandes', icon: Inbox },
   { to: '/admin/users', label: 'Utilisateurs', icon: Users },
+  { to: '/admin/notifications', label: 'Notifications', icon: Bell },
 ]
 
 const CLIENT_LINKS: ShellLink[] = [
@@ -58,6 +61,7 @@ const CLIENT_LINKS: ShellLink[] = [
   { to: '/client/demandes', label: 'Mes demandes', icon: Package },
   { to: '/client/devis', label: 'Mes devis', icon: Receipt },
   { to: '/client/locations', label: 'Mes locations', icon: CalendarCheck },
+  { to: '/client/notifications', label: 'Notifications', icon: Bell },
 ]
 
 export function SupplierLayout() {

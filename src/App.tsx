@@ -29,6 +29,7 @@ import AdminUsers from './pages/admin/AdminUsers'
 import TechnicalDashboard from './pages/technical/TechnicalDashboard'
 import TechnicalMissions from './pages/technical/TechnicalMissions'
 import TechnicalInspection from './pages/technical/TechnicalInspection'
+import NotificationsPage from './pages/NotificationsPage'
 
 export default function App() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/client/devis" element={<ClientQuotes />} />
             <Route path="/client/locations" element={<ClientRentals />} />
             <Route path="/client/favoris" element={<ClientFavorites />} />
+            <Route path="/client/notifications" element={<NotificationsPage />} />
           </Route>
           <Route element={<SupplierLayout />}>
             <Route path="/supplier" element={<SupplierDashboard />} />
@@ -68,6 +70,7 @@ export default function App() {
                 parcours. L'ancienne adresse reste servie. */}
             <Route path="/supplier/locations" element={<SupplierRequests />} />
             <Route path="/supplier/requests" element={<SupplierRequests />} />
+            <Route path="/supplier/notifications" element={<NotificationsPage />} />
           </Route>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />
@@ -76,11 +79,13 @@ export default function App() {
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/requests" element={<AdminRequests />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/notifications" element={<NotificationsPage />} />
           </Route>
           <Route element={<TechnicalLayout />}>
             <Route path="/technical" element={<TechnicalDashboard />} />
             <Route path="/technical/missions" element={<TechnicalMissions />} />
             <Route path="/technical/inspection/:id" element={<TechnicalInspection />} />
+            <Route path="/technical/notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -44,11 +44,14 @@ export default function RoleShell({
   space: string
   links: ShellLink[]
 }) {
-  const { currentUser, notifications, logout } = useStore()
+  const { currentUser, unreadNotifications, logout } = useStore()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const unread = notifications.filter((n) => n.role === role && !n.read).length
+  const unread = unreadNotifications.length
+  // La coque connaît le compteur : chaque espace n'a qu'à déclarer son lien
+  // « Notifications », sans le recalculer quatre fois.
+  const notificationsTo = links.find((l) => l.to.endsWith('/notifications'))?.to
 
   // Le titre de la page vient du lien actif : il est déjà écrit une fois dans
   // la navigation, le redéclarer dans chaque page les ferait diverger.
@@ -58,24 +61,32 @@ export default function RoleShell({
 
   const nav = (
     <nav className="flex flex-col gap-1">
-      {links.map((l) => (
-        <NavLink
-          key={l.to}
-          to={l.to}
-          end={l.end}
-          onClick={() => setMenuOpen(false)}
-          className={({ isActive }) =>
-            `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-              isActive
-                ? 'bg-amber-400 text-slate-900'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`
-          }
-        >
-          <l.icon size={16} className="shrink-0" />
-          {l.label}
-        </NavLink>
-      ))}
+      {links.map((l) => {
+        const badge = l.to === notificationsTo ? unread : 0
+        return (
+          <NavLink
+            key={l.to}
+            to={l.to}
+            end={l.end}
+            onClick={() => setMenuOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-amber-400 text-slate-900'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`
+            }
+          >
+            <l.icon size={16} className="shrink-0" />
+            <span className="flex-1">{l.label}</span>
+            {badge > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-btp-500 px-1.5 text-[11px] font-bold text-white">
+                {badge > 99 ? '99+' : badge}
+              </span>
+            )}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 
@@ -99,10 +110,18 @@ export default function RoleShell({
           <ExternalLink size={16} className="shrink-0" />
           Voir le site public
         </Link>
-        <div className="flex items-center gap-3 rounded-lg bg-slate-800/60 px-3 py-2 text-xs text-slate-300">
-          <Bell size={14} className="shrink-0" />
-          {unread === 0 ? 'Aucune notification' : `${unread} notification${unread > 1 ? 's' : ''} non lue${unread > 1 ? 's' : ''}`}
-        </div>
+        {notificationsTo && (
+          <Link
+            to={notificationsTo}
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-3 rounded-lg bg-slate-800/60 px-3 py-2 text-xs text-slate-300 transition hover:bg-slate-800 hover:text-white"
+          >
+            <Bell size={14} className="shrink-0" />
+            {unread === 0
+              ? 'Aucune notification'
+              : `${unread} notification${unread > 1 ? 's' : ''} non lue${unread > 1 ? 's' : ''}`}
+          </Link>
+        )}
       </div>
     </>
   )
@@ -136,6 +155,24 @@ export default function RoleShell({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* La cloche suit l'utilisateur d'un écran à l'autre : le compteur
+                reste visible sans revenir à la barre latérale. */}
+            {notificationsTo && (
+              <Link
+                to={notificationsTo}
+                aria-label={
+                  unread === 0 ? 'Notifications' : `Notifications, ${unread} non lue${unread > 1 ? 's' : ''}`
+                }
+                className="relative rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-acier-900"
+              >
+                <Bell size={18} />
+                {unread > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-btp-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                    {unread > 99 ? '99+' : unread}
+                  </span>
+                )}
+              </Link>
+            )}
             <div className="hidden text-right sm:block">
               <div className="text-sm font-medium leading-tight text-slate-900">
                 {currentUser?.company || currentUser?.name}
