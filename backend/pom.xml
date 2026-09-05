@@ -44,6 +44,18 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!--
+			PostgreSQL pour l'hébergement : Render ne provisionne pas de MySQL.
+			Le pilote retenu au démarrage est celui de l'URL JDBC, les deux
+			cohabitent donc sans effet sur le développement local, qui reste sur
+			MySQL. Aucune requête native dans le projet : Hibernate produit le
+			SQL selon le dialecte.
+		-->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>

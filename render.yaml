@@ -1,0 +1,73 @@
+# Blueprint Render — backend VOLTA et sa base de données.
+#
+# Déploiement : sur render.com, « New » → « Blueprint », désigner ce dépôt.
+# Render lit ce fichier, crée la base puis le service, et injecte les
+# identifiants de connexion dans le second.
+#
+# Le frontend n'est pas ici : il est déployé sur Vercel (voir vercel.json).
+# Une fois les deux en ligne, deux variables se répondent et doivent être
+# renseignées à la main — elles ne peuvent pas l'être avant que les URL
+# n'existent :
+#
+#   ici, sur le service          VOLTA_CORS_ALLOWED_ORIGINS = https://<app>.vercel.app
+#   sur Vercel, au frontend      VITE_API_URL               = https://<service>.onrender.com/api
+#
+# Sans la première, le navigateur bloque tous les appels ; sans la seconde, le
+# frontend appelle sa propre origine et ne trouve pas d'API.
+
+databases:
+  - name: volta-db
+    databaseName: volta
+    user: volta
+    plan: free
+
+services:
+  - type: web
+    name: volta-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    # Le contexte est le dossier backend : le Dockerfile y copie pom.xml et src
+    # par des chemins relatifs.
+    dockerContext: ./backend
+    healthCheckPath: /api/categories
+    envVars:
+      # Ce profil compose l'URL JDBC PostgreSQL à partir des variables
+      # ci-dessous. Sans lui, l'application chercherait MySQL en local.
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+
+      - key: PGHOST
+        fromDatabase:
+          name: volta-db
+          property: host
+      - key: PGPORT
+        fromDatabase:
+          name: volta-db
+          property: port
+      - key: PGDATABASE
+        fromDatabase:
+          name: volta-db
+          property: database
+      - key: PGUSER
+        fromDatabase:
+          name: volta-db
+          property: user
+      - key: PGPASSWORD
+        fromDatabase:
+          name: volta-db
+          property: password
+
+      # Premier démarrage : Hibernate crée le schéma, le projet n'ayant pas
+      # d'outil de migration. À basculer sur « validate » une fois stable.
+      - key: DDL_AUTO
+        value: update
+
+      - key: SESSION_DURATION_DAYS
+        value: "7"
+
+      # À renseigner après le premier déploiement du frontend. Ne jamais mettre
+      # « * » : les requêtes portent un jeton de session, et toute origine
+      # autorisée pourrait alors agir avec les droits du visiteur connecté.
+      - key: VOLTA_CORS_ALLOWED_ORIGINS
+        sync: false
