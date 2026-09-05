@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, Modal, PageTitle, StatusBadge } from '../../components/ui'
+import { Card, EmptyState, Modal, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import EquipmentDecision from '../../components/Admin/EquipmentDecision'
 
 const RESULT_LABEL = {
   CONFORME: { label: 'Conforme', cls: 'text-emerald-600' },
@@ -11,6 +12,7 @@ const RESULT_LABEL = {
 export default function AdminReports() {
   const { reports, equipment, inspections, users } = useStore()
   const [openId, setOpenId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const report = reports.find((r) => r.id === openId)
   const reportEq = report ? equipment.find((e) => e.id === report.equipmentId) : undefined
 
@@ -69,12 +71,21 @@ export default function AdminReports() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-400">
-              Pour référencer ou refuser cet engin, ouvrez-le depuis la page Engins.
-            </p>
+            {/* La décision se prend ici : le directeur vient de lire les
+                constats, c'est le moment où il a de quoi trancher. */}
+            {reportEq && (
+              <EquipmentDecision
+                equipment={reportEq}
+                onDone={(message) => {
+                  setToast(message)
+                  setTimeout(() => setToast(null), 4000)
+                }}
+              />
+            )}
           </div>
         )}
       </Modal>
+      <Toast message={toast} />
     </div>
   )
 }

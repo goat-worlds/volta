@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, LevelBadge, Modal, PageTitle, StatusBadge, Toast, fmtPrice } from '../../components/ui'
 import InspectionReview from '../../components/Admin/InspectionReview'
-import type { Equipment, Level } from '../../store/types'
+import EquipmentDecision from '../../components/Admin/EquipmentDecision'
+import type { Equipment } from '../../store/types'
 
 export default function AdminEquipment() {
   const {
@@ -12,11 +13,6 @@ export default function AdminEquipment() {
     reports,
     inspections,
     assignInspection,
-    rejectEquipment,
-    referenceEquipment,
-    publishEquipment,
-    unpublishEquipment,
-    requestCorrection,
   } = useStore()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // Vide au départ : l'équipe retenue est celle affichée par la liste, calculée
@@ -24,7 +20,6 @@ export default function AdminEquipment() {
   // absent d'une autre base, le menu affichait alors la première équipe tout en
   // assignant à une autre.
   const [teamId, setTeamId] = useState('')
-  const [level, setLevel] = useState<Level>('GOLD')
   const [toast, setToast] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
 
@@ -170,99 +165,13 @@ export default function AdminEquipment() {
             {selected.status === 'PENDING_ADMIN_REVIEW' && (
               <div className="rounded-lg bg-slate-50 p-4">
                 <div className="mb-3 text-sm font-semibold">Constats d'inspection</div>
-                <div className="mb-4">
-                  <InspectionReview inspection={inspection} report={report} inspector={inspector} />
-                </div>
-
-                <div className="mb-3 border-t border-slate-200 pt-4 text-sm font-semibold">
-                  Décision administrative
-                </div>
-                <div className="mb-3 flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">Niveau :</span>
-                  {(['BASIC', 'SILVER', 'GOLD'] as Level[]).map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setLevel(l)}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${level === l ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      referenceEquipment(selected.id, level)
-                      showToast(`Engin référencé au niveau ${level}.`)
-                    }}
-                    className="flex-1 rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-                  >
-                    Référencer ({level})
-                  </button>
-                  <button
-                    onClick={() => {
-                      rejectEquipment(selected.id)
-                      setSelectedId(null)
-                      showToast('Engin refusé.')
-                    }}
-                    className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700"
-                  >
-                    Refuser
-                  </button>
-                  <button
-                    onClick={() => {
-                      requestCorrection(selected.id)
-                      setSelectedId(null)
-                      showToast('Corrections demandées au fournisseur.')
-                    }}
-                    className="flex-1 rounded-lg border border-amber-500 py-2 text-sm font-semibold text-amber-600 hover:bg-amber-50"
-                  >
-                    Corrections
-                  </button>
-                </div>
+                <InspectionReview inspection={inspection} report={report} inspector={inspector} />
               </div>
             )}
 
-            {selected.status === 'REFERENCED' && (
-              <button
-                onClick={() => {
-                  publishEquipment(selected.id)
-                  setSelectedId(null)
-                  showToast('Engin publié sur le catalogue.')
-                }}
-                className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
-              >
-                Publier sur le catalogue
-              </button>
-            )}
-
-            {selected.status === 'PUBLISHED' && (
-              <button
-                onClick={() => {
-                  unpublishEquipment(selected.id)
-                  setSelectedId(null)
-                  showToast('Engin dépublié du catalogue.')
-                }}
-                className="w-full rounded-lg border border-red-600 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
-              >
-                Dépublier du catalogue
-              </button>
-            )}
-
-            {['PENDING_INSPECTION', 'INSPECTION_IN_PROGRESS'].includes(selected.status) && (
-              <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
-                Inspection en cours par l'équipe technique. Le rapport apparaîtra automatiquement à sa soumission.
-              </p>
-            )}
-            {selected.status === 'DRAFT' && (
-              <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Brouillon non soumis par le fournisseur.</p>
-            )}
-            {selected.status === 'CORRECTIONS_REQUESTED' && (
-              <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">Corrections demandées au fournisseur.</p>
-            )}
-            {selected.status === 'REJECTED' && (
-              <p className="rounded-lg bg-red-50 p-3 text-xs text-red-600">Engin refusé après vérification.</p>
-            )}
+            {/* Le même bloc de décision qu'en page Rapports : une seule
+                implémentation, donc un seul comportement à corriger. */}
+            <EquipmentDecision equipment={selected} onDone={showToast} />
           </div>
         )}
       </Modal>
