@@ -9,6 +9,7 @@ import {
   type Quote, type QuoteRequest,
 } from '../../store/quotesClient'
 import { Card, EmptyState, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
+import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
 import { quoteRef, quoteRequestRef } from '../../lib/references'
 
 interface Line {
@@ -93,10 +94,7 @@ export default function ClientQuotes() {
   }
 
   const equipmentOf = (id: string) => equipment.find((e) => e.id === id)
-  const supplierName = (id: string) => {
-    const supplier = users.find((u) => u.id === id)
-    return supplier?.company || supplier?.name || 'Fournisseur'
-  }
+  const supplierOf = (id: string) => users.find((u) => u.id === id)
 
   const visible = filter === 'all' ? rows : rows.filter((r) => r.quote.status === filter)
   const waiting = rows.filter((r) => r.quote.status === 'SENT')
@@ -229,8 +227,9 @@ export default function ClientQuotes() {
 
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-acier-900">{eq?.name ?? 'Équipement'}</h3>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      Proposé par {supplierName(quote.supplierId)}
+                    <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                      Proposé par
+                      <SupplierIdentityCompact supplier={supplierOf(quote.supplierId)} />
                     </p>
 
                     <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
@@ -279,6 +278,17 @@ export default function ClientQuotes() {
                         <Clock size={13} />
                         Offre valable jusqu’au {quote.validUntil}
                       </p>
+                    )}
+
+                    {/* VOLTA n'encaisse rien : une fois l'offre retenue, les
+                        coordonnées du fournisseur sont ce qui permet au client
+                        d'organiser la location. */}
+                    {quote.status === 'ACCEPTED' && (
+                      <SupplierIdentity
+                        supplier={supplierOf(quote.supplierId)}
+                        title="Contactez le fournisseur"
+                        className="mt-3 border-emerald-200 bg-emerald-50/40"
+                      />
                     )}
                   </div>
 

@@ -7,6 +7,8 @@ import {
   type QuoteRequest, type Quote,
 } from '../../store/quotesClient'
 import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
+import { quoteRef } from '../../lib/references'
 
 /**
  * Détail d'une demande et comparaison des devis reçus.
@@ -21,7 +23,7 @@ import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/
  */
 export default function ClientQuoteRequestDetail() {
   const { id } = useParams<{ id: string }>()
-  const { equipment, reload } = useStore()
+  const { equipment, users, reload } = useStore()
 
   const [request, setRequest] = useState<QuoteRequest | null>(null)
   const [quotes, setQuotes] = useState<Quote[]>([])
@@ -97,6 +99,8 @@ export default function ClientQuoteRequestDetail() {
 
   const eq = equipment.find((e) => e.id === request.equipmentId)
   const decided = request.status !== 'PENDING'
+  const supplierOf = (id: string) => users.find((u) => u.id === id)
+  const acceptedQuote = quotes.find((q) => q.status === 'ACCEPTED')
 
   /** Critères comparés, dans l'ordre où ils pèsent sur la décision. */
   const criteria: { label: string; render: (q: Quote) => string }[] = [
@@ -162,6 +166,27 @@ export default function ClientQuoteRequestDetail() {
         </div>
       )}
 
+      {/* Offre retenue : le client passe de la comparaison à l'organisation de
+          la location, et c'est le fournisseur qu'il lui faut joindre. */}
+      {acceptedQuote && (
+        <div className="grid gap-4 sm:grid-cols-[1fr_18rem]">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+            <div className="flex items-center gap-2 font-semibold text-emerald-800">
+              <Check size={16} />
+              Offre retenue — {formatFcfa(acceptedQuote.price)} / jour
+            </div>
+            <p className="mt-1 text-xs text-emerald-700">
+              VOLTA ne prend ni réservation ni paiement : convenez directement des modalités
+              avec le fournisseur.
+            </p>
+          </div>
+          <SupplierIdentity
+            supplier={supplierOf(acceptedQuote.supplierId)}
+            title="Contactez le fournisseur"
+          />
+        </div>
+      )}
+
       {quotes.length === 0 ? (
         <EmptyState
           icon={Receipt}
@@ -192,7 +217,13 @@ export default function ClientQuoteRequestDetail() {
                   </th>
                   {quotes.map((q) => (
                     <th key={q.id} className="px-5 py-3 text-left">
-                      <div className="font-semibold text-slate-900">Offre {q.id.slice(-4).toUpperCase()}</div>
+                      {/* Une offre se juge autant sur qui la propose que sur son
+                          prix : la colonne porte donc le fournisseur, la
+                          référence n'étant qu'un repère pour la citer. */}
+                      <SupplierIdentityCompact supplier={supplierOf(q.supplierId)} />
+                      <div className="mt-1 font-mono text-[11px] font-normal text-slate-400">
+                        {quoteRef(q.id, q.createdAt)}
+                      </div>
                       <div className="mt-1"><QuoteStatusBadge status={q.status} /></div>
                     </th>
                   ))}

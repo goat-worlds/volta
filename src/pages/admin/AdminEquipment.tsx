@@ -19,13 +19,21 @@ export default function AdminEquipment() {
     requestCorrection,
   } = useStore()
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [teamId, setTeamId] = useState('u-tech-1')
+  // Vide au départ : l'équipe retenue est celle affichée par la liste, calculée
+  // plus bas. Un identifiant en dur pointait vers un compte de jeu de test —
+  // absent d'une autre base, le menu affichait alors la première équipe tout en
+  // assignant à une autre.
+  const [teamId, setTeamId] = useState('')
   const [level, setLevel] = useState<Level>('GOLD')
   const [toast, setToast] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
 
   const selected: Equipment | undefined = equipment.find((e) => e.id === selectedId)
   const technicalTeams = users.filter((u) => u.role === 'TECHNICAL')
+  // Ce que le menu montre est ce qui sera assigné, même si l'admin n'y touche pas.
+  const effectiveTeamId = technicalTeams.some((t) => t.id === teamId)
+    ? teamId
+    : (technicalTeams[0]?.id ?? '')
   const report = selected ? reports.find((r) => r.equipmentId === selected.id) : undefined
   const inspection = selected ? inspections.find((i) => i.equipmentId === selected.id) : undefined
   const inspector = inspection ? users.find((u) => u.id === inspection.technicalTeamId) : undefined
@@ -127,20 +135,34 @@ export default function AdminEquipment() {
             {selected.status === 'SUBMITTED' && (
               <div className="rounded-lg bg-slate-50 p-4">
                 <div className="mb-2 text-sm font-semibold">Assigner une inspection</div>
-                <select value={teamId} onChange={(e) => setTeamId(e.target.value)} className="mb-3 w-full rounded-lg border border-slate-300 p-2 text-sm">
+                <select
+                  value={effectiveTeamId}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  className="mb-3 w-full rounded-lg border border-slate-300 p-2 text-sm"
+                >
                   {technicalTeams.map((t) => (
-                    <option key={t.id} value={t.id}>{t.company}</option>
+                    <option key={t.id} value={t.id}>{t.company || t.name}</option>
                   ))}
                 </select>
                 <button
-                  onClick={() => {
-                    assignInspection(selected.id, teamId)
-                    setSelectedId(null)
-                    showToast("Inspection assignée. L'équipe technique a été notifiée.")
+                  disabled={!effectiveTeamId}
+                  onClick={async () => {
+                    const team = technicalTeams.find((t) => t.id === effectiveTeamId)
+                    try {
+                      await assignInspection(selected.id, effectiveTeamId)
+                      setSelectedId(null)
+                      showToast(`Inspection assignée à ${team?.company || team?.name}.`)
+                    } catch (error) {
+                      showToast(
+                        error instanceof Error
+                          ? `Assignation refusée : ${error.message}`
+                          : "L'assignation a échoué.",
+                      )
+                    }
                   }}
-                  className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                  className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  Assigner une inspection
+                  {technicalTeams.length === 0 ? 'Aucune équipe technique enregistrée' : 'Assigner une inspection'}
                 </button>
               </div>
             )}
