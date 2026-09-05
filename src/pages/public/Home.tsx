@@ -3,6 +3,7 @@ import Hero from '../../components/Hero'
 import CategoryCard from '../../components/CategoryCard'
 import EquipmentCard from '../../components/EquipmentCard'
 import HowItWorks from '../../components/HowItWorks'
+import WhyVolta from '../../components/WhyVolta'
 import VerificationLevels from '../../components/VerificationLevels'
 import SupplierCTA from '../../components/SupplierCTA'
 import Carousel from '../../components/Carousel'
@@ -85,29 +86,7 @@ export default function Home() {
 
         <HowItWorks />
 
-        <section className="mx-auto max-w-7xl px-4 py-16 md:py-24">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">Pourquoi choisir VOLTA ?</h2>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="rounded-xl bg-slate-50 p-8">
-              <div className="text-4xl font-bold text-yellow-600">100%</div>
-              <h3 className="mt-4 font-semibold text-slate-900">Engins vérifiés</h3>
-              <p className="mt-2 text-sm text-slate-600">Tous les équipements passent une inspection technique stricte.</p>
-            </div>
-            <div className="rounded-xl bg-slate-50 p-8">
-              <div className="text-4xl font-bold text-yellow-600">50+</div>
-              <h3 className="mt-4 font-semibold text-slate-900">Fournisseurs certifiés</h3>
-              <p className="mt-2 text-sm text-slate-600">Partenaires de confiance contrôlés régulièrement.</p>
-            </div>
-            <div className="rounded-xl bg-slate-50 p-8">
-              <div className="text-4xl font-bold text-yellow-600">24/7</div>
-              <h3 className="mt-4 font-semibold text-slate-900">Support professionnel</h3>
-              <p className="mt-2 text-sm text-slate-600">Assistance dédiée pour vos demandes et questions.</p>
-            </div>
-          </div>
-        </section>
+        <WhyVolta />
 
         <VerificationLevels />
 

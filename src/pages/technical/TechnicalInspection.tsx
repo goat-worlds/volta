@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Ruler } from 'lucide-react'
+import { ENGIN_PHOTOS } from '../../lib/enginPhotos'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, StatusBadge, Toast } from '../../components/ui'
 import type { CheckResult, ChecklistItem } from '../../store/types'
@@ -149,10 +150,15 @@ export default function TechnicalInspection() {
             />
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => setPhotos((p) => [...p, `https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=320&q=70&t=${Date.now()}`])}
+                onClick={() =>
+                  // Les clichés de terrain viennent de la photothèque servie par
+                  // l'application, pas d'un service externe injoignable depuis
+                  // un chantier.
+                  setPhotos((p) => [...p, ENGIN_PHOTOS[p.length % ENGIN_PHOTOS.length].src])
+                }
                 className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200"
               >
-                + Photo (mock)
+                + Photo
               </button>
               <button
                 onClick={() => setMeasures((m) => [...m, `Pression hydraulique : ${(300 + m.length * 5)} bar`])}

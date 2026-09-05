@@ -1,15 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText } from 'lucide-react'
+import { photosForCategory } from '../../lib/enginPhotos'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, ProgressBar } from '../../components/ui'
 
-const EQUIPMENT_PHOTOS = [
-  'https://images.unsplash.com/photo-1580901368919-7738efb0f87e?w=640&q=70',
-  'https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=640&q=70',
-  'https://images.unsplash.com/photo-1523848309072-c199db53f137?w=640&q=70',
-  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=640&q=70',
-]
 
 export default function SupplierEquipmentNew() {
   const { categories, addEquipment, submitEquipment, currentUser } = useStore()
@@ -36,8 +31,11 @@ export default function SupplierEquipmentNew() {
   const input = 'w-full rounded-lg border border-slate-300 p-2 text-sm'
   const label = 'mb-1 block text-xs font-medium text-slate-500'
 
-  const addPhoto = () =>
-    setPhotos((p) => [...p, `${EQUIPMENT_PHOTOS[p.length % EQUIPMENT_PHOTOS.length]}`])
+  // La photothèque suit la catégorie choisie à l'étape 1 : un loueur de pelles
+  // voit ses pelles en premier.
+  const gallery = photosForCategory(form.categoryId)
+  const togglePhoto = (src: string) =>
+    setPhotos((p) => (p.includes(src) ? p.filter((x) => x !== src) : [...p, src]))
   const addDocument = (name: string) => setDocuments((d) => [...d, { name, type: 'PDF' }])
 
   const finish = async (submit: boolean) => {
@@ -45,7 +43,7 @@ export default function SupplierEquipmentNew() {
     try {
       const eq = await addEquipment({
         ...form,
-        photos: photos.length ? photos : [EQUIPMENT_PHOTOS[0]],
+        photos: photos.length ? photos : [gallery[0].src],
         documents,
         // Le serveur ignore ce champ et retient l'utilisateur authentifié ;
         // il reste envoyé pour que le contrat de l'API soit complet.
@@ -158,21 +156,49 @@ export default function SupplierEquipmentNew() {
         {step === 3 && (
           <div className="grid gap-5">
             <div>
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-1 flex items-center justify-between">
                 <span className="text-sm font-semibold">Photos ({photos.length})</span>
-                <button onClick={addPhoto} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200">
-                  + Ajouter une photo (mock)
-                </button>
+                {photos.length > 0 && (
+                  <button
+                    onClick={() => setPhotos([])}
+                    className="text-xs font-medium text-slate-500 hover:text-red-600"
+                  >
+                    Tout désélectionner
+                  </button>
+                )}
               </div>
-              {photos.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400">Aucune photo ajoutée</div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {photos.map((p, i) => (
-                    <img key={i} src={p} alt="" className="h-20 w-28 rounded-lg object-cover" />
-                  ))}
-                </div>
-              )}
+              <p className="mb-3 text-xs text-slate-500">
+                Sélectionnez les visuels qui correspondent à votre engin. La première photo
+                retenue illustrera la fiche au catalogue.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {gallery.map((photo) => {
+                  const index = photos.indexOf(photo.src)
+                  const chosen = index !== -1
+                  return (
+                    <button
+                      key={photo.src}
+                      type="button"
+                      onClick={() => togglePhoto(photo.src)}
+                      aria-pressed={chosen}
+                      className={`group relative overflow-hidden rounded-lg border-2 text-left transition ${
+                        chosen ? 'border-btp-500 ring-2 ring-btp-200' : 'border-transparent hover:border-slate-300'
+                      }`}
+                    >
+                      <img src={photo.src} alt={photo.label} className="h-24 w-full object-cover" />
+                      {chosen && (
+                        <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-btp-500 text-xs font-bold text-white">
+                          {index + 1}
+                        </span>
+                      )}
+                      <span className="block truncate bg-white px-2 py-1.5 text-[11px] font-medium text-slate-600">
+                        {photo.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between">
