@@ -18,6 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -205,10 +206,34 @@ class SecurityRulesTest {
     class FranchissementDeRole {
 
         @Test
-        @DisplayName("Un client n'atteint pas les endpoints d'administration")
-        void clientNAtteintPasLAdministration() throws Exception {
-            mvc.perform(get("/api/users").header("Authorization", "Bearer " + clientAToken))
+        @DisplayName("Un client ne crée pas de compte")
+        void clientNeCreePasDeCompte() throws Exception {
+            mvc.perform(post("/api/users")
+                       .header("Authorization", "Bearer " + clientAToken)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(body(Map.of(
+                               "name", "Intrus", "email", "intrus@volta.test",
+                               "role", "ADMIN", "password", "motdepasse"))))
                .andExpect(status().isForbidden());
+        }
+
+        /**
+         * L'annuaire est ouvert aux utilisateurs identifiés : l'application a
+         * besoin des noms. Ce sont les coordonnées qui sont réservées, et c'est
+         * cela que le test garde — un client qui liste les comptes ne doit en
+         * retirer aucun email ni téléphone.
+         */
+        @Test
+        @DisplayName("Un client lit l'annuaire sans les coordonnées")
+        void clientNObtientPasLesCoordonnees() throws Exception {
+            String json = mvc.perform(get("/api/users")
+                           .header("Authorization", "Bearer " + clientAToken))
+                   .andExpect(status().isOk())
+                   .andReturn().getResponse().getContentAsString();
+
+            assertThat(json).contains("\"name\"");
+            assertThat(json).doesNotContain("@volta.test");
+            assertThat(json).doesNotContain("\"phone\":\"+");
         }
 
         @Test

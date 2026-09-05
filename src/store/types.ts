@@ -117,3 +117,35 @@ export interface Notification {
   date: string
   read: boolean
 }
+
+export type QuoteRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
+
+export interface QuoteRequest {
+  id: string
+  equipmentId: string
+  clientId: string
+  supplierId: string
+  status: QuoteRequestStatus
+  message?: string
+  quantity: number
+  startDate: string
+  endDate: string
+  clientName: string
+  clientPhone: string
+  clientEmail: string
+  createdAt: string
+}
+
+export type QuoteStatus = 'SENT' | 'ACCEPTED' | 'REJECTED'
+
+export interface Quote {
+  id: string
+  quoteRequestId: string
+  supplierId: string
+  price: number
+  deliveryTime: number
+  conditions: string
+  status: QuoteStatus
+  validUntil: string
+  createdAt: string
+}

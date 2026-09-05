@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, ProgressBar } from '../../components/ui'
 
-const SUPPLIER_ID = 'u-sup-1'
-
 const EQUIPMENT_PHOTOS = [
   'https://images.unsplash.com/photo-1580901368919-7738efb0f87e?w=640&q=70',
   'https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=640&q=70',
@@ -13,7 +11,7 @@ const EQUIPMENT_PHOTOS = [
 ]
 
 export default function SupplierEquipmentNew() {
-  const { categories, addEquipment, submitEquipment } = useStore()
+  const { categories, addEquipment, submitEquipment, currentUser } = useStore()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
@@ -48,7 +46,9 @@ export default function SupplierEquipmentNew() {
         ...form,
         photos: photos.length ? photos : [EQUIPMENT_PHOTOS[0]],
         documents,
-        supplierId: SUPPLIER_ID,
+        // Le serveur ignore ce champ et retient l'utilisateur authentifié ;
+        // il reste envoyé pour que le contrat de l'API soit complet.
+        supplierId: currentUser?.id ?? '',
       })
       if (submit) await submitEquipment(eq.id)
       navigate('/supplier/equipment')

@@ -70,10 +70,16 @@ public class SecurityConfig {
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // --- Administration ---
-                // La liste des comptes expose des données personnelles : elle
-                // n'a rien à faire hors de l'espace d'administration.
-                .requestMatchers("/api/users").hasRole("ADMIN")
+                // --- Comptes ---
+                // Créer un compte ou changer un rôle relève de l'administration.
+                .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                // La consultation reste ouverte aux utilisateurs identifiés :
+                // l'application a besoin de l'annuaire — le technicien doit
+                // nommer le propriétaire de l'engin qu'il inspecte, le client le
+                // loueur qui lui répond. Les coordonnées, elles, sont retirées
+                // de la réponse pour tout le monde sauf l'administration
+                // (VoltaService.listVisibleUsers), et la modification est
+                // contrôlée pièce par pièce dans le service.
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                 // --- Catalogue : consultation ouverte, écriture réservée ---

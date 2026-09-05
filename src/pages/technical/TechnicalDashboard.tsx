@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, StatCard, StatusBadge } from '../../components/ui'
 
-const TEAM_ID = 'u-tech-1'
-
 export default function TechnicalDashboard() {
-  const { inspections, equipment, reports, notifications } = useStore()
-  const mine = inspections.filter((i) => i.technicalTeamId === TEAM_ID)
+  const { inspections, equipment, notifications, currentUser } = useStore()
+  // Les missions de l'équipe connectée. L'identifiant en dur affichait à tout
+  // technicien les missions d'une seule équipe.
+  const mine = inspections.filter((i) => i.technicalTeamId === currentUser?.id)
   const assigned = mine.filter((i) => i.status === 'ASSIGNED')
   const inProgress = mine.filter((i) => i.status === 'IN_PROGRESS')
   const done = mine.filter((i) => i.status === 'DONE')
@@ -14,19 +14,25 @@ export default function TechnicalDashboard() {
 
   return (
     <div>
-      <PageTitle title="Tableau de bord" subtitle="Société Technique ABC — Vérification d'engins VOLTA" />
+      <PageTitle
+        title="Tableau de bord"
+        subtitle={`${currentUser?.company || currentUser?.name || 'Équipe technique'} — Vérification d'engins VOLTA`}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Missions assignées" value={mine.length} />
         <StatCard label="À inspecter" value={assigned.length} accent="text-amber-600" />
         <StatCard label="Inspections en cours" value={inProgress.length} accent="text-orange-600" />
-        <StatCard label="Rapports envoyés" value={done.length + reports.length - done.length ? done.length : reports.length} accent="text-emerald-600" />
+        {/* Une mission terminée est une mission dont le rapport est parti :
+            c'est le même compte, inutile de le recalculer depuis `reports`,
+            qui contient aussi ceux des autres équipes. */}
+        <StatCard label="Rapports envoyés" value={done.length} accent="text-emerald-600" />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-bold">Missions récentes</h2>
-            <Link to="/technical/missions" className="text-sm font-medium text-blue-600 hover:underline">Voir tout</Link>
+            <Link to="/technical/missions" className="text-sm font-medium text-amber-600 hover:underline">Voir tout</Link>
           </div>
           <div className="divide-y divide-slate-100">
             {mine.slice(0, 5).map((i) => {

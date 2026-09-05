@@ -4,8 +4,6 @@ import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, LevelBadge, PageTitle, ProgressBar, StatusBadge, Toast, fmtPrice } from '../../components/ui'
 import type { EquipmentStatus } from '../../store/types'
 
-const SUPPLIER_ID = 'u-sup-1'
-
 const PROGRESS: Partial<Record<EquipmentStatus, number>> = {
   DRAFT: 10,
   SUBMITTED: 25,
@@ -20,9 +18,10 @@ const PROGRESS: Partial<Record<EquipmentStatus, number>> = {
 }
 
 export default function SupplierEquipment() {
-  const { equipment, submitEquipment } = useStore()
+  const { equipment, submitEquipment, currentUser } = useStore()
   const [toast, setToast] = useState<string | null>(null)
-  const mine = equipment.filter((e) => e.supplierId === SUPPLIER_ID)
+  // Le parc du compte connecté, et lui seul.
+  const mine = equipment.filter((e) => e.supplierId === currentUser?.id)
 
   const submit = (id: string, name: string) => {
     submitEquipment(id)
@@ -36,7 +35,7 @@ export default function SupplierEquipment() {
         title="Mes engins"
         subtitle="Suivez la progression du dossier de chaque engin."
         actions={
-          <Link to="/supplier/equipment/new" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+          <Link to="/supplier/equipment/new" className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-500">
             + Ajouter un engin
           </Link>
         }

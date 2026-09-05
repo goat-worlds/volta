@@ -28,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.UUID;
 
@@ -161,6 +162,290 @@ public class VoltaService {
         }
 
         return equipmentRepository.findByStatus(STATUS_PUBLISHED);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Listes cadrées sur l'appelant
+    //
+    //  Ces endpoints renvoyaient tous un findAll(). L'écran paraissait juste
+    //  parce que le frontend filtrait à l'affichage, mais la réponse HTTP
+    //  contenait les données de tout le monde : un fournisseur recevait les
+    //  coordonnées de chaque client, un technicien les missions des autres
+    //  équipes. Le filtre appartient au serveur — lui seul sait qui appelle.
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Utilisateur tel qu'il peut être montré à l'appelant.
+     *
+     * L'annuaire est nécessaire à l'application : le client a besoin du nom du
+     * loueur, l'administrateur du nom de l'équipe à qui il assigne. Les
+     * coordonnées, elles, ne regardent que l'administration — elles arrivent
+     * vides pour les autres plutôt que d'être omises, afin que le contrat de
+     * l'API reste le même pour tous.
+     */
+    public record UserView(String id, String name, String role, String company,
+                           String city, String email, String phone) {
+    }
+
+    private static UserView view(UserAccount u, boolean withContact) {
+        return new UserView(u.id, u.name, u.role, u.company, u.city,
+                withContact ? u.email : "", withContact ? u.phone : "");
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserView> listVisibleUsers() {
+        boolean admin = isAdmin();
+        return userRepository.findAll().stream().map(u -> view(u, admin)).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public UserView getVisibleUser(String id) {
+        UserAccount u = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable : " + id));
+        // On voit ses propres coordonnées, et l'administration voit celles de
+        // tous : un utilisateur doit pouvoir relire sa propre fiche.
+        boolean withContact = isAdmin() || id.equals(currentUser.requireId());
+        return view(u, withContact);
+    }
+
+    /** Champs modifiables d'un compte. Le mot de passe suit un autre chemin. */
+    public record UserInput(String name, String email, String phone, String role,
+                            String company, String city, String password) {
+    }
+
+    /**
+     * Crée un compte depuis l'administration.
+     *
+     * C'est le seul endroit d'où sort un ADMIN : l'inscription publique ne
+     * permet que CLIENT, SUPPLIER et TECHNICAL.
+     */
+    public UserView createUser(UserInput input, AuthService authService) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+
+        if (input.name() == null || input.name().isBlank()
+                || input.email() == null || input.email().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nom et email sont requis");
+        }
+        String role = input.role() == null || input.role().isBlank()
+                ? CurrentUser.ROLE_CLIENT : input.role().trim().toUpperCase();
+        if (!ASSIGNABLE_ROLES.contains(role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rôle inconnu : " + role);
+        }
+        if (userRepository.findByEmailIgnoreCase(input.email()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un compte existe déjà avec cet email");
+        }
+        // Un mot de passe absent produirait un compte auquel personne ne peut se
+        // connecter : mieux vaut refuser que créer une fiche morte.
+        if (input.password() == null || input.password().length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Un mot de passe d'au moins 6 caractères est requis");
+        }
+
+        UserAccount u = new UserAccount();
+        u.id = newId("u");
+        u.name = input.name().trim();
+        u.email = input.email().trim();
+        u.phone = input.phone() == null ? "" : input.phone().trim();
+        u.role = role;
+        u.company = input.company() == null ? "" : input.company().trim();
+        u.city = input.city() == null ? "" : input.city().trim();
+        u.passwordHash = authService.encodePassword(input.password());
+        return view(userRepository.save(u), true);
+    }
+
+    /** Rôles qu'un administrateur peut attribuer, celui d'administrateur inclus. */
+    private static final Set<String> ASSIGNABLE_ROLES = Set.of(
+            CurrentUser.ROLE_CLIENT, CurrentUser.ROLE_SUPPLIER,
+            CurrentUser.ROLE_TECHNICAL, CurrentUser.ROLE_ADMIN);
+
+    /**
+     * Met à jour un compte.
+     *
+     * Chacun corrige sa propre fiche ; seul l'administrateur touche au rôle,
+     * qui décide de ce qu'on a le droit de faire.
+     */
+    public UserView updateUser(String id, UserInput input) {
+        UserAccount me = currentUser.require();
+        boolean admin = CurrentUser.ROLE_ADMIN.equalsIgnoreCase(me.role);
+        if (!admin && !me.id.equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Vous ne pouvez modifier que votre propre compte");
+        }
+
+        UserAccount u = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable : " + id));
+
+        if (input.name() != null && !input.name().isBlank()) u.name = input.name().trim();
+        if (input.phone() != null) u.phone = input.phone().trim();
+        if (input.company() != null) u.company = input.company().trim();
+        if (input.city() != null) u.city = input.city().trim();
+
+        if (input.email() != null && !input.email().isBlank()
+                && !input.email().equalsIgnoreCase(u.email)) {
+            userRepository.findByEmailIgnoreCase(input.email()).ifPresent(other -> {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Cet email est déjà utilisé");
+            });
+            u.email = input.email().trim();
+        }
+
+        if (input.role() != null && !input.role().isBlank()) {
+            String role = input.role().trim().toUpperCase();
+            if (!admin) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Seule l'administration peut changer un rôle");
+            }
+            if (!ASSIGNABLE_ROLES.contains(role)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rôle inconnu : " + role);
+            }
+            u.role = role;
+        }
+
+        return view(userRepository.save(u), true);
+    }
+
+    /** Identifiants des engins du fournisseur connecté. */
+    private Set<String> ownEquipmentIds(String supplierId) {
+        return equipmentRepository.findBySupplierId(supplierId).stream()
+                .map(eq -> eq.id)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
+    private boolean isAdmin() {
+        try {
+            return CurrentUser.ROLE_ADMIN.equals(currentUser.role());
+        } catch (RuntimeException notAuthenticated) {
+            return false;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Inspection> listVisibleInspections() {
+        String role = currentUser.role();
+        String userId = currentUser.requireId();
+
+        if (CurrentUser.ROLE_ADMIN.equals(role)) {
+            return inspectionRepository.findAll();
+        }
+        if (CurrentUser.ROLE_TECHNICAL.equals(role)) {
+            return inspectionRepository.findAll().stream()
+                    .filter(i -> userId.equals(i.technicalTeamId))
+                    .toList();
+        }
+        if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
+            // Le fournisseur suit la vérification de son propre matériel : il
+            // voit l'inspection, sans avoir à connaître les autres dossiers.
+            Set<String> mine = ownEquipmentIds(userId);
+            return inspectionRepository.findAll().stream()
+                    .filter(i -> mine.contains(i.equipmentId))
+                    .toList();
+        }
+        // Le client loue un engin déjà vérifié ; le détail de l'inspection ne
+        // fait pas partie de ce qu'il consulte.
+        return List.of();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Report> listVisibleReports() {
+        String role = currentUser.role();
+        String userId = currentUser.requireId();
+
+        if (CurrentUser.ROLE_ADMIN.equals(role)) {
+            return reportRepository.findAll();
+        }
+        if (CurrentUser.ROLE_TECHNICAL.equals(role)) {
+            Set<String> myInspections = inspectionRepository.findAll().stream()
+                    .filter(i -> userId.equals(i.technicalTeamId))
+                    .map(i -> i.id)
+                    .collect(java.util.stream.Collectors.toSet());
+            return reportRepository.findAll().stream()
+                    .filter(r -> myInspections.contains(r.inspectionId))
+                    .toList();
+        }
+        if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
+            Set<String> mine = ownEquipmentIds(userId);
+            return reportRepository.findAll().stream()
+                    .filter(r -> mine.contains(r.equipmentId))
+                    .toList();
+        }
+        return List.of();
+    }
+
+    @Transactional(readOnly = true)
+    public List<RentalRequest> listVisibleRentalRequests() {
+        String role = currentUser.role();
+        UserAccount me = currentUser.require();
+
+        if (CurrentUser.ROLE_ADMIN.equals(role)) {
+            return rentalRequestRepository.findAll();
+        }
+        if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
+            return rentalRequestRepository.findAll().stream()
+                    .filter(r -> me.id.equals(r.supplierId))
+                    .toList();
+        }
+        if (CurrentUser.ROLE_CLIENT.equals(role)) {
+            // La demande de location ne porte pas d'identifiant client : elle
+            // est rattachée par l'email saisi au moment du devis.
+            String email = me.email == null ? "" : me.email;
+            return rentalRequestRepository.findAll().stream()
+                    .filter(r -> email.equalsIgnoreCase(r.clientEmail))
+                    .toList();
+        }
+        return List.of();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Notification> listVisibleNotifications() {
+        String role = currentUser.role();
+        if (CurrentUser.ROLE_ADMIN.equals(role)) {
+            return notificationRepository.findAll();
+        }
+        // Les notifications sont adressées à un rôle, pas encore à une
+        // personne : chacun reçoit celles de son métier.
+        return notificationRepository.findAll().stream()
+                .filter(n -> role.equalsIgnoreCase(n.role))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<QuoteRequest> listVisibleQuoteRequests() {
+        String role = currentUser.role();
+        String userId = currentUser.requireId();
+
+        if (CurrentUser.ROLE_ADMIN.equals(role)) {
+            return quoteRequestRepository.findAll();
+        }
+        if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
+            return quoteRequestRepository.findBySupplierId(userId);
+        }
+        if (CurrentUser.ROLE_CLIENT.equals(role)) {
+            return quoteRequestRepository.findByClientId(userId);
+        }
+        return List.of();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Quote> listVisibleQuotes() {
+        String role = currentUser.role();
+        String userId = currentUser.requireId();
+
+        if (CurrentUser.ROLE_ADMIN.equals(role)) {
+            return quoteRepository.findAll();
+        }
+        if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
+            return quoteRepository.findBySupplierId(userId);
+        }
+        if (CurrentUser.ROLE_CLIENT.equals(role)) {
+            // Les offres reçues par le client : celles qui répondent à ses
+            // propres demandes, quel que soit le fournisseur qui les émet.
+            Set<String> myRequests = quoteRequestRepository.findByClientId(userId).stream()
+                    .map(r -> r.id)
+                    .collect(java.util.stream.Collectors.toSet());
+            return quoteRepository.findAll().stream()
+                    .filter(q -> myRequests.contains(q.quoteRequestId))
+                    .toList();
+        }
+        return List.of();
     }
 
     /**

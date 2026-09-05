@@ -2,8 +2,6 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, StatusBadge } from '../../components/ui'
 
-const TEAM_ID = 'u-tech-1'
-
 const INSPECTION_LABEL = {
   ASSIGNED: 'À inspecter',
   IN_PROGRESS: 'En cours',
@@ -11,8 +9,8 @@ const INSPECTION_LABEL = {
 } as const
 
 export default function TechnicalMissions() {
-  const { inspections, equipment, users } = useStore()
-  const mine = inspections.filter((i) => i.technicalTeamId === TEAM_ID)
+  const { inspections, equipment, users, currentUser } = useStore()
+  const mine = inspections.filter((i) => i.technicalTeamId === currentUser?.id)
 
   return (
     <div>

@@ -7,17 +7,19 @@ import EquipmentDetail from './pages/public/EquipmentDetail'
 import Suppliers from './pages/public/Suppliers'
 import Login from './pages/public/Login'
 import Register from './pages/public/Register'
-import QuickLogin from './pages/public/QuickLogin'
 import ClientDashboard from './pages/client/ClientDashboard'
 import ClientQuoteRequests from './pages/client/ClientQuoteRequests'
 import ClientQuoteRequestDetail from './pages/client/ClientQuoteRequestDetail'
 import ClientNewQuoteRequest from './pages/client/ClientNewQuoteRequest'
 import ClientQuotes from './pages/client/ClientQuotes'
 import ClientRentals from './pages/client/ClientRentals'
+import ClientFavorites from './pages/client/ClientFavorites'
 import SupplierDashboard from './pages/supplier/SupplierDashboard'
 import SupplierEquipment from './pages/supplier/SupplierEquipment'
 import SupplierEquipmentNew from './pages/supplier/SupplierEquipmentNew'
 import SupplierRequests from './pages/supplier/SupplierRequests'
+import SupplierQuoteRequests from './pages/supplier/SupplierQuoteRequests'
+import SupplierQuotes from './pages/supplier/SupplierQuotes'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminEquipment from './pages/admin/AdminEquipment'
 import AdminInspections from './pages/admin/AdminInspections'
@@ -39,7 +41,6 @@ export default function App() {
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
             <Route path="/fournisseurs" element={<Suppliers />} />
             <Route path="/connexion" element={<Login />} />
-            <Route path="/quick-login" element={<QuickLogin />} />
             <Route path="/inscription" element={<Register />} />
           </Route>
           <Route element={<ClientLayout />}>
@@ -55,11 +56,17 @@ export default function App() {
             <Route path="/client/demandes" element={<ClientQuoteRequests />} />
             <Route path="/client/devis" element={<ClientQuotes />} />
             <Route path="/client/locations" element={<ClientRentals />} />
+            <Route path="/client/favoris" element={<ClientFavorites />} />
           </Route>
           <Route element={<SupplierLayout />}>
             <Route path="/supplier" element={<SupplierDashboard />} />
             <Route path="/supplier/equipment" element={<SupplierEquipment />} />
             <Route path="/supplier/equipment/new" element={<SupplierEquipmentNew />} />
+            <Route path="/supplier/demandes" element={<SupplierQuoteRequests />} />
+            <Route path="/supplier/devis" element={<SupplierQuotes />} />
+            {/* Une location naît de l'acceptation d'un devis : c'est la fin du
+                parcours. L'ancienne adresse reste servie. */}
+            <Route path="/supplier/locations" element={<SupplierRequests />} />
             <Route path="/supplier/requests" element={<SupplierRequests />} />
           </Route>
           <Route element={<AdminLayout />}>

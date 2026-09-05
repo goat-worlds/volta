@@ -19,6 +19,7 @@ import ci.volta.backend.repository.QuoteRequestRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.ReportRepository;
 import ci.volta.backend.repository.UserRepository;
+import ci.volta.backend.service.AuthService;
 import ci.volta.backend.service.VoltaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,6 +62,7 @@ public class ApiController {
     private final QuoteRequestRepository quoteRequestRepository;
     private final QuoteRepository quoteRepository;
     private final VoltaService service;
+    private final AuthService authService;
 
     public ApiController(
             UserRepository userRepository,
@@ -72,7 +74,8 @@ public class ApiController {
             NotificationRepository notificationRepository,
             QuoteRequestRepository quoteRequestRepository,
             QuoteRepository quoteRepository,
-            VoltaService service) {
+            VoltaService service,
+            AuthService authService) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.equipmentRepository = equipmentRepository;
@@ -83,11 +86,34 @@ public class ApiController {
         this.quoteRequestRepository = quoteRequestRepository;
         this.quoteRepository = quoteRepository;
         this.service = service;
+        this.authService = authService;
     }
 
+    /**
+     * Annuaire. Les coordonnées n'y figurent que pour l'administration —
+     * voir VoltaService.listVisibleUsers.
+     */
     @GetMapping("/users")
-    public List<UserAccount> users() {
-        return userRepository.findAll();
+    public List<VoltaService.UserView> users() {
+        return service.listVisibleUsers();
+    }
+
+    @GetMapping("/users/{id}")
+    public VoltaService.UserView user(@PathVariable String id) {
+        return service.getVisibleUser(id);
+    }
+
+    /** Création d'un compte par l'administration, rôle ADMIN compris. */
+    @PostMapping("/users")
+    @ResponseStatus(HttpStatus.CREATED)
+    public VoltaService.UserView createUser(@RequestBody VoltaService.UserInput body) {
+        return service.createUser(body, authService);
+    }
+
+    @PutMapping("/users/{id}")
+    public VoltaService.UserView updateUser(@PathVariable String id,
+                                            @RequestBody VoltaService.UserInput body) {
+        return service.updateUser(id, body);
     }
 
     @GetMapping("/categories")
@@ -103,22 +129,22 @@ public class ApiController {
 
     @GetMapping("/inspections")
     public List<Inspection> inspections() {
-        return inspectionRepository.findAll();
+        return service.listVisibleInspections();
     }
 
     @GetMapping("/reports")
     public List<Report> reports() {
-        return reportRepository.findAll();
+        return service.listVisibleReports();
     }
 
     @GetMapping("/rental-requests")
     public List<RentalRequest> rentalRequests() {
-        return rentalRequestRepository.findAll();
+        return service.listVisibleRentalRequests();
     }
 
     @GetMapping("/notifications")
     public List<Notification> notifications() {
-        return notificationRepository.findAll();
+        return service.listVisibleNotifications();
     }
 
     @PostMapping("/equipment")
@@ -197,7 +223,7 @@ public class ApiController {
 
     @GetMapping("/quote-requests")
     public List<QuoteRequest> listQuoteRequests() {
-        return quoteRequestRepository.findAll();
+        return service.listVisibleQuoteRequests();
     }
 
     @PostMapping("/quote-requests")
@@ -239,7 +265,7 @@ public class ApiController {
 
     @GetMapping("/quotes")
     public List<Quote> listQuotes() {
-        return quoteRepository.findAll();
+        return service.listVisibleQuotes();
     }
 
     @GetMapping("/quotes/{id}")

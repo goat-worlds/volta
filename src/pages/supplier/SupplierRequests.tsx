@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, Toast } from '../../components/ui'
 
-const SUPPLIER_ID = 'u-sup-1'
-
 const REQUEST_STATUS = {
   PENDING: { label: 'En attente', cls: 'bg-amber-100 text-amber-700' },
   ACCEPTED: { label: 'Acceptée', cls: 'bg-emerald-100 text-emerald-700' },
@@ -11,9 +9,9 @@ const REQUEST_STATUS = {
 } as const
 
 export default function SupplierRequests() {
-  const { rentalRequests, equipment, respondRentalRequest } = useStore()
+  const { rentalRequests, equipment, respondRentalRequest, currentUser } = useStore()
   const [toast, setToast] = useState<string | null>(null)
-  const mine = rentalRequests.filter((r) => r.supplierId === SUPPLIER_ID)
+  const mine = rentalRequests.filter((r) => r.supplierId === currentUser?.id)
 
   const showToast = (m: string) => {
     setToast(m)
@@ -22,7 +20,7 @@ export default function SupplierRequests() {
 
   return (
     <div>
-      <PageTitle title="Demandes reçues" subtitle="Demandes de devis envoyées par les clients." />
+      <PageTitle title="Locations" subtitle="Locations issues des devis acceptés, à confirmer puis à honorer." />
       {mine.length === 0 ? (
         <EmptyState title="Aucune demande reçue" subtitle="Les demandes de devis apparaîtront ici." />
       ) : (
@@ -42,7 +40,7 @@ export default function SupplierRequests() {
             <tbody className="divide-y divide-slate-100">
               {mine.map((r) => (
                 <tr key={r.id}>
-                  <td className="px-4 py-3 font-medium text-blue-700">{r.reference}</td>
+                  <td className="px-4 py-3 font-medium text-amber-700">{r.reference}</td>
                   <td className="px-4 py-3">{equipment.find((e) => e.id === r.equipmentId)?.name}</td>
                   <td className="px-4 py-3">
                     <div>{r.clientName}</div>

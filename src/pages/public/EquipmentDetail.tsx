@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, LevelBadge, Modal, Toast, fmtPrice } from '../../components/ui'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
-  const { equipment, categories, users, createRentalRequest } = useStore()
+  const navigate = useNavigate()
+  const { equipment, categories, users, currentUser, createQuoteRequest } = useStore()
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
@@ -14,13 +15,8 @@ export default function EquipmentDetail() {
   const [form, setForm] = useState({
     startDate: '',
     endDate: '',
-    location: '',
-    withOperator: false,
-    transport: false,
-    comment: '',
-    clientName: '',
-    clientPhone: '',
-    clientEmail: '',
+    quantity: 1,
+    message: '',
   })
 
   if (!eq || eq.status !== 'PUBLISHED') {
@@ -37,13 +33,36 @@ export default function EquipmentDetail() {
   const cat = categories.find((c) => c.id === eq.categoryId)
   const supplier = users.find((u) => u.id === eq.supplierId)
 
+  const handleQuoteClick = () => {
+    if (!currentUser) {
+      navigate('/connexion')
+      return
+    }
+    if (currentUser.role !== 'CLIENT') {
+      setToast('Seuls les clients peuvent demander des devis.')
+      return
+    }
+    setModalOpen(true)
+  }
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!currentUser) return
     setSending(true)
     try {
-      const req = await createRentalRequest({ ...form, equipmentId: eq.id })
+      await createQuoteRequest({
+        equipmentId: eq.id,
+        clientId: currentUser.id,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        quantity: form.quantity,
+        message: form.message,
+        clientName: currentUser.name,
+        clientPhone: currentUser.phone,
+        clientEmail: currentUser.email,
+      })
       setModalOpen(false)
-      setToast(`Demande de devis ${req.reference} envoyée ! Le fournisseur et VOLTA ont été notifiés.`)
+      setToast('Demande de devis envoyée ! Le fournisseur a été notifié.')
       setTimeout(() => setToast(null), 5000)
     } finally {
       setSending(false)
@@ -95,8 +114,8 @@ export default function EquipmentDetail() {
               Contacter le fournisseur
             </button>
             <button
-              onClick={() => setModalOpen(true)}
-              className="w-full rounded-lg border border-blue-600 py-3 font-semibold text-blue-600 hover:bg-blue-50"
+              onClick={handleQuoteClick}
+              className="w-full rounded-lg border border-amber-400 bg-amber-50 py-3 font-semibold text-amber-700 hover:bg-amber-100"
             >
               Demander un devis
             </button>
@@ -139,41 +158,17 @@ export default function EquipmentDetail() {
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">Lieu d'utilisation *</label>
-            <input required className={input} placeholder="ex : Chantier Abidjan Nord" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-          </div>
-          <div className="flex gap-6 text-sm">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.withOperator} onChange={(e) => setForm({ ...form, withOperator: e.target.checked })} />
-              Avec opérateur
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.transport} onChange={(e) => setForm({ ...form, transport: e.target.checked })} />
-              Transport inclus
-            </label>
+            <label className="mb-1 block text-xs font-medium text-slate-500">Quantité *</label>
+            <input required type="number" min="1" className={input} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) || 1 })} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">Commentaire</label>
-            <textarea className={input} rows={2} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Nom *</label>
-              <input required className={input} value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Téléphone *</label>
-              <input required className={input} value={form.clientPhone} onChange={(e) => setForm({ ...form, clientPhone: e.target.value })} />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">Email *</label>
-            <input required type="email" className={input} value={form.clientEmail} onChange={(e) => setForm({ ...form, clientEmail: e.target.value })} />
+            <label className="mb-1 block text-xs font-medium text-slate-500">Message ou détails supplémentaires</label>
+            <textarea className={input} rows={2} placeholder="Ex: conditions d'accès, contraintes spéciales..." value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
           </div>
           <button
             type="submit"
             disabled={sending}
-            className="mt-2 rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="mt-2 rounded-lg bg-amber-500 py-2.5 font-semibold text-white hover:bg-amber-600 disabled:opacity-60"
           >
             {sending ? 'Envoi en cours…' : 'Envoyer la demande de devis'}
           </button>

@@ -47,6 +47,28 @@ public class DataSeeder {
         return u;
     }
 
+    /**
+     * Rôles écrits par une version antérieure du semis.
+     *
+     * « DG » et « VERIFICATEUR » n'ont jamais existé dans le modèle : les
+     * comptes qui les portent s'authentifient mais n'obtiennent aucune
+     * autorisation et n'ont pas d'espace où atterrir — ils paraissent cassés.
+     * La correspondance est appliquée à chaque démarrage plutôt qu'une fois,
+     * car une base déjà semée ne repasse jamais par la création des comptes.
+     */
+    private static final java.util.Map<String, String> LEGACY_ROLES =
+            java.util.Map.of("DG", "ADMIN", "VERIFICATEUR", "TECHNICAL");
+
+    private static void normalizeLegacyRoles(UserRepository users) {
+        List<UserAccount> outdated = users.findAll().stream()
+                .filter(u -> u.role != null && LEGACY_ROLES.containsKey(u.role.trim().toUpperCase()))
+                .peek(u -> u.role = LEGACY_ROLES.get(u.role.trim().toUpperCase()))
+                .toList();
+        if (!outdated.isEmpty()) {
+            users.saveAll(outdated);
+        }
+    }
+
     private static Category category(String id, String name, String icon) {
         Category c = new Category();
         c.id = id;
@@ -73,6 +95,8 @@ public class DataSeeder {
             AuthService authService) {
         return args -> {
             String defaultHash = authService.encodePassword("password123");
+
+            normalizeLegacyRoles(users);
 
             if (users.findByEmailIgnoreCase("dg@volta.com").isEmpty()) {
                 UserAccount dgUser = user("u-dg", "Direction", "ADMIN", "VOLTA", "dg@volta.com", "+225 07 00 00 00", "Abidjan");

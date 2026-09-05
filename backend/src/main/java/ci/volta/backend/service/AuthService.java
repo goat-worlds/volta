@@ -42,23 +42,54 @@ public class AuthService {
         return encoder.encode(rawPassword);
     }
 
-    public AuthResult register(String name, String email, String phone, String password) {
+    /**
+     * Rôles qu'un visiteur peut se donner en créant son compte.
+     *
+     * ADMIN en est volontairement absent : la plateforme arbitre entre le
+     * fournisseur et le client, et ce pouvoir ne peut pas s'obtenir en cochant
+     * une case dans un formulaire public. Un administrateur est créé par
+     * amorçage ou promu par un administrateur existant.
+     */
+    private static final java.util.Set<String> SELF_ASSIGNABLE_ROLES =
+            java.util.Set.of("CLIENT", "SUPPLIER", "TECHNICAL");
+
+    public AuthResult register(String name, String email, String phone, String password,
+                               String role, String company, String city) {
         if (name == null || name.isBlank() || email == null || email.isBlank()
                 || password == null || password.length() < 6) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Nom, email et mot de passe (6 caractères minimum) sont requis");
         }
+
+        // Un rôle absent vaut CLIENT : c'est le cas courant, et c'était le seul
+        // comportement possible avant l'ouverture de l'inscription aux autres
+        // rôles — les clients existants continuent de fonctionner à l'identique.
+        String requestedRole = role == null || role.isBlank() ? "CLIENT" : role.trim().toUpperCase();
+        if (!SELF_ASSIGNABLE_ROLES.contains(requestedRole)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Rôle invalide. Choisissez client, fournisseur ou équipe technique.");
+        }
+
+        // Un fournisseur et une équipe technique agissent au nom d'une
+        // structure : c'est cette raison sociale que voient le client dans le
+        // catalogue et l'administrateur au moment d'assigner une inspection.
+        String structure = company == null ? "" : company.trim();
+        if (structure.isEmpty() && !"CLIENT".equals(requestedRole)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La raison sociale est requise pour un compte fournisseur ou technique");
+        }
+
         if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Un compte existe déjà avec cet email");
         }
         UserAccount user = new UserAccount();
         user.id = "u-" + UUID.randomUUID().toString().substring(0, 8);
         user.name = name;
-        user.role = "CLIENT";
-        user.company = "";
+        user.role = requestedRole;
+        user.company = structure;
         user.email = email;
         user.phone = phone == null ? "" : phone;
-        user.city = "";
+        user.city = city == null ? "" : city.trim();
         user.passwordHash = encoder.encode(password);
         user = userRepository.save(user);
         return new AuthResult(createSession(user.id).token, user);

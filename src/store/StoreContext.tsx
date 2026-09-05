@@ -8,8 +8,11 @@ import type {
   Notification,
   Level,
   ChecklistItem,
+  Role,
   User,
   Category,
+  Quote,
+  QuoteRequest,
 } from './types'
 import { apiGet, apiPost, apiPut, getToken, setToken, clearToken } from './api'
 
@@ -26,8 +29,12 @@ interface Store {
   currentUser: User | null
   reload: () => Promise<void>
   login: (email: string, password: string) => Promise<User>
-  register: (name: string, email: string, phone: string, password: string) => Promise<User>
+  register: (input: RegisterInput) => Promise<User>
   logout: () => Promise<void>
+  /** Identifiants des engins mis en favori par l'utilisateur courant. */
+  favorites: string[]
+  isFavorite: (equipmentId: string) => boolean
+  toggleFavorite: (equipmentId: string) => void
   addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Promise<Equipment>
   submitEquipment: (equipmentId: string) => Promise<void>
   assignInspection: (equipmentId: string, technicalTeamId: string) => Promise<void>
@@ -42,7 +49,62 @@ interface Store {
     r: Omit<RentalRequest, 'id' | 'reference' | 'status' | 'createdAt' | 'supplierId'>,
   ) => Promise<RentalRequest>
   requestCorrection: (equipmentId: string) => Promise<void>
+  /** Administration : crée un compte, rôle ADMIN compris. */
+  createUser: (input: UserInput) => Promise<User>
+  /** Chacun modifie sa fiche ; seule l'administration touche au rôle. */
+  updateUser: (id: string, input: UserInput) => Promise<User>
   respondRentalRequest: (requestId: string, accepted: boolean) => Promise<void>
+  createQuoteRequest: (data: Omit<QuoteRequest, 'id' | 'status' | 'supplierId' | 'createdAt'>) => Promise<QuoteRequest>
+  listQuoteRequestsByClient: (clientId: string) => Promise<QuoteRequest[]>
+  listQuoteRequestsBySupplier: (supplierId: string) => Promise<QuoteRequest[]>
+  createQuote: (data: Omit<Quote, 'id' | 'createdAt'>) => Promise<Quote>
+  listQuotesBySupplier: (supplierId: string) => Promise<Quote[]>
+  getQuote: (quoteId: string) => Promise<Quote>
+  acceptQuote: (quoteId: string) => Promise<Quote>
+  rejectQuote: (quoteId: string) => Promise<Quote>
+}
+
+export interface UserInput {
+  name?: string
+  email?: string
+  phone?: string
+  role?: Role
+  company?: string
+  city?: string
+  password?: string
+}
+
+export interface RegisterInput {
+  name: string
+  email: string
+  phone: string
+  password: string
+  role: Role
+  company?: string
+  city?: string
+}
+
+/**
+ * Favoris.
+ *
+ * Le menu client proposait « Favoris » sans route ni donnée derrière : la zone
+ * de contenu restait vide. La sélection est propre à un utilisateur et n'engage
+ * personne d'autre — elle vit donc dans le navigateur, sous une clé portant son
+ * identifiant, plutôt que d'imposer une table et un endpoint au serveur.
+ */
+const favoritesKey = (userId: string) => `volta_favorites_${userId}`
+
+function readFavorites(userId: string | undefined): string[] {
+  if (!userId) return []
+  try {
+    const raw = localStorage.getItem(favoritesKey(userId))
+    const parsed: unknown = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
+  } catch {
+    // Stockage indisponible ou contenu corrompu : une liste vide reste une
+    // réponse correcte, l'écran s'affiche.
+    return []
+  }
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -58,6 +120,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [favorites, setFavorites] = useState<string[]>([])
+
+  // La sélection suit l'utilisateur : à la connexion on charge la sienne, à la
+  // déconnexion elle disparaît de l'écran sans être effacée du navigateur.
+  useEffect(() => {
+    setFavorites(readFavorites(currentUser?.id))
+  }, [currentUser?.id])
+
+  const toggleFavorite = useCallback(
+    (equipmentId: string) => {
+      const userId = currentUser?.id
+      if (!userId) return
+      setFavorites((previous) => {
+        const next = previous.includes(equipmentId)
+          ? previous.filter((id) => id !== equipmentId)
+          : [...previous, equipmentId]
+        try {
+          localStorage.setItem(favoritesKey(userId), JSON.stringify(next))
+        } catch {
+          // Écriture refusée (navigation privée, stockage plein) : la sélection
+          // reste valable pour la session en cours.
+        }
+        return next
+      })
+    },
+    [currentUser?.id],
+  )
 
   const reload = useCallback(async () => {
     try {
@@ -122,8 +211,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return res.user
       },
 
-      async register(name, email, phone, password) {
-        const res = await apiPost<{ token: string; user: User }>('/auth/register', { name, email, phone, password })
+      favorites,
+      isFavorite: (equipmentId: string) => favorites.includes(equipmentId),
+      toggleFavorite,
+
+      async register(input) {
+        const res = await apiPost<{ token: string; user: User }>('/auth/register', input)
         setToken(res.token)
         setCurrentUser(res.user)
         await reload()
@@ -196,6 +289,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return request
       },
 
+      async createUser(input) {
+        const user = await apiPost<User>('/users', input)
+        await reload()
+        return user
+      },
+
+      async updateUser(id, input) {
+        const user = await apiPut<User>(`/users/${id}`, input)
+        await reload()
+        return user
+      },
+
       async requestCorrection(equipmentId) {
         await apiPost(`/equipment/${equipmentId}/request-correction`)
         await reload()
@@ -205,8 +310,53 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         await apiPost(`/rental-requests/${requestId}/${accepted ? 'accept' : 'decline'}`)
         await reload()
       },
+
+      async createQuoteRequest(data) {
+        const req = await apiPost<QuoteRequest>('/quote-requests', data)
+        await reload()
+        return req
+      },
+
+      async listQuoteRequestsByClient(clientId) {
+        const requests = await apiGet<QuoteRequest[]>(`/quote-requests/client/${clientId}`)
+        return requests || []
+      },
+
+      async listQuoteRequestsBySupplier(supplierId) {
+        const requests = await apiGet<QuoteRequest[]>(`/quote-requests/supplier/${supplierId}`)
+        return requests || []
+      },
+
+      async createQuote(data) {
+        const quote = await apiPost<Quote>('/quotes', data)
+        await reload()
+        return quote
+      },
+
+      async listQuotesBySupplier(supplierId) {
+        const quotes = await apiGet<Quote[]>(`/quotes/supplier/${supplierId}`)
+        return quotes || []
+      },
+
+      async getQuote(quoteId) {
+        const quote = await apiGet<Quote>(`/quotes/${quoteId}`)
+        if (!quote) throw new Error('Quote not found')
+        return quote
+      },
+
+      async acceptQuote(quoteId) {
+        const quote = await apiPost<Quote>(`/quotes/${quoteId}/accept`)
+        await reload()
+        return quote
+      },
+
+      async rejectQuote(quoteId) {
+        const quote = await apiPost<Quote>(`/quotes/${quoteId}/reject`)
+        await reload()
+        return quote
+      },
     }),
-    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, reload],
+    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, favorites, toggleFavorite, reload],
   )
 
   if (loading) {
@@ -227,7 +377,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             setLoading(true)
             void reload()
           }}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-500"
         >
           Réessayer
         </button>
