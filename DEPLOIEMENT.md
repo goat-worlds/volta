@@ -7,16 +7,35 @@ faite avant que les deux URL n'existent.
 
 ---
 
-## 1. Backend et base de données — Render
+## 1. Backend — Render
 
-Le blueprint `render.yaml` décrit les deux ressources.
+Le blueprint `render.yaml` décrit le service web seul. La base n'y est pas : le
+plan gratuit de Render n'autorise **qu'une seule base PostgreSQL active par
+compte**, et un blueprint qui en redemande une échoue en entier, service web
+compris — « cannot have more than one active free tier database ». La base du
+projet existe déjà ; le blueprint s'y branche par variables.
 
-1. Sur [render.com](https://render.com), **New** → **Blueprint**, désigner ce dépôt.
-2. Render lit `render.yaml`, crée `volta-db` (PostgreSQL) puis `volta-backend`
-   (Docker), et injecte les identifiants de connexion dans le service.
-3. Laisser `VOLTA_CORS_ALLOWED_ORIGINS` vide pour l'instant : l'URL du frontend
-   n'existe pas encore.
-4. Noter l'URL du service, de la forme `https://volta-backend.onrender.com`.
+1. Sur la page de la base `volta-db`, section **Connections**, relever les
+   coordonnées **internes** (le service et la base sont chez Render, la
+   connexion n'a pas à sortir de son réseau) : hôte, port, nom de base,
+   utilisateur, mot de passe.
+2. Sur [render.com](https://render.com), **New** → **Blueprint**, désigner ce dépôt.
+3. Render demande la valeur des variables marquées `sync: false`. Renseigner :
+
+   | Nom | Valeur |
+   |---|---|
+   | `PGHOST` | l'hôte interne relevé à l'étape 1 |
+   | `PGPORT` | `5432` |
+   | `PGDATABASE` | le nom de la base |
+   | `PGUSER` | l'utilisateur |
+   | `PGPASSWORD` | le mot de passe |
+   | `VOLTA_ADMIN_EMAIL` | l'adresse du premier administrateur |
+   | `VOLTA_ADMIN_PASSWORD` | son mot de passe, choisi ici et nulle part ailleurs |
+   | `VOLTA_CORS_ALLOWED_ORIGINS` | laisser vide — l'URL du frontend n'existe pas encore |
+
+4. **Apply**. Le premier build compile Maven dans l'image : comptez cinq à dix
+   minutes.
+5. Noter l'URL du service, de la forme `https://volta-backend.onrender.com`.
 
 Le premier démarrage crée le schéma : le projet n'embarque pas d'outil de
 migration, `DDL_AUTO` vaut donc `update`. Une fois le schéma stable, le passer à
@@ -31,9 +50,10 @@ pilote PostgreSQL est ajouté à côté de celui de MySQL ; celui qui sert est
 déterminé par l'URL JDBC. Le développement local reste inchangé.
 
 Pour rester sur MySQL en ligne, il faut une base chez un autre fournisseur
-(Aiven, PlanetScale, Railway) : retirer alors le bloc `databases` du blueprint et
-renseigner `DB_URL`, `DB_USER`, `DB_PASSWORD` et `HIBERNATE_DIALECT` à la main,
-sans activer le profil `render`.
+(Aiven, PlanetScale, Railway) : renseigner alors `DB_URL`, `DB_USER`,
+`DB_PASSWORD` et `HIBERNATE_DIALECT` à la main, sans activer le profil `render`
+— ce sont ces variables-là, et non les `PG*`, que lit la configuration par
+défaut.
 
 ---
 
@@ -107,19 +127,26 @@ schéma compris.
 
 ---
 
-## Comptes de démonstration
+## Qui peuple l'instance en ligne
 
-Créés au premier démarrage sur une base vide, mot de passe `password123` :
+Aucun compte de démonstration : le profil `render` force `volta.seed.demo` à
+`false`, et leur mot de passe est écrit en clair dans un dépôt public.
 
-| Rôle | Adresse |
-|---|---|
-| Direction | `dg@volta.com` |
-| Fournisseur | `supplier@volta.com` |
-| Équipe technique | `verificateur@volta.com` |
-| Client | `jean@konan.ci` |
+Une instance en ligne démarre donc avec les seules catégories du catalogue —
+elles relèvent de la taxonomie du métier, pas du jeu d'essai — et
+l'administrateur amorcé par `VOLTA_ADMIN_EMAIL` et `VOLTA_ADMIN_PASSWORD`. Tout
+le reste vient des utilisateurs : les fournisseurs s'inscrivent par le site,
+l'administrateur leur donne leur rôle, puis dépose et publie les engins.
 
-**À supprimer avant toute mise en service réelle** : ce sont des accès connus,
-avec un mot de passe public.
+L'amorçage ne joue que tant qu'aucun administrateur n'existe. Les deux variables
+deviennent ensuite inertes : un mot de passe laissé dans le tableau de bord de
+l'hébergeur ne rouvre pas un accès à chaque redémarrage, même après que
+l'exploitant l'a changé. Si l'adresse correspond à un compte déjà inscrit, ce
+compte est promu et son mot de passe n'est pas touché.
+
+Les comptes de démonstration (`dg@volta.com` et les autres, mot de passe
+`password123`) n'existent qu'en développement local, où `application.properties`
+active le jeu d'essai.
 
 ---
 

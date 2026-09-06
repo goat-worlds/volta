@@ -28,19 +28,29 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * Jeu de démonstration.
+ * Amorçage de la base.
  *
- * Les trois comptes de test — dont celui de la direction — étaient recréés à
- * chaque démarrage, sans condition : les supprimer ne servait à rien, ils
- * revenaient au redémarrage suivant. Leur mot de passe est écrit en clair dans
- * ce fichier et le dépôt est public : sur une instance accessible, n'importe qui
- * entrait en administrateur.
+ * Trois choses distinctes s'y jouent, et les confondre a déjà coûté cher.
  *
- * Le jeu est donc conditionné à `volta.seed.demo`. Il reste actif en
- * développement, où il fait gagner l'installation d'un jeu d'essai, et le profil
- * d'hébergement le coupe. La normalisation des rôles hérités, elle, n'est pas un
- * jeu d'essai mais une migration de données : elle continue de s'exécuter dans
- * tous les cas.
+ * Le <b>jeu de démonstration</b> — comptes de test au mot de passe écrit en
+ * clair dans ce fichier, engins, inspections — est conditionné à
+ * `volta.seed.demo`. Il reste actif en développement et le profil d'hébergement
+ * le coupe : le dépôt étant public, sur une instance accessible n'importe qui
+ * entrait sinon en administrateur.
+ *
+ * Les <b>catégories</b> ne sont pas un jeu d'essai : c'est la taxonomie du
+ * métier, sans laquelle aucun engin ne peut être déposé et le catalogue n'a
+ * aucune entrée. Elles étaient prises dans la garde et disparaissaient donc en
+ * ligne avec les comptes de test. Elles sont désormais semées partout, une
+ * seule fois, sur une table vide.
+ *
+ * Le <b>premier administrateur</b> vient de la configuration, jamais des
+ * sources. Sans lui, une instance de production démarre sans personne pour
+ * référencer ni publier un engin : l'inscription par le site ne délivre que des
+ * comptes client, et la plateforme reste inadministrable.
+ *
+ * La normalisation des rôles hérités, enfin, n'est pas un amorçage mais une
+ * migration de données : elle s'exécute dans tous les cas.
  */
 @Configuration
 public class DataSeeder {
@@ -97,6 +107,71 @@ public class DataSeeder {
         return c;
     }
 
+    /**
+     * Taxonomie du catalogue. Les identifiants sont stables : le jeu de
+     * démonstration s'y réfère, et une base déjà semée ne doit pas voir ses
+     * catégories dupliquées sous d'autres clés.
+     */
+    private static List<Category> catalogCategories() {
+        return List.of(
+                category("c-pelle", "Pelles", "🚜"),
+                category("c-chargeuse", "Chargeuses", "🏗️"),
+                category("c-grue", "Grues", "🏙️"),
+                category("c-camion", "Camions", "🚚"),
+                category("c-compacteur", "Compacteurs", "⚙️"),
+                category("c-groupe", "Groupes électrogènes", "🔌"));
+    }
+
+    /**
+     * Premier administrateur, tiré de la configuration.
+     *
+     * L'amorçage n'a lieu que tant qu'aucun administrateur n'existe : passé ce
+     * point, les variables deviennent inertes. Sans cette garde, un mot de passe
+     * laissé dans le tableau de bord de l'hébergeur rouvrirait un accès à chaque
+     * redémarrage, y compris après que l'exploitant l'a changé.
+     *
+     * Si l'adresse correspond à un compte déjà inscrit, ce compte est promu
+     * plutôt que dupliqué — c'est le cas courant : on s'inscrit par le site,
+     * puis on se donne le rôle. Son mot de passe n'est alors pas touché.
+     */
+    private static void bootstrapAdmin(UserRepository users, AuthService authService,
+                                       String email, String password, String name) {
+        if (email == null || email.isBlank()) {
+            if (password != null && !password.isBlank()) {
+                log.warn("volta.admin.password est renseigné sans volta.admin.email : "
+                        + "aucun administrateur n'est amorcé.");
+            }
+            return;
+        }
+
+        boolean adminExists = users.findAll().stream()
+                .anyMatch(u -> "ADMIN".equalsIgnoreCase(u.role));
+        if (adminExists) {
+            log.info("Un administrateur existe déjà : volta.admin.* est sans effet.");
+            return;
+        }
+
+        UserAccount existing = users.findByEmailIgnoreCase(email).orElse(null);
+        if (existing != null) {
+            existing.role = "ADMIN";
+            users.save(existing);
+            log.info("Compte {} promu administrateur.", email);
+            return;
+        }
+
+        if (password == null || password.isBlank()) {
+            log.warn("volta.admin.email est renseigné sans volta.admin.password et "
+                    + "aucun compte ne porte cette adresse : aucun administrateur n'est amorcé.");
+            return;
+        }
+
+        UserAccount admin = user("u-" + java.util.UUID.randomUUID().toString().substring(0, 8),
+                name, "ADMIN", "VOLTA", email, "", "");
+        admin.passwordHash = authService.encodePassword(password);
+        users.save(admin);
+        log.info("Administrateur initial créé pour {}.", email);
+    }
+
     private static List<ChecklistItem> checklist(String result) {
         return VoltaService.CHECKLIST_TEMPLATE.stream()
                 .map(c -> new ChecklistItem(c.section, c.label, result, c.observation))
@@ -113,11 +188,21 @@ public class DataSeeder {
             RentalRequestRepository rentalRequests,
             NotificationRepository notifications,
             AuthService authService,
-            @Value("${volta.seed.demo:false}") boolean seedDemo) {
+            @Value("${volta.seed.demo:false}") boolean seedDemo,
+            @Value("${volta.admin.email:}") String adminEmail,
+            @Value("${volta.admin.password:}") String adminPassword,
+            @Value("${volta.admin.name:Administration}") String adminName) {
         return args -> {
             // La migration des rôles hérités porte sur des données réelles :
             // elle s'exécute avant la garde, et donc partout.
             normalizeLegacyRoles(users);
+
+            // Taxonomie et premier administrateur ne sont pas du jeu d'essai :
+            // ils précèdent la garde et valent aussi en production.
+            if (categories.count() == 0) {
+                categories.saveAll(catalogCategories());
+            }
+            bootstrapAdmin(users, authService, adminEmail, adminPassword, adminName);
 
             if (!seedDemo) {
                 log.info("Jeu de démonstration désactivé (volta.seed.demo=false) : "
@@ -161,14 +246,6 @@ public class DataSeeder {
                     user("u-client-1", "Jean Konan", "CLIENT", "Entreprise BTP Konan", "jean@konan.ci", "+225 07 00 00 07", "Abidjan"));
             seededUsers.forEach(u -> u.passwordHash = defaultHash);
             users.saveAll(seededUsers);
-
-            categories.saveAll(List.of(
-                    category("c-pelle", "Pelles", "🚜"),
-                    category("c-chargeuse", "Chargeuses", "🏗️"),
-                    category("c-grue", "Grues", "🏙️"),
-                    category("c-camion", "Camions", "🚚"),
-                    category("c-compacteur", "Compacteurs", "⚙️"),
-                    category("c-groupe", "Groupes électrogènes", "🔌")));
 
             equipment.saveAll(List.of(
                     eq("eq-1", "Komatsu PC210LC-8", "c-pelle", "Komatsu", "PC210LC-8", 2018, 3900,
