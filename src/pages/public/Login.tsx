@@ -137,25 +137,29 @@ export default function Login() {
 
         {DEMO_ACCOUNTS.length > 0 && (
           <div className="mt-8 border-t border-slate-200 pt-5">
-            <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Comptes de démonstration
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-2">
               {DEMO_ACCOUNTS.map((a) => (
                 <button
                   key={a.email}
                   type="button"
                   disabled={busy}
                   onClick={() => void enter(a.email, a.password, `Connexion impossible avec ${a.email}.`)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-amber-300 hover:bg-amber-50 disabled:opacity-60"
+                  className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-lg border border-slate-200 px-3 py-2 text-left transition hover:border-amber-300 hover:bg-amber-50 disabled:opacity-60"
                 >
-                  {a.label}
+                  <span className="text-xs font-semibold text-slate-700">{a.label}</span>
+                  {/* Coupé du libellé par un tiret plutôt que rejeté à droite :
+                      sur un téléphone, la ligne passe à la ligne et un
+                      alignement opposé laisserait l'adresse orpheline. */}
+                  <span className="font-mono text-[11px] text-slate-500">
+                    — {a.email} / {a.password}
+                  </span>
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-center text-xs text-slate-400">
-              Accès d'essai — un clic connecte directement.
-            </p>
+            <p className="mt-3 text-xs text-slate-400">Un clic connecte directement.</p>
           </div>
         )}
       </Card>
