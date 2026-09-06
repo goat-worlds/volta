@@ -4,14 +4,48 @@ import { useStore } from '../../store/StoreContext'
 import { HOME_BY_ROLE } from '../../components/RequireRole'
 import { Card } from '../../components/ui'
 
-/** Comptes semés par DataSeeder, pour entrer dans un espace sans le remplir. */
-const DEMO_ACCOUNTS = [
-  { label: 'Client', email: 'jean@konan.ci' },
-  { label: 'Fournisseur', email: 'contact@btpci.ci' },
-  { label: 'Technique', email: 'inspection@abc.ci' },
-  { label: 'Administration', email: 'admin@volta.ci' },
+type DemoAccount = { label: string; email: string; password: string }
+
+/**
+ * Comptes semés par DataSeeder en développement, où le jeu d'essai est actif.
+ * Leur mot de passe est public, mais ces comptes n'existent que sur une machine
+ * de développement : en ligne, le profil d'hébergement ne les crée pas.
+ */
+const LOCAL_DEMO_ACCOUNTS: DemoAccount[] = [
+  { label: 'Client', email: 'jean@konan.ci', password: 'password123' },
+  { label: 'Fournisseur', email: 'contact@btpci.ci', password: 'password123' },
+  { label: 'Technique', email: 'inspection@abc.ci', password: 'password123' },
+  { label: 'Administration', email: 'admin@volta.ci', password: 'password123' },
 ]
-const DEMO_PASSWORD = 'password123'
+
+/**
+ * Comptes d'essai d'une instance en ligne, déclarés par VITE_DEMO_ACCOUNTS sous
+ * la forme « Libellé|adresse|mot de passe », séparés par des points-virgules.
+ *
+ * Ils ne sont pas écrits ici parce que le dépôt est public : des identifiants
+ * valables sur une instance accessible y resteraient lisibles de tous, et pour
+ * toujours. Passer par une variable de construction laisse le choix à
+ * l'exploitant — la retirer et redéployer fait disparaître les boutons, sans
+ * qu'aucun mot de passe n'ait jamais été versionné.
+ *
+ * Ces boutons restent une commodité de démonstration : quiconque ouvre le site
+ * peut s'en servir. N'y mettre que des comptes dont c'est le rôle, jamais un
+ * administrateur, et rien qui touche à des données réelles.
+ */
+function declaredAccounts(): DemoAccount[] {
+  // Le projet ne déclare pas les types de vite/client : sans cette annotation,
+  // la variable est « any » et tout ce qui suit l'est aussi.
+  const raw = import.meta.env.VITE_DEMO_ACCOUNTS as string | undefined
+  if (!raw) return []
+  return raw
+    .split(';')
+    .map((entry) => entry.split('|').map((part) => part.trim()))
+    .filter((parts) => parts.length === 3 && parts.every(Boolean))
+    .map(([label, email, password]) => ({ label, email, password }))
+}
+
+const declared = declaredAccounts()
+const DEMO_ACCOUNTS = declared.length > 0 ? declared : import.meta.env.DEV ? LOCAL_DEMO_ACCOUNTS : []
 
 export default function Login() {
   const { login } = useStore()
@@ -101,27 +135,29 @@ export default function Login() {
           </Link>
         </p>
 
-        <div className="mt-8 border-t border-slate-200 pt-5">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Comptes de démonstration
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {DEMO_ACCOUNTS.map((a) => (
-              <button
-                key={a.email}
-                type="button"
-                disabled={busy}
-                onClick={() => void enter(a.email, DEMO_PASSWORD, `Connexion impossible avec ${a.email}.`)}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-amber-300 hover:bg-amber-50 disabled:opacity-60"
-              >
-                {a.label}
-              </button>
-            ))}
+        {DEMO_ACCOUNTS.length > 0 && (
+          <div className="mt-8 border-t border-slate-200 pt-5">
+            <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Comptes de démonstration
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {DEMO_ACCOUNTS.map((a) => (
+                <button
+                  key={a.email}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void enter(a.email, a.password, `Connexion impossible avec ${a.email}.`)}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-amber-300 hover:bg-amber-50 disabled:opacity-60"
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 text-center text-xs text-slate-400">
+              Accès d'essai — un clic connecte directement.
+            </p>
           </div>
-          <p className="mt-3 text-center text-xs text-slate-400">
-            Mot de passe commun : <span className="font-mono">{DEMO_PASSWORD}</span>
-          </p>
-        </div>
+        )}
       </Card>
     </div>
   )
