@@ -64,7 +64,7 @@ export default function Footer() {
             <p className="mt-4 text-sm text-slate-400">
               support@volta.ci
               <br />
-              +225 00 00 00 00
+              +225 07 48 63 48 53
             </p>
           </div>
         </div>
