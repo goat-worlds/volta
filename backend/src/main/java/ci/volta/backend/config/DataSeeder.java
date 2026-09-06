@@ -18,14 +18,34 @@ import ci.volta.backend.repository.ReportRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.service.AuthService;
 import ci.volta.backend.service.VoltaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Jeu de démonstration.
+ *
+ * Les trois comptes de test — dont celui de la direction — étaient recréés à
+ * chaque démarrage, sans condition : les supprimer ne servait à rien, ils
+ * revenaient au redémarrage suivant. Leur mot de passe est écrit en clair dans
+ * ce fichier et le dépôt est public : sur une instance accessible, n'importe qui
+ * entrait en administrateur.
+ *
+ * Le jeu est donc conditionné à `volta.seed.demo`. Il reste actif en
+ * développement, où il fait gagner l'installation d'un jeu d'essai, et le profil
+ * d'hébergement le coupe. La normalisation des rôles hérités, elle, n'est pas un
+ * jeu d'essai mais une migration de données : elle continue de s'exécuter dans
+ * tous les cas.
+ */
 @Configuration
 public class DataSeeder {
+
+    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
     private static final String IMG_PELLE_KOMATSU = "/engins/pelle-komatsu.jpeg";
     private static final String IMG_PELLE_CAT_336E = "/engins/pelle-cat-336e.jpeg";
@@ -92,11 +112,23 @@ public class DataSeeder {
             ReportRepository reports,
             RentalRequestRepository rentalRequests,
             NotificationRepository notifications,
-            AuthService authService) {
+            AuthService authService,
+            @Value("${volta.seed.demo:false}") boolean seedDemo) {
         return args -> {
-            String defaultHash = authService.encodePassword("password123");
-
+            // La migration des rôles hérités porte sur des données réelles :
+            // elle s'exécute avant la garde, et donc partout.
             normalizeLegacyRoles(users);
+
+            if (!seedDemo) {
+                log.info("Jeu de démonstration désactivé (volta.seed.demo=false) : "
+                        + "aucun compte de test n'est créé.");
+                return;
+            }
+
+            log.warn("Jeu de démonstration ACTIF : des comptes au mot de passe public "
+                    + "sont créés. À ne jamais activer sur une instance accessible.");
+
+            String defaultHash = authService.encodePassword("password123");
 
             if (users.findByEmailIgnoreCase("dg@volta.com").isEmpty()) {
                 UserAccount dgUser = user("u-dg", "Direction", "ADMIN", "VOLTA", "dg@volta.com", "+225 07 00 00 00", "Abidjan");

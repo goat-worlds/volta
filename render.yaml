@@ -30,7 +30,10 @@ services:
     # Le contexte est le dossier backend : le Dockerfile y copie pom.xml et src
     # par des chemins relatifs.
     dockerContext: ./backend
-    healthCheckPath: /api/categories
+    # Actuator, exposé au seul point « health ». Un sondage sur une route
+    # métier réveillerait la base à chaque appel sans rien dire de l'état réel
+    # du service.
+    healthCheckPath: /actuator/health
     envVars:
       # Ce profil compose l'URL JDBC PostgreSQL à partir des variables
       # ci-dessous. Sans lui, l'application chercherait MySQL en local.
@@ -59,9 +62,17 @@ services:
           property: password
 
       # Premier démarrage : Hibernate crée le schéma, le projet n'ayant pas
-      # d'outil de migration. À basculer sur « validate » une fois stable.
+      # d'outil de migration. À basculer sur « validate » une fois le schéma
+      # constaté complet en base — pas avant, sous peine de démarrer sur des
+      # tables absentes.
       - key: DDL_AUTO
         value: update
+
+      # Redit explicitement ce que le profil « render » impose déjà : aucun
+      # compte de démonstration. Le voir dans le tableau de bord de
+      # l'hébergeur vaut mieux que devoir ouvrir les sources pour s'en assurer.
+      - key: VOLTA_SEED_DEMO
+        value: "false"
 
       - key: SESSION_DURATION_DAYS
         value: "7"
