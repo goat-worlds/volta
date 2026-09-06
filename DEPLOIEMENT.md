@@ -1,36 +1,55 @@
 # Déploiement
 
-Le frontend et le backend sont hébergés séparément : un site statique sur
-Vercel, une API et sa base sur Render. Chacun ignore l'autre jusqu'à ce que deux
-variables les relient — c'est la seule étape manuelle, et elle ne peut pas être
-faite avant que les deux URL n'existent.
+Trois hébergeurs : la base sur Neon, l'API sur Render, le site sur Vercel. Le
+site et l'API s'ignorent jusqu'à ce que deux variables les relient — c'est la
+seule étape manuelle, et elle ne peut pas être faite avant que les deux URL
+n'existent.
 
 ---
 
-## 1. Backend et base de données — Render
+## 1. Base de données — Neon
 
-Le blueprint `render.yaml` décrit les deux ressources.
+La base n'est pas chez Render. Le plan gratuit n'y autorise qu'une seule base
+PostgreSQL active par espace de travail, celle du compte sert déjà un autre
+projet, et un blueprint qui en redemande une échoue en entier — service web
+compris. Une base gratuite Render expire par ailleurs trente jours après sa
+création, ce qui n'est pas le cas chez Neon.
 
-**Avant tout** : vérifier qu'aucune autre base PostgreSQL gratuite n'est active
-sur le compte. Le plan gratuit n'en autorise qu'une ; s'il en existe déjà une, la
-création échoue et annule le service web dans la foulée — « cannot have more
-than one active free tier database ». Supprimer l'autre base, ou retirer le bloc
-`databases` du blueprint et saisir les cinq variables `PG*` à la main.
+Sur [neon.com](https://neon.com), créer un projet dans une région proche de
+celle du service Render. Neon donne une chaîne de connexion :
+
+```
+postgresql://utilisateur:motdepasse@ep-xxxx.eu-central-1.aws.neon.tech/neondb?sslmode=require
+```
+
+Elle se découpe en cinq valeurs, reprises à l'étape suivante.
+
+---
+
+## 2. Backend — Render
+
+Le blueprint `render.yaml` décrit le service web seul.
 
 1. Sur [render.com](https://render.com), **New** → **Blueprint**, désigner ce dépôt.
-2. Render lit `render.yaml`, crée `volta-db` (PostgreSQL) puis `volta-backend`
-   (Docker), et injecte les identifiants de connexion dans le service.
-3. Il demande la valeur des variables marquées `sync: false` :
+2. Render demande la valeur des variables marquées `sync: false` :
 
    | Nom | Valeur |
    |---|---|
+   | `PGUSER` | dans la chaîne Neon, entre `//` et `:` |
+   | `PGPASSWORD` | entre `:` et `@` |
+   | `PGHOST` | entre `@` et `/` — par exemple `ep-xxxx.eu-central-1.aws.neon.tech` |
+   | `PGPORT` | `5432` |
+   | `PGDATABASE` | après le dernier `/`, avant le `?` — par exemple `neondb` |
    | `VOLTA_ADMIN_EMAIL` | l'adresse du premier administrateur |
    | `VOLTA_ADMIN_PASSWORD` | son mot de passe, choisi ici et nulle part ailleurs |
    | `VOLTA_CORS_ALLOWED_ORIGINS` | laisser vide — l'URL du frontend n'existe pas encore |
 
-4. **Apply**. Le premier build compile Maven dans l'image : comptez cinq à dix
+   `PGSSLMODE` vaut `require` dans le blueprint : la base étant jointe par
+   l'Internet public, une connexion en clair est refusée plutôt que tolérée.
+
+3. **Apply**. Le premier build compile Maven dans l'image : comptez cinq à dix
    minutes.
-5. Noter l'URL du service, de la forme `https://volta-backend.onrender.com`.
+4. Noter l'URL du service, de la forme `https://volta-backend.onrender.com`.
 
 Le premier démarrage crée le schéma : le projet n'embarque pas d'outil de
 migration, `DDL_AUTO` vaut donc `update`. Une fois le schéma stable, le passer à
@@ -52,7 +71,7 @@ défaut.
 
 ---
 
-## 2. Frontend — Vercel
+## 3. Frontend — Vercel
 
 `vercel.json` porte la configuration : build Vite, sortie `dist`, et la
 réécriture qui renvoie toutes les routes vers `index.html` — sans elle, ouvrir
@@ -84,7 +103,7 @@ vercel --prod
 
 ---
 
-## 3. Relier les deux
+## 4. Relier les deux
 
 Retourner sur Render, service `volta-backend`, **Environment** :
 
@@ -100,7 +119,7 @@ origines se séparent par des virgules, sans espace.
 
 ---
 
-## 4. Vérifier
+## 5. Vérifier
 
 ```bash
 # L'API répond et sert le catalogue public
@@ -145,8 +164,10 @@ active le jeu d'essai.
 
 ---
 
-## Le plan gratuit de Render
+## Les plans gratuits
 
-Le service s'endort après quinze minutes sans trafic ; la requête suivante le
-réveille et met une trentaine de secondes. La première visite après une période
-calme paraîtra donc lente — ce n'est pas un défaut de l'application.
+Le service Render s'endort après quinze minutes sans trafic ; la requête
+suivante le réveille et met une trentaine de secondes. La base Neon se met en
+veille de la même manière et se réveille en quelques secondes. La première
+visite après une période calme paraîtra donc lente — ce n'est pas un défaut de
+l'application.

@@ -1,15 +1,18 @@
-# Blueprint Render — backend VOLTA et sa base de données.
+# Blueprint Render — backend VOLTA.
 #
 # Déploiement : sur render.com, « New » → « Blueprint », désigner ce dépôt.
-# Render lit ce fichier, crée la base puis le service, et injecte les
-# identifiants de connexion dans le second.
 #
-# Le plan gratuit n'autorise qu'une seule base PostgreSQL active par compte :
-# la base décrite ici doit donc être la seule. S'il en existe déjà une autre, sa
-# création échoue et emporte le service web avec elle — c'est l'erreur
-# « cannot have more than one active free tier database ». Supprimer l'autre
-# base avant d'appliquer le blueprint, ou retirer ce bloc « databases » et
-# saisir les cinq PG* à la main.
+# La base n'est pas décrite ici et n'est pas chez Render. Le plan gratuit
+# n'autorise qu'une seule base PostgreSQL active par espace de travail, celle-ci
+# sert déjà un autre projet, et un blueprint qui en redemande une échoue en
+# entier, service web compris — « cannot have more than one active free tier
+# database ». Une base gratuite Render expire de surcroît trente jours après sa
+# création.
+#
+# La base est donc chez un fournisseur PostgreSQL tiers, et ses coordonnées sont
+# saisies à la création du blueprint dans les variables PG* marquées
+# « sync: false » : un mot de passe de base n'a rien à faire dans un fichier
+# versionné.
 #
 # Le frontend n'est pas ici : il est déployé sur Vercel (voir vercel.json).
 # Une fois les deux en ligne, deux variables se répondent et doivent être
@@ -21,12 +24,6 @@
 #
 # Sans la première, le navigateur bloque tous les appels ; sans la seconde, le
 # frontend appelle sa propre origine et ne trouve pas d'API.
-
-databases:
-  - name: volta-db
-    databaseName: volta
-    user: volta
-    plan: free
 
 services:
   - type: web
@@ -47,26 +44,26 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: render
 
+      # Coordonnées de la base, saisies à la création du blueprint. Elles se
+      # lisent dans la chaîne de connexion du fournisseur :
+      #   postgresql://PGUSER:PGPASSWORD@PGHOST/PGDATABASE?sslmode=require
       - key: PGHOST
-        fromDatabase:
-          name: volta-db
-          property: host
+        sync: false
       - key: PGPORT
-        fromDatabase:
-          name: volta-db
-          property: port
+        sync: false
       - key: PGDATABASE
-        fromDatabase:
-          name: volta-db
-          property: database
+        sync: false
       - key: PGUSER
-        fromDatabase:
-          name: volta-db
-          property: user
+        sync: false
       - key: PGPASSWORD
-        fromDatabase:
-          name: volta-db
-          property: password
+        sync: false
+
+      # La base est jointe par l'Internet public : la connexion doit être
+      # chiffrée, et « require » la refuse plutôt que de la laisser passer en
+      # clair. Le pilote se contenterait sinon de « prefer », qui accepte le
+      # clair sans rien dire.
+      - key: PGSSLMODE
+        value: require
 
       # Premier démarrage : Hibernate crée le schéma, le projet n'ayant pas
       # d'outil de migration. À basculer sur « validate » une fois le schéma
