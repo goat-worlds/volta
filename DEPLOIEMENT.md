@@ -7,28 +7,23 @@ faite avant que les deux URL n'existent.
 
 ---
 
-## 1. Backend — Render
+## 1. Backend et base de données — Render
 
-Le blueprint `render.yaml` décrit le service web seul. La base n'y est pas : le
-plan gratuit de Render n'autorise **qu'une seule base PostgreSQL active par
-compte**, et un blueprint qui en redemande une échoue en entier, service web
-compris — « cannot have more than one active free tier database ». La base du
-projet existe déjà ; le blueprint s'y branche par variables.
+Le blueprint `render.yaml` décrit les deux ressources.
 
-1. Sur la page de la base `volta-db`, section **Connections**, relever les
-   coordonnées **internes** (le service et la base sont chez Render, la
-   connexion n'a pas à sortir de son réseau) : hôte, port, nom de base,
-   utilisateur, mot de passe.
-2. Sur [render.com](https://render.com), **New** → **Blueprint**, désigner ce dépôt.
-3. Render demande la valeur des variables marquées `sync: false`. Renseigner :
+**Avant tout** : vérifier qu'aucune autre base PostgreSQL gratuite n'est active
+sur le compte. Le plan gratuit n'en autorise qu'une ; s'il en existe déjà une, la
+création échoue et annule le service web dans la foulée — « cannot have more
+than one active free tier database ». Supprimer l'autre base, ou retirer le bloc
+`databases` du blueprint et saisir les cinq variables `PG*` à la main.
+
+1. Sur [render.com](https://render.com), **New** → **Blueprint**, désigner ce dépôt.
+2. Render lit `render.yaml`, crée `volta-db` (PostgreSQL) puis `volta-backend`
+   (Docker), et injecte les identifiants de connexion dans le service.
+3. Il demande la valeur des variables marquées `sync: false` :
 
    | Nom | Valeur |
    |---|---|
-   | `PGHOST` | l'hôte interne relevé à l'étape 1 |
-   | `PGPORT` | `5432` |
-   | `PGDATABASE` | le nom de la base |
-   | `PGUSER` | l'utilisateur |
-   | `PGPASSWORD` | le mot de passe |
    | `VOLTA_ADMIN_EMAIL` | l'adresse du premier administrateur |
    | `VOLTA_ADMIN_PASSWORD` | son mot de passe, choisi ici et nulle part ailleurs |
    | `VOLTA_CORS_ALLOWED_ORIGINS` | laisser vide — l'URL du frontend n'existe pas encore |

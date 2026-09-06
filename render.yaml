@@ -1,16 +1,15 @@
-# Blueprint Render — backend VOLTA.
+# Blueprint Render — backend VOLTA et sa base de données.
 #
 # Déploiement : sur render.com, « New » → « Blueprint », désigner ce dépôt.
+# Render lit ce fichier, crée la base puis le service, et injecte les
+# identifiants de connexion dans le second.
 #
-# La base du projet existe déjà et n'est pas décrite ici. Le plan gratuit de
-# Render n'autorise qu'une seule base PostgreSQL active par compte : redemander
-# sa création fait échouer le blueprint entier, service web compris — c'est
-# l'erreur « cannot have more than one active free tier database ».
-#
-# Ses coordonnées sont donc saisies à la création du blueprint, dans les cinq
-# variables PG* marquées « sync: false ». Elles se lisent sur la page de la base,
-# section « Connections », colonne interne : le service et la base étant chez
-# Render, la connexion ne sort pas du réseau de l'hébergeur.
+# Le plan gratuit n'autorise qu'une seule base PostgreSQL active par compte :
+# la base décrite ici doit donc être la seule. S'il en existe déjà une autre, sa
+# création échoue et emporte le service web avec elle — c'est l'erreur
+# « cannot have more than one active free tier database ». Supprimer l'autre
+# base avant d'appliquer le blueprint, ou retirer ce bloc « databases » et
+# saisir les cinq PG* à la main.
 #
 # Le frontend n'est pas ici : il est déployé sur Vercel (voir vercel.json).
 # Une fois les deux en ligne, deux variables se répondent et doivent être
@@ -22,6 +21,12 @@
 #
 # Sans la première, le navigateur bloque tous les appels ; sans la seconde, le
 # frontend appelle sa propre origine et ne trouve pas d'API.
+
+databases:
+  - name: volta-db
+    databaseName: volta
+    user: volta
+    plan: free
 
 services:
   - type: web
@@ -42,20 +47,26 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: render
 
-      # Coordonnées de la base existante, à saisir à la création du blueprint.
-      # « sync: false » veut dire : Render les demande et ne les écrit jamais
-      # dans le dépôt — un mot de passe de base n'a rien à faire en clair dans
-      # un fichier versionné.
       - key: PGHOST
-        sync: false
+        fromDatabase:
+          name: volta-db
+          property: host
       - key: PGPORT
-        sync: false
+        fromDatabase:
+          name: volta-db
+          property: port
       - key: PGDATABASE
-        sync: false
+        fromDatabase:
+          name: volta-db
+          property: database
       - key: PGUSER
-        sync: false
+        fromDatabase:
+          name: volta-db
+          property: user
       - key: PGPASSWORD
-        sync: false
+        fromDatabase:
+          name: volta-db
+          property: password
 
       # Premier démarrage : Hibernate crée le schéma, le projet n'ayant pas
       # d'outil de migration. À basculer sur « validate » une fois le schéma
