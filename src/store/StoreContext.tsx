@@ -321,6 +321,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const res = await apiPost<{ token: string; user: User }>('/auth/login', { email, password })
         setToken(res.token)
         setCurrentUser(res.user)
+        // Les données réservées aux comptes identifiés — missions, rapports,
+        // demandes, notifications — ne sont chargées que si un jeton existe.
+        // À l'ouverture de la page il n'y en avait pas : sans ce rechargement,
+        // l'utilisateur arrivait dans un espace vide, tous compteurs à zéro, et
+        // seule une actualisation manuelle le remplissait. L'inscription le
+        // faisait déjà ; la connexion l'avait oublié.
+        await reload()
         return res.user
       },
 
