@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AlertTriangle, CheckCircle2, Ruler } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { AlertTriangle, ArrowLeft, CheckCircle2, Ruler } from 'lucide-react'
 import { ENGIN_PHOTOS } from '../../lib/enginPhotos'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import { Card, EmptyState, LinkButton, PageTitle, StatusBadge, Toast } from '../../components/ui'
 import type { CheckResult, ChecklistItem } from '../../store/types'
 
 const RESULT_OPTIONS: { value: CheckResult; label: string; cls: string }[] = [
@@ -32,7 +32,10 @@ export default function TechnicalInspection() {
       <div>
         <EmptyState title="Inspection introuvable" />
         <div className="mt-4">
-          <Link to="/technical/missions" className="font-medium text-blue-600 hover:underline">← Retour aux missions</Link>
+          <LinkButton to="/technical/missions" tone="secondary" size="sm">
+            <ArrowLeft size={14} />
+            Retour aux missions
+          </LinkButton>
         </div>
       </div>
     )
@@ -87,7 +90,10 @@ export default function TechnicalInspection() {
 
   return (
     <div className="max-w-4xl">
-      <Link to="/technical/missions" className="text-sm font-medium text-blue-600 hover:underline">← Retour aux missions</Link>
+      <LinkButton to="/technical/missions" tone="ghost" size="sm">
+        <ArrowLeft size={14} />
+        Retour aux missions
+      </LinkButton>
       <div className="mt-2">
         <PageTitle
           title={`Inspection — ${eq.name}`}

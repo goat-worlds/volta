@@ -1,6 +1,6 @@
 import { useStore } from "../../store/StoreContext";
-import StatCard from "../../components/Admin/StatCard";
-import { CheckCircle } from "lucide-react";
+import { LinkButton, StatCard } from "../../components/ui";
+import { ArrowRight, CheckCircle, ClipboardCheck, Truck, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
@@ -28,43 +28,34 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="grid gap-4 md:grid-cols-4">
+        {/* Les quatre tuiles portaient « icon={null} » : une pastille colorée
+            vide à droite de chaque chiffre. Elles reprennent les icônes du
+            métier et la teinte de l'espace. */}
+        <StatCard icon={Truck} label="Équipements totaux" value={totalEquipment} />
         <StatCard
-          icon={null}
-          label="Équipements totaux"
-          value={totalEquipment}
-          color="blue"
-        />
-        <StatCard
-          icon={null}
+          icon={CheckCircle}
           label="Équipements publiés"
           value={publishedCount}
-          color="green"
+          accent="text-emerald-600"
         />
         <StatCard
-          icon={null}
+          icon={ClipboardCheck}
           label="En attente de vérif."
           value={pendingCount}
-          color="yellow"
+          accent="text-amber-600"
         />
-        <StatCard
-          icon={null}
-          label="Fournisseurs inscrits"
-          value={supplierCount}
-          color="yellow"
-        />
+        <StatCard icon={Users} label="Fournisseurs inscrits" value={supplierCount} />
       </div>
 
       <section className="mt-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-900">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-acier-900">
             Équipements en attente de vérification
           </h2>
-          <Link
-            to="/admin/equipment"
-            className="text-sm font-semibold text-yellow-600 hover:text-yellow-700"
-          >
-            Voir tous →
-          </Link>
+          <LinkButton to="/admin/equipment" tone="secondary" size="sm">
+            Voir tous les engins
+            <ArrowRight size={14} />
+          </LinkButton>
         </div>
 
         {pendingEquipment.length > 0 ? (

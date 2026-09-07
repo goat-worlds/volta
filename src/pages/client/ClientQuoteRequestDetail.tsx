@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { ArrowLeft, Check, X, Receipt, AlertCircle, Loader2 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import {
   quoteRequestsClient, quotesClient, estimateTotal, formatFcfa,
   type QuoteRequest, type Quote,
 } from '../../store/quotesClient'
-import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge } from '../../components/ui'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
 import { quoteRef } from '../../lib/references'
 
@@ -89,9 +89,10 @@ export default function ClientQuoteRequestDetail() {
         title="Demande introuvable"
         subtitle={error ?? "Cette demande n'existe pas ou ne vous appartient pas."}
         action={
-          <Link to="/client/demandes" className="text-sm font-medium text-blue-600 hover:underline">
+          <LinkButton to="/client/demandes" tone="secondary" size="sm">
+            <ArrowLeft size={14} />
             Retour à mes demandes
-          </Link>
+          </LinkButton>
         }
       />
     )
@@ -122,13 +123,10 @@ export default function ClientQuoteRequestDetail() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/client/demandes"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
-      >
+      <LinkButton to="/client/demandes" tone="ghost" size="sm">
         <ArrowLeft size={15} />
         Mes demandes
-      </Link>
+      </LinkButton>
 
       <PageTitle
         title={eq?.name ?? 'Demande de devis'}

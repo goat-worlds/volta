@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
 import { quoteRequestsClient, quotesClient } from '../../store/quotesClient'
-import { Card, PageTitle, StatCard, StatusBadge, fmtPrice } from '../../components/ui'
+import { ArrowRight } from 'lucide-react'
+import { Card, LinkButton, PageTitle, StatCard, StatusBadge, fmtPrice } from '../../components/ui'
 
 export default function SupplierDashboard() {
   const { equipment, rentalRequests, notifications, currentUser } = useStore()
@@ -71,15 +72,21 @@ export default function SupplierDashboard() {
           <span className="text-sm font-semibold text-amber-900">
             {awaiting} demande{awaiting > 1 ? 's' : ''} de devis sans réponse
           </span>
-          <span className="text-sm font-semibold text-amber-700">Répondre →</span>
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-btp-500 px-3 py-1.5 text-xs font-semibold text-white">
+            Répondre
+            <ArrowRight size={13} />
+          </span>
         </Link>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold">Engins récents</h2>
-            <Link to="/supplier/equipment" className="text-sm font-medium text-amber-600 hover:underline">Voir tout</Link>
+            <h2 className="font-bold text-acier-900">Engins récents</h2>
+            <LinkButton to="/supplier/equipment" tone="secondary" size="sm">
+              Voir tout
+              <ArrowRight size={13} />
+            </LinkButton>
           </div>
           <div className="divide-y divide-slate-100">
             {mine.length === 0 && (

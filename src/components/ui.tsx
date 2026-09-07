@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 import type { EquipmentStatus, Level } from '../store/types'
 import { Inbox, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useStore } from '../store/StoreContext'
+import { roleTheme } from '../lib/roleTheme'
 import type { LucideIcon } from 'lucide-react'
 
 export const STATUS_LABELS: Record<EquipmentStatus, string> = {
@@ -58,28 +61,50 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   return <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</div>
 }
 
+/**
+ * Tuile de chiffre.
+ *
+ * Elle était entièrement grise — valeur bleue par défaut, icône gris pâle dans
+ * une boîte gris pâle — quel que soit l'espace. Alignées par quatre en haut de
+ * chaque tableau de bord, ces tuiles occupent le premier regard : les laisser
+ * incolores donnait à tout l'espace son aspect délavé.
+ *
+ * La teinte suit désormais le rôle de l'utilisateur connecté, sans que les
+ * pages aient à la passer. Un appelant qui veut marquer une valeur — un compte
+ * de retards en rouge, de publiés en vert — garde la main par `accent`.
+ */
 export function StatCard({
   label,
   value,
-  accent = 'text-blue-700',
+  accent,
   icon: Icon,
 }: {
   label: string
   value: ReactNode
+  /** Couleur de la valeur, quand elle porte un sens propre. */
   accent?: string
   /** Facultative : les usages existants ne la passent pas. */
   icon?: LucideIcon
 }) {
+  const { currentUser } = useStore()
+  const theme = currentUser ? roleTheme(currentUser.role) : null
+
   return (
-    <Card className="p-4">
+    <Card className="p-4 transition hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className={`text-2xl font-bold ${accent}`}>{value}</div>
+          <div className={`text-2xl font-bold ${accent ?? theme?.text ?? 'text-acier-900'}`}>
+            {value}
+          </div>
           <div className="mt-1 text-sm text-slate-500">{label}</div>
         </div>
         {Icon && (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50">
-            <Icon size={18} className="text-slate-400" />
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+              theme?.tileChip ?? 'bg-slate-100 text-slate-400'
+            }`}
+          >
+            <Icon size={18} />
           </span>
         )}
       </div>
@@ -108,6 +133,85 @@ export function EmptyState({
       {subtitle && <div className="mt-1 max-w-sm text-sm text-slate-500">{subtitle}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
+  )
+}
+
+/**
+ * Bouton.
+ *
+ * Les actions étaient écrites tantôt en bouton, tantôt en lien souligné, avec
+ * une couleur choisie écran par écran — bleu ici, ambre là, indigo ailleurs. Un
+ * lien souligné se lit comme une note de bas de page : « Comparer les offres »
+ * ou « Voir tout » sont des actions et doivent s'offrir comme telles, avec une
+ * cible cliquable de la taille d'un doigt.
+ *
+ * Le ton par défaut suit le rôle de l'utilisateur, si bien qu'un même appel
+ * produit un bouton indigo dans l'administration et bleu chez le client, sans
+ * que la page ait à le savoir.
+ */
+type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'
+type ButtonSize = 'sm' | 'md'
+
+const BUTTON_BASE =
+  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none ' +
+  'focus-visible:ring-2 focus-visible:ring-offset-2'
+
+const BUTTON_SIZE: Record<ButtonSize, string> = {
+  sm: 'px-3 py-1.5 text-xs',
+  md: 'px-4 py-2.5 text-sm',
+}
+
+/** Tons indépendants du rôle : leur sens prime sur la teinte de l'espace. */
+const BUTTON_TONE: Partial<Record<ButtonTone, string>> = {
+  secondary:
+    'border border-slate-300 bg-white text-acier-800 hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-slate-400',
+  ghost: 'text-acier-700 hover:bg-slate-100 focus-visible:ring-slate-300',
+  danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+  success: 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500',
+}
+
+function useButtonClass(tone: ButtonTone, size: ButtonSize, className: string) {
+  const { currentUser } = useStore()
+  // « primary » emprunte la teinte de l'espace ; les autres portent un sens
+  // propre — refuser, valider — que la couleur du rôle brouillerait.
+  const primary = currentUser
+    ? roleTheme(currentUser.role).button
+    : 'bg-btp-500 text-white hover:bg-btp-600 focus-visible:ring-btp-400'
+  return `${BUTTON_BASE} ${BUTTON_SIZE[size]} ${BUTTON_TONE[tone] ?? primary} ${className}`
+}
+
+export function Button({
+  tone = 'primary',
+  size = 'md',
+  className = '',
+  ...props
+}: {
+  tone?: ButtonTone
+  size?: ButtonSize
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button className={useButtonClass(tone, size, className)} {...props} />
+}
+
+/** Même apparence, mais c'est une navigation : le lien reste un lien. */
+export function LinkButton({
+  to,
+  tone = 'primary',
+  size = 'md',
+  className = '',
+  children,
+  ...props
+}: {
+  to: string
+  tone?: ButtonTone
+  size?: ButtonSize
+  className?: string
+  children: ReactNode
+} & Omit<React.ComponentProps<typeof Link>, 'to' | 'className'>) {
+  return (
+    <Link to={to} className={useButtonClass(tone, size, className)} {...props}>
+      {children}
+    </Link>
   )
 }
 

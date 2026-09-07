@@ -65,7 +65,7 @@ export default function SupplierEquipment() {
         actions={
           <Link
             to="/supplier/equipment/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-btp-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-btp-600"
+            className="inline-flex items-center gap-2 rounded-lg bg-btp-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-btp-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btp-400 focus-visible:ring-offset-2"
           >
             <Plus size={16} />
             Ajouter un engin

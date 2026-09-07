@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import { Card, PageTitle, StatCard, StatusBadge } from '../../components/ui'
+import { ArrowRight } from 'lucide-react'
+import { Card, LinkButton, PageTitle, StatCard, StatusBadge } from '../../components/ui'
 
 export default function TechnicalDashboard() {
   const { inspections, equipment, notifications, currentUser } = useStore()
@@ -31,8 +32,11 @@ export default function TechnicalDashboard() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold">Missions récentes</h2>
-            <Link to="/technical/missions" className="text-sm font-medium text-amber-600 hover:underline">Voir tout</Link>
+            <h2 className="font-bold text-acier-900">Missions récentes</h2>
+            <LinkButton to="/technical/missions" tone="secondary" size="sm">
+              Voir tout
+              <ArrowRight size={13} />
+            </LinkButton>
           </div>
           <div className="divide-y divide-slate-100">
             {mine.slice(0, 5).map((i) => {

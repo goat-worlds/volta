@@ -8,7 +8,7 @@ import {
   estimateTotal, formatFcfa, quoteRequestsClient, quotesClient,
   type Quote, type QuoteRequest,
 } from '../../store/quotesClient'
-import { Card, EmptyState, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
+import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
 import { quoteRef, quoteRequestRef } from '../../lib/references'
 
@@ -182,12 +182,7 @@ export default function ClientQuotes() {
           }
           action={
             filter === 'all' ? (
-              <Link
-                to="/client/demandes/nouvelle"
-                className="inline-flex items-center gap-2 rounded-lg bg-btp-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-btp-600"
-              >
-                Demander un devis
-              </Link>
+              <LinkButton to="/client/demandes/nouvelle">Demander un devis</LinkButton>
             ) : undefined
           }
         />
@@ -307,30 +302,20 @@ export default function ClientQuotes() {
 
                     {quote.status === 'SENT' ? (
                       <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => decide(quote, true)}
-                          disabled={busy}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                        >
+                        <Button tone="success" onClick={() => decide(quote, true)} disabled={busy}>
                           <Check size={15} />
                           {busy ? 'Envoi…' : 'Accepter'}
-                        </button>
-                        <button
-                          onClick={() => decide(quote, false)}
-                          disabled={busy}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-red-300 hover:text-red-600 disabled:opacity-50"
-                        >
+                        </Button>
+                        <Button tone="secondary" onClick={() => decide(quote, false)} disabled={busy}>
                           <X size={15} />
                           Refuser
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <Link
-                        to={`/client/demandes/${request.id}`}
-                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-acier-800 transition hover:border-btp-400 hover:text-btp-600"
-                      >
-                        Voir la demande <ArrowRight size={14} />
-                      </Link>
+                      <LinkButton to={`/client/demandes/${request.id}`} tone="secondary">
+                        Voir la demande
+                        <ArrowRight size={14} />
+                      </LinkButton>
                     )}
                   </div>
                 </div>

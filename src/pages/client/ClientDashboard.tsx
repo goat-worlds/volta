@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Package, Receipt, CalendarCheck, CheckCircle2, ArrowRight, Plus } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { quoteRequestsClient, quotesClient, type QuoteRequest, type Quote } from '../../store/quotesClient'
-import { Card, StatCard, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, StatCard, EmptyState, LinkButton, PageTitle, QuoteStatusBadge } from '../../components/ui'
 
 /**
  * Tableau de bord client.
@@ -76,13 +76,10 @@ export default function ClientDashboard() {
           title={`Bonjour, ${currentUser.name}`}
           subtitle="Voici un aperçu de votre activité"
         />
-        <Link
-          to="/client/demandes/nouvelle"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-        >
+        <LinkButton to="/client/demandes/nouvelle">
           <Plus size={16} />
           Nouvelle demande
-        </Link>
+        </LinkButton>
       </div>
 
       {error && (
@@ -108,12 +105,7 @@ export default function ClientDashboard() {
             subtitle="Parcourez le catalogue et demandez un devis pour l'équipement qui vous intéresse."
             icon={Package}
             action={
-              <Link
-                to="/client/catalogue"
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                Parcourir le catalogue
-              </Link>
+              <LinkButton to="/client/catalogue">Parcourir le catalogue</LinkButton>
             }
           />
         ) : (

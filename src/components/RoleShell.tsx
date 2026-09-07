@@ -4,6 +4,7 @@ import { Bell, ExternalLink, LogOut, Menu, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
 import { useShellBadges } from '../store/useShellBadges'
+import { roleTheme } from '../lib/roleTheme'
 import type { Role } from '../store/types'
 
 /**
@@ -55,6 +56,8 @@ export default function RoleShell({
   const notificationsTo = links.find((l) => l.to.endsWith('/notifications'))?.to
   // Ce qui reste ouvert dans chaque rubrique, indépendamment des notifications.
   const badges = useShellBadges(role)
+  // La teinte de l'espace, reprise de celle que ses écrans utilisaient déjà.
+  const theme = roleTheme(role)
 
   // Le titre de la page vient du lien actif : il est déjà écrit une fois dans
   // la navigation, le redéclarer dans chaque page les ferait diverger.
@@ -75,7 +78,7 @@ export default function RoleShell({
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
                 isActive
-                  ? 'bg-amber-400 text-slate-900'
+                  ? theme.navActive
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`
             }
@@ -85,11 +88,11 @@ export default function RoleShell({
                 <l.icon size={16} className="shrink-0" />
                 <span className="flex-1">{l.label}</span>
                 {badge > 0 && (
-                  // Sur le lien actif, le fond est déjà ambré : la pastille
+                  // Sur le lien actif, le fond porte déjà l'accent : la pastille
                   // s'inverse pour rester lisible.
                   <span
                     className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
-                      isActive ? 'bg-slate-900 text-amber-300' : 'bg-btp-500 text-white'
+                      isActive ? theme.badgeOnActive : theme.badgeIdle
                     }`}
                   >
                     {badge > 99 ? '99+' : badge}
@@ -106,7 +109,9 @@ export default function RoleShell({
   const sidebarInner = (
     <>
       <Link to="/" className="mb-6 flex items-center gap-2.5 px-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-400 text-lg font-black text-slate-900">
+        {/* Le logo garde l'ambre de la marque dans les quatre espaces : c'est
+            le repère commun, l'accent ne sert qu'à situer l'espace. */}
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-400 text-lg font-black text-acier-900">
           V
         </span>
         <span>
@@ -140,20 +145,25 @@ export default function RoleShell({
   )
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    // Le fond de la zone de contenu porte une teinte très diluée : les cartes
+    // blanches y ressortent, là où un gris neutre les faisait disparaître.
+    <div className={`flex min-h-screen ${theme.canvas}`}>
       {/* Barre latérale fixe à partir du large ; en dessous elle devient un
           panneau que la barre du haut ouvre. */}
-      <aside className="hidden w-60 shrink-0 flex-col bg-slate-900 p-4 lg:flex">{sidebarInner}</aside>
+      <aside className="hidden w-60 shrink-0 flex-col bg-acier-900 p-4 lg:flex">{sidebarInner}</aside>
 
       {menuOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
-          <div className="absolute inset-0 bg-slate-900/60" onClick={() => setMenuOpen(false)} />
-          <aside className="relative flex w-64 flex-col bg-slate-900 p-4">{sidebarInner}</aside>
+          <div className="absolute inset-0 bg-acier-900/60" onClick={() => setMenuOpen(false)} />
+          <aside className="relative flex w-64 flex-col bg-acier-900 p-4">{sidebarInner}</aside>
         </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:px-8">
+        {/* Filet coloré en tête : il situe l'espace d'un coup d'œil, sans
+            occuper la place qu'un bandeau plein prendrait au contenu. */}
+        <div className={`sticky top-0 z-30 h-1 w-full ${theme.headerBar}`} aria-hidden />
+        <header className="sticky top-1 z-30 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:px-8">
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 lg:hidden"
@@ -180,7 +190,9 @@ export default function RoleShell({
               >
                 <Bell size={18} />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-btp-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                  <span
+                    className={`absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold ring-2 ring-white ${theme.badgeIdle}`}
+                  >
                     {unread > 99 ? '99+' : unread}
                   </span>
                 )}
@@ -194,7 +206,9 @@ export default function RoleShell({
                 <div className="text-xs leading-tight text-slate-500">{currentUser.name}</div>
               )}
             </div>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-sm font-bold text-slate-900">
+            <span
+              className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${theme.avatar}`}
+            >
               {(currentUser?.company || currentUser?.name || '?').charAt(0).toUpperCase()}
             </span>
             <button
