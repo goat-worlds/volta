@@ -1,10 +1,20 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import type {
   Equipment,
   Inspection,
   Report,
   RentalRequest,
+  RentalAdminAction,
   Notification,
   Level,
   ChecklistItem,
@@ -14,7 +24,9 @@ import type {
   Quote,
   QuoteRequest,
 } from './types'
-import { apiGet, apiPost, apiPut, getToken, setToken, clearToken } from './api'
+import { API_EVENTS, apiGet, apiPost, apiPut, getToken, setToken, clearToken } from './api'
+import { useToast } from '../components/feedback/Toaster'
+import { RENTAL_STATUS, STATUS_LABELS } from '../lib/statuses'
 
 interface Store {
   users: User[]
@@ -25,9 +37,20 @@ interface Store {
   rentalRequests: RentalRequest[]
   notifications: Notification[]
   loading: boolean
-  error: string | null
+  /**
+   * Vrai quand le serveur ne répond plus. Le drapeau se lève à la première
+   * requête qui n'aboutit pas et retombe dès qu'une réponse revient — même une
+   * erreur : un 403 prouve que le serveur est là.
+   */
+  apiUnavailable: boolean
+  /** Vrai quand le serveur a refusé le jeton d'une session ouverte. */
+  sessionExpired: boolean
+  /** Instant de la dernière synchronisation réussie, pour l'indicateur « en direct ». */
+  lastSyncAt: Date | null
   currentUser: User | null
   reload: () => Promise<void>
+  /** Relance une tentative après une panne, sans repasser par l'écran de chargement. */
+  retryConnection: () => Promise<void>
   login: (email: string, password: string) => Promise<User>
   register: (input: RegisterInput) => Promise<User>
   logout: () => Promise<void>
@@ -68,6 +91,8 @@ interface Store {
   /** Chacun modifie sa fiche ; seule l'administration touche au rôle. */
   updateUser: (id: string, input: UserInput) => Promise<User>
   respondRentalRequest: (requestId: string, accepted: boolean) => Promise<void>
+  /** Administration : fait avancer une réservation dans le parcours VOLTA. */
+  transitionRentalRequest: (requestId: string, action: RentalAdminAction, note?: string) => Promise<RentalRequest>
   createQuoteRequest: (data: Omit<QuoteRequest, 'id' | 'status' | 'supplierId' | 'createdAt'>) => Promise<QuoteRequest>
   listQuoteRequestsByClient: (clientId: string) => Promise<QuoteRequest[]>
   listQuoteRequestsBySupplier: (supplierId: string) => Promise<QuoteRequest[]>
@@ -145,9 +170,25 @@ function readFavorites(userId: string | undefined): string[] {
   return userId ? readIdList(favoritesKey(userId)) : []
 }
 
+/**
+ * Ne remplace la valeur que si son contenu a changé.
+ *
+ * Le rafraîchissement périodique rapporte le plus souvent les mêmes données.
+ * Les poser telles quelles ferait re-rendre chaque écran toutes les quinze
+ * secondes pour rien — et perdrait, par exemple, un formulaire en cours dans
+ * une ligne de tableau. Comparer le JSON coûte moins qu'un rendu.
+ */
+function keepIfSame<T>(previous: T, next: T): T {
+  return JSON.stringify(previous) === JSON.stringify(next) ? previous : next
+}
+
+/** Cadence du rafraîchissement silencieux, onglet visible. */
+const LIVE_INTERVAL_MS = 15_000
+
 const StoreContext = createContext<Store | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const toast = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [equipment, setEquipment] = useState<Equipment[]>([])
@@ -156,7 +197,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [apiUnavailable, setApiUnavailable] = useState(false)
+  const [sessionExpired, setSessionExpired] = useState(false)
+  const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const [readNotificationIds, setReadNotificationIds] = useState<string[]>([])
@@ -171,6 +214,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       currentUser?.id ? readIdList(notificationsReadKey(currentUser.id)) : [],
     )
   }, [currentUser?.id])
+
+  /**
+   * La couche HTTP signale, le magasin décide.
+   *
+   * Panne : le drapeau se lève et la première réponse — quelle qu'elle soit —
+   * le baisse. Jeton refusé : la session est fermée ici, une seule fois, et
+   * l'écran « session expirée » prend le relais ; chaque page n'a pas à
+   * interpréter un 401.
+   */
+  useEffect(() => {
+    const onUnavailable = () => setApiUnavailable(true)
+    const onReachable = () => setApiUnavailable(false)
+    const onUnauthorized = () => {
+      clearToken()
+      setCurrentUser((user) => {
+        if (user) setSessionExpired(true)
+        return null
+      })
+    }
+    window.addEventListener(API_EVENTS.unavailable, onUnavailable)
+    window.addEventListener(API_EVENTS.reachable, onReachable)
+    window.addEventListener(API_EVENTS.unauthorized, onUnauthorized)
+    return () => {
+      window.removeEventListener(API_EVENTS.unavailable, onUnavailable)
+      window.removeEventListener(API_EVENTS.reachable, onReachable)
+      window.removeEventListener(API_EVENTS.unauthorized, onUnauthorized)
+    }
+  }, [])
 
   const toggleFavorite = useCallback(
     (equipmentId: string) => {
@@ -215,7 +286,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const requests = await apiGet<QuoteRequest[]>(path).catch(() => [])
       if (cancelled) return
-      setMyQuoteRequests(requests ?? [])
+      setMyQuoteRequests((prev) => keepIfSame(prev, requests ?? []))
 
       // Le serveur expose les devis par demande : c'est ce qui empêche de voir
       // les offres d'autrui. On agrège donc côté client.
@@ -223,8 +294,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (requests ?? []).map((r) => apiGet<Quote[]>(`/quotes/request/${r.id}`)),
       )
       if (cancelled) return
-      setMyQuotes(
-        results.flatMap((r) => (r.status === 'fulfilled' ? (r.value ?? []) : [])),
+      setMyQuotes((prev) =>
+        keepIfSame(prev, results.flatMap((r) => (r.status === 'fulfilled' ? (r.value ?? []) : []))),
       )
     }
 
@@ -232,7 +303,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [currentUser, equipment])
+  }, [currentUser, equipment, rentalRequests])
 
   /** Les notifications adressées au rôle de l'utilisateur connecté. */
   const myNotifications = useMemo(
@@ -261,38 +332,63 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
   }, [currentUser?.id, myNotifications])
 
+  /**
+   * Synchronisation avec le serveur.
+   *
+   * Un seul chemin, appelé au démarrage, après chaque action et à intervalle
+   * régulier. Chaque collection est posée seulement si elle a changé, si bien
+   * que le passage périodique est invisible tant que rien ne bouge — et qu'un
+   * statut modifié par un autre utilisateur apparaît dans les quinze secondes
+   * sans que personne ne recharge la page.
+   *
+   * Le catalogue est chargé en premier : c'est lui qui dit si le serveur
+   * répond. Les collections réservées suivent, uniquement avec un jeton.
+   */
+  const sync = useCallback(async () => {
+    const [c, e] = await Promise.all([
+      apiGet<Category[]>('/categories'),
+      apiGet<Equipment[]>('/equipment'),
+    ])
+    setCategories((prev) => keepIfSame(prev, c ?? []))
+    setEquipment((prev) => keepIfSame(prev, e ?? []))
+
+    if (getToken()) {
+      const [u, i, rep, req, n] = await Promise.all([
+        apiGet<User[]>('/users').catch(() => null),
+        apiGet<Inspection[]>('/inspections').catch(() => null),
+        apiGet<Report[]>('/reports').catch(() => null),
+        apiGet<RentalRequest[]>('/rental-requests').catch(() => null),
+        apiGet<Notification[]>('/notifications').catch(() => null),
+      ])
+      // Un refus sur une collection (droits, jeton périmé) garde la valeur
+      // précédente plutôt que de vider l'écran.
+      if (u) setUsers((prev) => keepIfSame(prev, u))
+      if (i) setInspections((prev) => keepIfSame(prev, i))
+      if (rep) setReports((prev) => keepIfSame(prev, rep))
+      if (req) setRentalRequests((prev) => keepIfSame(prev, req))
+      if (n) setNotifications((prev) => keepIfSame(prev, n))
+    }
+    setLastSyncAt(new Date())
+  }, [])
+
   const reload = useCallback(async () => {
     try {
-      const [c, e] = await Promise.all([
-        apiGet<Category[]>('/categories').catch(() => []),
-        apiGet<Equipment[]>('/equipment').catch(() => []),
-      ])
-      setCategories(c)
-      setEquipment(e)
-
-      // Load authenticated data only if user is logged in
-      if (getToken()) {
-        Promise.all([
-          apiGet<User[]>('/users').catch(() => []),
-          apiGet<Inspection[]>('/inspections').catch(() => []),
-          apiGet<Report[]>('/reports').catch(() => []),
-          apiGet<RentalRequest[]>('/rental-requests').catch(() => []),
-          apiGet<Notification[]>('/notifications').catch(() => []),
-        ]).then(([u, i, rep, req, n]) => {
-          setUsers(u)
-          setInspections(i)
-          setReports(rep)
-          setRentalRequests(req)
-          setNotifications(n)
-        })
-      }
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de connexion au serveur')
+      await sync()
+    } catch {
+      // La panne est déjà signalée par l'événement de la couche HTTP ; ici on
+      // ne fait que laisser l'écran s'afficher avec ce qu'il a.
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [sync])
+
+  const retryConnection = useCallback(async () => {
+    try {
+      await sync()
+    } catch {
+      // Toujours en panne : le drapeau reste levé, l'écran le dit.
+    }
+  }, [sync])
 
   useEffect(() => {
     void reload()
@@ -302,6 +398,87 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .catch(() => clearToken())
     }
   }, [reload])
+
+  /**
+   * Le site bouge seul.
+   *
+   * Tant que l'onglet est visible, les données sont resynchronisées toutes les
+   * quinze secondes ; le retour sur l'onglet déclenche une passe immédiate. Ce
+   * n'est pas un rechargement de page : seules les collections qui ont changé
+   * sont reposées, et l'écran ne bouge que là où quelque chose a bougé.
+   *
+   * Uniquement avec une session : le visiteur du catalogue n'attend rien.
+   */
+  useEffect(() => {
+    if (!currentUser) return
+    let timer: number | null = null
+
+    const tick = () => {
+      if (document.visibilityState !== 'visible') return
+      void sync().catch(() => {})
+    }
+    const start = () => {
+      if (timer !== null) return
+      timer = window.setInterval(tick, LIVE_INTERVAL_MS)
+    }
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') tick()
+    }
+
+    start()
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('focus', tick)
+    return () => {
+      if (timer !== null) window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('focus', tick)
+    }
+  }, [currentUser, sync])
+
+  /**
+   * Signaler ce qui a changé sans qu'on l'ait demandé.
+   *
+   * Quand le rafraîchissement rapporte une réservation ou un engin dont le
+   * statut diffère de celui affiché, l'utilisateur concerné en est averti par
+   * une notification brève. Seuls ses propres objets comptent : le fournisseur
+   * pour ses engins et ses réservations, le client pour ses réservations.
+   * L'administration voit tout bouger, elle n'a pas à être prévenue de tout.
+   */
+  const seenRentals = useRef<Map<string, string> | null>(null)
+  const seenEquipment = useRef<Map<string, string> | null>(null)
+
+  useEffect(() => {
+    const me = currentUser
+    const next = new Map(rentalRequests.map((r) => [r.id, r.status]))
+    const previous = seenRentals.current
+    seenRentals.current = next
+    if (!previous || !me || me.role === 'ADMIN') return
+    for (const r of rentalRequests) {
+      const before = previous.get(r.id)
+      if (!before || before === r.status) continue
+      const mine =
+        (me.role === 'SUPPLIER' && r.supplierId === me.id) ||
+        (me.role === 'CLIENT' && (r.clientId === me.id || r.clientEmail === me.email))
+      if (!mine) continue
+      toast.info(
+        `Réservation ${r.reference}`,
+        `Le statut est passé à « ${RENTAL_STATUS[r.status]?.label ?? r.status} ».`,
+      )
+    }
+  }, [rentalRequests, currentUser, toast])
+
+  useEffect(() => {
+    const me = currentUser
+    const next = new Map(equipment.map((e) => [e.id, e.status]))
+    const previous = seenEquipment.current
+    seenEquipment.current = next
+    if (!previous || !me || me.role !== 'SUPPLIER') return
+    for (const e of equipment) {
+      const before = previous.get(e.id)
+      if (!before || before === e.status || e.supplierId !== me.id) continue
+      toast.info(`${e.name}`, `L’engin est maintenant « ${STATUS_LABELS[e.status] ?? e.status} ».`)
+    }
+  }, [equipment, currentUser, toast])
 
   const store = useMemo<Store>(
     () => ({
@@ -313,13 +490,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       rentalRequests,
       notifications,
       loading,
-      error,
+      apiUnavailable,
+      sessionExpired,
+      lastSyncAt,
       currentUser,
       reload,
+      retryConnection,
 
       async login(email, password) {
         const res = await apiPost<{ token: string; user: User }>('/auth/login', { email, password })
         setToken(res.token)
+        setSessionExpired(false)
         setCurrentUser(res.user)
         // Les données réservées aux comptes identifiés — missions, rapports,
         // demandes, notifications — ne sont chargées que si un jeton existe.
@@ -344,6 +525,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       async register(input) {
         const res = await apiPost<{ token: string; user: User }>('/auth/register', input)
         setToken(res.token)
+        setSessionExpired(false)
         setCurrentUser(res.user)
         await reload()
         return res.user
@@ -352,9 +534,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       async logout() {
         try {
           await apiPost('/auth/logout')
+        } catch {
+          // Le serveur peut être injoignable ou le jeton déjà périmé : la
+          // session locale se ferme quand même.
         } finally {
           clearToken()
           setCurrentUser(null)
+          setSessionExpired(false)
         }
       },
 
@@ -437,6 +623,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         await reload()
       },
 
+      async transitionRentalRequest(requestId, action, note) {
+        // L'annulation exige un motif ; les autres l'acceptent en option.
+        const body = note !== undefined || action === 'cancel' ? { note: note ?? '' } : undefined
+        const updated = await apiPost<RentalRequest>(`/rental-requests/${requestId}/${action}`, body)
+        // La ligne est reposée tout de suite : le badge change sous le clic,
+        // sans attendre le tour de synchronisation.
+        setRentalRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+        void reload()
+        return updated
+      },
+
       async createQuoteRequest(data) {
         const req = await apiPost<QuoteRequest>('/quote-requests', data)
         await reload()
@@ -466,7 +663,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       async getQuote(quoteId) {
         const quote = await apiGet<Quote>(`/quotes/${quoteId}`)
-        if (!quote) throw new Error('Quote not found')
+        if (!quote) throw new Error('Devis introuvable')
         return quote
       },
 
@@ -482,7 +679,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return quote
       },
     }),
-    [users, categories, equipment, inspections, reports, rentalRequests, notifications, loading, error, currentUser, favorites, toggleFavorite, myQuoteRequests, myQuotes, myNotifications, unreadNotifications, markNotificationsRead, reload],
+    [
+      users, categories, equipment, inspections, reports, rentalRequests, notifications, loading,
+      apiUnavailable, sessionExpired, lastSyncAt, currentUser, favorites, toggleFavorite,
+      myQuoteRequests, myQuotes, myNotifications, unreadNotifications, markNotificationsRead,
+      reload, retryConnection,
+    ],
   )
 
   if (loading) {
@@ -496,18 +698,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /**
    * Un serveur injoignable ne condamne plus la totalité du site.
    *
-   * L'erreur remplaçait l'application par un écran unique. Or le catalogue, les
-   * devis et les espaces connectés ont besoin du serveur ; l'accueil, le choix
-   * d'intention et les huit formulaires de demande, non. Les couper tous parce
-   * que l'un d'eux est privé de données fermait la porte d'entrée alors qu'elle
-   * fonctionnait.
-   *
-   * La panne est donc signalée en bandeau, et chaque écran affiche l'état de ce
-   * qu'il montre : les listes vides le disent, les parcours restent ouverts.
+   * Le catalogue, les devis et les espaces connectés ont besoin du serveur ;
+   * l'accueil, le choix d'intention et les formulaires de demande, non. La
+   * panne est donc signalée en bandeau sur le site public — les espaces
+   * connectés, eux, affichent l'écran dédié — et chaque écran montre l'état de
+   * ce qu'il a.
    */
   return (
     <StoreContext.Provider value={store}>
-      {error && (
+      {apiUnavailable && !currentUser && (
         <div
           role="status"
           className="flex flex-wrap items-center justify-center gap-3 bg-amber-50 px-4 py-2 text-center text-xs text-amber-900"
@@ -517,10 +716,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             déposer une demande normalement.
           </span>
           <button
-            onClick={() => {
-              setLoading(true)
-              void reload()
-            }}
+            onClick={() => void retryConnection()}
             className="rounded-md bg-amber-200 px-2.5 py-1 font-semibold text-amber-900 transition hover:bg-amber-300"
           >
             Réessayer

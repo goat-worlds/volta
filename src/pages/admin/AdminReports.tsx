@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, Modal, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import { Card, EmptyState, Modal, PageTitle, StatusBadge } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import EquipmentDecision from '../../components/Admin/EquipmentDecision'
 
 const RESULT_LABEL = {
@@ -12,7 +13,7 @@ const RESULT_LABEL = {
 export default function AdminReports() {
   const { reports, equipment, inspections, users } = useStore()
   const [openId, setOpenId] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
   const report = reports.find((r) => r.id === openId)
   const reportEq = report ? equipment.find((e) => e.id === report.equipmentId) : undefined
 
@@ -76,16 +77,12 @@ export default function AdminReports() {
             {reportEq && (
               <EquipmentDecision
                 equipment={reportEq}
-                onDone={(message) => {
-                  setToast(message)
-                  setTimeout(() => setToast(null), 4000)
-                }}
+                onDone={(message) => toast.success('Décision enregistrée', message)}
               />
             )}
           </div>
         )}
       </Modal>
-      <Toast message={toast} />
     </div>
   )
 }

@@ -8,7 +8,8 @@ import {
   estimateTotal, formatFcfa, quoteRequestsClient, quotesClient,
   type Quote, type QuoteRequest,
 } from '../../store/quotesClient'
-import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
+import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
 import { quoteRef, quoteRequestRef } from '../../lib/references'
 
@@ -37,7 +38,7 @@ export default function ClientQuotes() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'SENT' | 'ACCEPTED' | 'REJECTED'>('all')
   const [pending, setPending] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
 
   const load = useCallback(async () => {
     if (!currentUser) return
@@ -70,24 +71,19 @@ export default function ClientQuotes() {
     void load()
   }, [load])
 
-  const flash = (message: string) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 4000)
-  }
-
   const decide = async (quote: Quote, accept: boolean) => {
     setPending(quote.id)
     try {
       if (accept) {
         await quotesClient.accept(quote.id)
-        flash(`Devis ${quoteRef(quote.id, quote.createdAt)} accepté. Le fournisseur est notifié.`)
+        toast.success('Devis accepté', `${quoteRef(quote.id, quote.createdAt)} — le fournisseur est notifié.`)
       } else {
         await quotesClient.reject(quote.id)
-        flash(`Devis ${quoteRef(quote.id, quote.createdAt)} refusé.`)
+        toast.info('Devis refusé', `${quoteRef(quote.id, quote.createdAt)} a été refusé.`)
       }
       await load()
     } catch (e) {
-      flash(e instanceof Error ? e.message : 'L’opération a échoué.')
+      toast.fromError(e)
     } finally {
       setPending(null)
     }
@@ -324,7 +320,6 @@ export default function ClientQuotes() {
           })}
         </div>
       )}
-      <Toast message={toast} />
     </div>
   )
 }

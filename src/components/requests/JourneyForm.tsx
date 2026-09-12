@@ -125,9 +125,18 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
             <Check size={26} />
           </span>
           <h1 className="mt-5 text-2xl font-black text-acier-900">
-            Votre demande a bien été transmise à Génie Sélect.
+            Votre demande est enregistrée.
           </h1>
           <p className="mt-3 text-slate-700">{journey.promise}</p>
+          {/* Le dépôt est local tant que le service de demandes n'existe pas
+              côté serveur : on le dit, plutôt que d'annoncer une transmission
+              qui n'a pas eu lieu. */}
+          <p className="mx-auto mt-4 max-w-md rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <span className="font-bold uppercase tracking-wide">Backend requis</span> — la demande est
+            conservée sur cet appareil. Sa transmission automatique à l’équipe sera activée avec le
+            service de demandes côté serveur ; en attendant, citez la référence ci-dessous lors de
+            votre prise de contact.
+          </p>
 
           <div className="mx-auto mt-6 inline-flex flex-col items-center rounded-xl border border-emerald-300 bg-white px-6 py-4">
             <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">

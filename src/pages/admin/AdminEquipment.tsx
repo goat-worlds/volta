@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, LevelBadge, Modal, PageTitle, StatusBadge, Toast, fmtPrice } from '../../components/ui'
+import { Card, EmptyState, LevelBadge, Modal, PageTitle, StatusBadge, fmtPrice } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import InspectionReview from '../../components/Admin/InspectionReview'
 import EquipmentDecision from '../../components/Admin/EquipmentDecision'
 import type { Equipment } from '../../store/types'
@@ -20,7 +21,7 @@ export default function AdminEquipment() {
   // absent d'une autre base, le menu affichait alors la première équipe tout en
   // assignant à une autre.
   const [teamId, setTeamId] = useState('')
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
   const [filter, setFilter] = useState('')
 
   const selected: Equipment | undefined = equipment.find((e) => e.id === selectedId)
@@ -33,10 +34,7 @@ export default function AdminEquipment() {
   const inspection = selected ? inspections.find((i) => i.equipmentId === selected.id) : undefined
   const inspector = inspection ? users.find((u) => u.id === inspection.technicalTeamId) : undefined
 
-  const showToast = (m: string) => {
-    setToast(m)
-    setTimeout(() => setToast(null), 4000)
-  }
+  const showToast = (m: string) => toast.success(m)
 
   const filtered = filter ? equipment.filter((e) => e.status === filter) : equipment
 
@@ -146,13 +144,9 @@ export default function AdminEquipment() {
                     try {
                       await assignInspection(selected.id, effectiveTeamId)
                       setSelectedId(null)
-                      showToast(`Inspection assignée à ${team?.company || team?.name}.`)
+                      toast.success('Inspection assignée', `Confiée à ${team?.company || team?.name}.`)
                     } catch (error) {
-                      showToast(
-                        error instanceof Error
-                          ? `Assignation refusée : ${error.message}`
-                          : "L'assignation a échoué.",
-                      )
+                      toast.fromError(error, 'Assignation refusée')
                     }
                   }}
                   className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
@@ -175,7 +169,6 @@ export default function AdminEquipment() {
           </div>
         )}
       </Modal>
-      <Toast message={toast} />
     </div>
   )
 }

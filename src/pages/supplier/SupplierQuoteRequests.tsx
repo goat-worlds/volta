@@ -8,7 +8,8 @@ import {
   type Quote,
   type QuoteRequest,
 } from '../../store/quotesClient'
-import { Card, EmptyState, Modal, PageTitle, QuoteStatusBadge, Toast } from '../../components/ui'
+import { Card, EmptyState, Modal, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 
 /**
  * Demandes de devis reçues, et réponse du fournisseur.
@@ -46,7 +47,7 @@ export default function SupplierQuoteRequests() {
   const [myQuotes, setMyQuotes] = useState<Quote[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
 
   const [replyTo, setReplyTo] = useState<QuoteRequest | null>(null)
   const [price, setPrice] = useState('')
@@ -86,10 +87,6 @@ export default function SupplierQuoteRequests() {
     return map
   }, [myQuotes])
 
-  const showToast = (m: string) => {
-    setToast(m)
-    setTimeout(() => setToast(null), 4000)
-  }
 
   const openReply = (request: QuoteRequest) => {
     const eq = equipment.find((e) => e.id === request.equipmentId)
@@ -122,7 +119,7 @@ export default function SupplierQuoteRequests() {
       })
       setReplyTo(null)
       await load()
-      showToast('Devis envoyé au client.')
+      toast.success('Devis envoyé', 'Le client a été notifié.')
     } catch {
       setFormError("L'envoi a échoué. La demande a peut-être déjà été tranchée.")
     } finally {
@@ -318,7 +315,6 @@ export default function SupplierQuoteRequests() {
         )}
       </Modal>
 
-      <Toast message={toast} />
     </div>
   )
 }

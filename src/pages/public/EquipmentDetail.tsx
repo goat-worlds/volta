@@ -4,7 +4,8 @@ import {
   BadgeCheck, Calendar, CheckCircle2, Gauge, HardHat, Mail, MapPin, Phone, User, Wrench, XCircle,
 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, LevelBadge, Modal, Toast, fmtPrice } from '../../components/ui'
+import { Card, EmptyState, LevelBadge, Modal, fmtPrice } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
@@ -13,7 +14,7 @@ export default function EquipmentDetail() {
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
   const [sending, setSending] = useState(false)
   const [form, setForm] = useState({
     startDate: '',
@@ -42,7 +43,7 @@ export default function EquipmentDetail() {
       return
     }
     if (currentUser.role !== 'CLIENT') {
-      setToast('Seuls les clients peuvent demander des devis.')
+      toast.warning('Action réservée aux clients', 'Seul un compte client peut demander un devis.')
       return
     }
     setModalOpen(true)
@@ -65,8 +66,9 @@ export default function EquipmentDetail() {
         clientEmail: currentUser.email,
       })
       setModalOpen(false)
-      setToast('Demande de devis envoyée ! Le fournisseur a été notifié.')
-      setTimeout(() => setToast(null), 5000)
+      toast.success('Demande de devis envoyée', 'Le fournisseur a été notifié.')
+    } catch (err) {
+      toast.fromError(err, 'Demande non envoyée')
     } finally {
       setSending(false)
     }
@@ -217,7 +219,6 @@ export default function EquipmentDetail() {
           </button>
         </form>
       </Modal>
-      <Toast message={toast} />
     </div>
   )
 }

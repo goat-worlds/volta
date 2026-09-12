@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Pencil, UserPlus } from 'lucide-react'
 import { useStore, type UserInput } from '../../store/StoreContext'
-import { Card, Modal, PageTitle, Toast } from '../../components/ui'
+import { Card, Modal, PageTitle } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import type { Role, User } from '../../store/types'
 
 /**
@@ -35,12 +36,9 @@ export default function AdminUsers() {
   const [editing, setEditing] = useState<{ id?: string; form: UserInput } | null>(null)
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
 
-  const showToast = (m: string) => {
-    setToast(m)
-    setTimeout(() => setToast(null), 4000)
-  }
+  const showToast = (m: string) => toast.success(m)
 
   const openCreate = () => {
     setEditing({ form: { ...EMPTY } })
@@ -237,7 +235,6 @@ export default function AdminUsers() {
         )}
       </Modal>
 
-      <Toast message={toast} />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
-import type { Role } from '../store/types'
+import { HOME_BY_ROLE, ROLE_LABEL } from '../lib/navigation'
 
 const NAV = [
   { to: '/', label: 'Accueil' },
@@ -10,20 +10,6 @@ const NAV = [
   { to: '/fournisseurs', label: 'Fournisseurs' },
 ]
 
-/** Chaque rôle a son espace : le raccourci mène là où l'utilisateur travaille. */
-const HOME_BY_ROLE: Record<Role, string> = {
-  ADMIN: '/admin',
-  SUPPLIER: '/supplier',
-  TECHNICAL: '/technical',
-  CLIENT: '/client',
-}
-
-const ROLE_LABEL: Record<Role, string> = {
-  ADMIN: 'Administration',
-  SUPPLIER: 'Fournisseur',
-  TECHNICAL: 'Équipe technique',
-  CLIENT: 'Client',
-}
 
 export default function Header() {
   const { currentUser, logout } = useStore()

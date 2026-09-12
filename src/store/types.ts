@@ -82,11 +82,30 @@ export interface Report {
   checklist: ChecklistItem[]
 }
 
+/**
+ * Parcours d'une réservation, tel que le serveur le tient (RentalWorkflow) :
+ *   PENDING → QUALIFIED → ACCEPTED → CONFIRMED → IN_PROGRESS → COMPLETED
+ * avec sorties DECLINED (fournisseur) et CANCELLED (administration).
+ */
+export type RentalStatus =
+  | 'PENDING'
+  | 'QUALIFIED'
+  | 'ACCEPTED'
+  | 'DECLINED'
+  | 'CONFIRMED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED'
+
+/** Transitions que l'administration déclenche ; accept/decline restent au fournisseur. */
+export type RentalAdminAction = 'qualify' | 'confirm' | 'start' | 'complete' | 'cancel'
+
 export interface RentalRequest {
   id: string
   reference: string
   equipmentId: string
   supplierId: string
+  clientId?: string | null
   startDate: string
   endDate: string
   location: string
@@ -96,8 +115,80 @@ export interface RentalRequest {
   clientName: string
   clientPhone: string
   clientEmail: string
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED'
+  status: RentalStatus
+  adminNote?: string | null
   createdAt: string
+  updatedAt?: string | null
+}
+
+/** Pipeline commercial (OpportunityWorkflow) : NEW → … → WON, LOST depuis toute étape ouverte. */
+export type OpportunityStage = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST'
+
+export interface Opportunity {
+  id: string
+  reference: string
+  title: string
+  stage: OpportunityStage
+  clientId?: string | null
+  prospectName?: string | null
+  prospectCompany?: string | null
+  prospectContact?: string | null
+  ownerId?: string | null
+  linkedType?: string | null
+  linkedId?: string | null
+  amount?: number | null
+  notes?: string | null
+  createdAt: string
+  updatedAt?: string | null
+  closedAt?: string | null
+}
+
+export interface OpportunityInput {
+  title: string
+  clientId?: string | null
+  prospectName?: string | null
+  prospectCompany?: string | null
+  prospectContact?: string | null
+  ownerId?: string | null
+  linkedType?: string | null
+  linkedId?: string | null
+  amount?: number | null
+  notes?: string | null
+}
+
+/** Anomalie relevée en vérification (AnomalyWorkflow). */
+export type AnomalyStatus = 'OPEN' | 'IN_PROGRESS' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESOLVED' | 'CLOSED'
+export type AnomalySeverity = 'MINEURE' | 'MAJEURE' | 'CRITIQUE'
+
+export interface Anomaly {
+  id: string
+  reference: string
+  inspectionId: string
+  equipmentId: string
+  origin?: string | null
+  description: string
+  severity: AnomalySeverity
+  status: AnomalyStatus
+  reportedBy?: string | null
+  assignedTo?: string | null
+  correctiveAction?: string | null
+  reviewNote?: string | null
+  createdAt: string
+  updatedAt?: string | null
+  resolvedAt?: string | null
+}
+
+export interface AuditEvent {
+  id: string
+  at: string
+  actorId?: string | null
+  actorName?: string | null
+  actorRole?: string | null
+  action: string
+  entityType: string
+  entityId: string
+  entityReference?: string | null
+  details?: string | null
 }
 
 export interface AuthUser {

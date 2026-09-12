@@ -37,8 +37,9 @@ export function useShellBadges(role: Role): Record<string, number> {
       counts['/supplier/demandes'] = myQuoteRequests.filter(
         (r) => r.status === 'PENDING' && !answered.has(r.id),
       ).length
+      // Nouvelle ou qualifiée par VOLTA : le fournisseur doit encore se prononcer.
       counts['/supplier/locations'] = rentalRequests.filter(
-        (r) => r.supplierId === me && r.status === 'PENDING',
+        (r) => r.supplierId === me && (r.status === 'PENDING' || r.status === 'QUALIFIED'),
       ).length
     }
 
@@ -52,7 +53,11 @@ export function useShellBadges(role: Role): Record<string, number> {
     if (role === 'ADMIN') {
       counts['/admin/inspections'] = equipment.filter((e) => e.status === 'SUBMITTED').length
       counts['/admin/reports'] = equipment.filter((e) => e.status === 'PENDING_ADMIN_REVIEW').length
-      counts['/admin/requests'] = rentalRequests.filter((r) => r.status === 'PENDING').length
+      // Ce que l'administration doit faire avancer : qualifier une nouvelle
+      // demande, confirmer une acceptation.
+      counts['/admin/requests'] = rentalRequests.filter(
+        (r) => r.status === 'PENDING' || r.status === 'ACCEPTED',
+      ).length
     }
 
     if (role === 'CLIENT') {

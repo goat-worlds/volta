@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ClipboardCheck, Gavel, Inbox, UserCheck } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import { Card, EmptyState, PageTitle, StatusBadge } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import { equipmentRef, inspectionRef } from '../../lib/references'
 
 const LABEL = { ASSIGNED: 'Assignée', IN_PROGRESS: 'En cours', DONE: 'Terminée' } as const
@@ -21,16 +22,11 @@ export default function AdminInspections() {
   const { inspections, equipment, users, reports, assignInspection } = useStore()
   const [teamByEquipment, setTeamByEquipment] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
 
   const technicalTeams = users.filter((u) => u.role === 'TECHNICAL')
   const awaiting = equipment.filter((e) => e.status === 'SUBMITTED')
   const toDecide = equipment.filter((e) => e.status === 'PENDING_ADMIN_REVIEW')
-
-  const flash = (message: string) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 4000)
-  }
 
   /** L'équipe montrée par le menu, y compris quand l'admin n'y a pas touché. */
   const teamFor = (equipmentId: string) => {
@@ -45,9 +41,9 @@ export default function AdminInspections() {
     try {
       await assignInspection(equipmentId, teamId)
       const team = technicalTeams.find((t) => t.id === teamId)
-      flash(`${name} confié à ${team?.company || team?.name}.`)
+      toast.success('Inspection assignée', `${name} confié à ${team?.company || team?.name}.`)
     } catch (error) {
-      flash(error instanceof Error ? `Assignation refusée : ${error.message}` : "L'assignation a échoué.")
+      toast.fromError(error, 'Assignation refusée')
     } finally {
       setBusy(null)
     }
@@ -224,7 +220,6 @@ export default function AdminInspections() {
         )}
       </section>
 
-      <Toast message={toast} />
     </div>
   )
 }

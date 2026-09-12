@@ -9,9 +9,9 @@ import {
   PageTitle,
   ProgressBar,
   StatusBadge,
-  Toast,
   fmtPrice,
 } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import WorkflowTimeline, { SupplierNextAction } from '../../components/WorkflowTimeline'
 import { equipmentRef } from '../../lib/references'
 import type { EquipmentStatus } from '../../store/types'
@@ -32,7 +32,7 @@ const PROGRESS: Record<EquipmentStatus, number> = {
 
 export default function SupplierEquipment() {
   const { equipment, inspections, reports, users, submitEquipment, currentUser } = useStore()
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
   const [openId, setOpenId] = useState<string | null>(null)
   const [sending, setSending] = useState<string | null>(null)
 
@@ -47,11 +47,9 @@ export default function SupplierEquipment() {
       // fournisseur voie immédiatement l'étape suivante plutôt qu'un simple
       // message qui disparaît.
       setOpenId(id)
-      setToast(`${name} soumis à VOLTA. L’inspection va être assignée.`)
-      setTimeout(() => setToast(null), 4000)
+      toast.success('Ressource soumise', `${name} est maintenant en attente de vérification.`)
     } catch (error) {
-      setToast(error instanceof Error ? error.message : 'La soumission a échoué.')
-      setTimeout(() => setToast(null), 5000)
+      toast.fromError(error, 'Soumission refusée')
     } finally {
       setSending(null)
     }
@@ -211,7 +209,6 @@ export default function SupplierEquipment() {
           })}
         </div>
       )}
-      <Toast message={toast} />
     </div>
   )
 }

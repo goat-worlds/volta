@@ -1,45 +1,92 @@
-import type { ReactNode } from 'react'
-import type { EquipmentStatus, Level } from '../store/types'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { AnomalyStatus, EquipmentStatus, Level, OpportunityStage, RentalStatus } from '../store/types'
 import { Inbox, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import { roleTheme } from '../lib/roleTheme'
+import {
+  ANOMALY_SEVERITY,
+  ANOMALY_STATUS,
+  OPPORTUNITY_STAGE,
+  RENTAL_STATUS,
+  STATUS_COLORS,
+  STATUS_LABELS,
+  type StatusStyle,
+} from '../lib/statuses'
 import type { LucideIcon } from 'lucide-react'
 
-export const STATUS_LABELS: Record<EquipmentStatus, string> = {
-  DRAFT: 'Brouillon',
-  SUBMITTED: 'Soumis',
-  PENDING_INSPECTION: 'À vérifier',
-  INSPECTION_IN_PROGRESS: 'Vérification en cours',
-  REPORT_SUBMITTED: 'Rapport transmis',
-  PENDING_ADMIN_REVIEW: 'En attente de décision',
-  REJECTED: 'Refusé',
-  CORRECTIONS_REQUESTED: 'Corrections demandées',
-  REFERENCED: 'Référencé',
-  PUBLISHED: 'Publié',
-  UNPUBLISHED: 'Dépublié',
-}
-
-const STATUS_COLORS: Record<EquipmentStatus, string> = {
-  DRAFT: 'bg-slate-100 text-slate-700',
-  SUBMITTED: 'bg-blue-100 text-blue-700',
-  PENDING_INSPECTION: 'bg-amber-100 text-amber-700',
-  INSPECTION_IN_PROGRESS: 'bg-orange-100 text-orange-700',
-  REPORT_SUBMITTED: 'bg-indigo-100 text-indigo-700',
-  PENDING_ADMIN_REVIEW: 'bg-purple-100 text-purple-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  CORRECTIONS_REQUESTED: 'bg-yellow-100 text-yellow-800',
-  REFERENCED: 'bg-cyan-100 text-cyan-700',
-  PUBLISHED: 'bg-emerald-100 text-emerald-700',
-  UNPUBLISHED: 'bg-slate-200 text-slate-600',
-}
+export { STATUS_LABELS }
 
 export function StatusBadge({ status }: { status: EquipmentStatus }) {
   return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_COLORS[status]}`}>
-      {STATUS_LABELS[status]}
+    <LiveBadge value={status} className={STATUS_COLORS[status] ?? 'bg-slate-100 text-slate-700'}>
+      {STATUS_LABELS[status] ?? status}
+    </LiveBadge>
+  )
+}
+
+/**
+ * Pastille qui signale son propre changement.
+ *
+ * Le rafraîchissement silencieux fait passer une réservation de « Nouvelle » à
+ * « Qualifiée » sans que l'utilisateur ait cliqué : si la pastille change de
+ * texte sans rien d'autre, il ne le remarque pas. Elle pulse une fois quand sa
+ * valeur diffère de la précédente — jamais au premier rendu.
+ */
+export function LiveBadge({
+  value,
+  className,
+  children,
+}: {
+  value: string
+  className: string
+  children: ReactNode
+}) {
+  const previous = useRef(value)
+  const [changed, setChanged] = useState(false)
+
+  useEffect(() => {
+    if (previous.current === value) return
+    previous.current = value
+    setChanged(true)
+    const t = window.setTimeout(() => setChanged(false), 1000)
+    return () => window.clearTimeout(t)
+  }, [value])
+
+  return (
+    <span
+      className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${className} ${
+        changed ? 'volta-changed' : ''
+      }`}
+    >
+      {children}
     </span>
   )
+}
+
+function styledBadge(style: StatusStyle | undefined, raw: string) {
+  const s = style ?? { label: raw, className: 'bg-slate-100 text-slate-600' }
+  return (
+    <LiveBadge value={raw} className={s.className}>
+      {s.label}
+    </LiveBadge>
+  )
+}
+
+export function RentalStatusBadge({ status }: { status: RentalStatus | string }) {
+  return styledBadge(RENTAL_STATUS[status as RentalStatus], status)
+}
+
+export function OpportunityStageBadge({ stage }: { stage: OpportunityStage | string }) {
+  return styledBadge(OPPORTUNITY_STAGE[stage as OpportunityStage], stage)
+}
+
+export function AnomalyStatusBadge({ status }: { status: AnomalyStatus | string }) {
+  return styledBadge(ANOMALY_STATUS[status as AnomalyStatus], status)
+}
+
+export function SeverityBadge({ severity }: { severity: string }) {
+  return styledBadge(ANOMALY_SEVERITY[severity], severity)
 }
 
 const LEVEL_COLORS: Record<Level, string> = {
@@ -262,15 +309,6 @@ export function Modal({
         </div>
         {children}
       </div>
-    </div>
-  )
-}
-
-export function Toast({ message }: { message: string | null }) {
-  if (!message) return null
-  return (
-    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
-      {message}
     </div>
   )
 }

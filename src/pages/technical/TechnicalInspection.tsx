@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, CheckCircle2, Ruler } from 'lucide-react'
 import { ENGIN_PHOTOS } from '../../lib/enginPhotos'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, LinkButton, PageTitle, StatusBadge, Toast } from '../../components/ui'
+import { Card, EmptyState, LinkButton, PageTitle, StatusBadge } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import type { CheckResult, ChecklistItem } from '../../store/types'
 
 const RESULT_OPTIONS: { value: CheckResult; label: string; cls: string }[] = [
@@ -23,7 +24,7 @@ export default function TechnicalInspection() {
   const [photos, setPhotos] = useState<string[]>(inspection?.photos ?? [])
   const [measures, setMeasures] = useState<string[]>([])
   const [anomalies, setAnomalies] = useState<string[]>(inspection?.anomalies ?? [])
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
   const [sending, setSending] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -73,7 +74,7 @@ export default function TechnicalInspection() {
         checklist,
       )
       setSaveError(null)
-      setToast("Rapport soumis à VOLTA. L'engin passe en attente de décision.")
+      toast.success('Rapport transmis', 'L’engin passe en attente de décision.')
       setTimeout(() => navigate('/technical/missions'), 1500)
     } catch (error) {
       // L'écran annonçait la soumission avant même de savoir si elle avait
@@ -220,7 +221,6 @@ export default function TechnicalInspection() {
           </button>
         </>
       )}
-      <Toast message={toast} />
     </div>
   )
 }

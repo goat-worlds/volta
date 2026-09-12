@@ -1,28 +1,44 @@
 import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle, Toast } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
+import { Button, Card, EmptyState, PageTitle, RentalStatusBadge } from '../../components/ui'
 
-const REQUEST_STATUS = {
-  PENDING: { label: 'En attente', cls: 'bg-amber-100 text-amber-700' },
-  ACCEPTED: { label: 'Acceptée', cls: 'bg-emerald-100 text-emerald-700' },
-  DECLINED: { label: 'Refusée', cls: 'bg-red-100 text-red-700' },
-} as const
+/**
+ * Réservations reçues par le fournisseur.
+ *
+ * Le fournisseur se prononce tant que VOLTA ne l'a pas fait pour lui : sur
+ * une demande nouvelle ou qualifiée, il accepte ou refuse. Ensuite, c'est
+ * l'administration qui confirme, démarre et clôture ; lui suit l'avancement,
+ * et le statut change ici sans qu'il ait à recharger.
+ */
+const AWAITING_SUPPLIER = new Set(['PENDING', 'QUALIFIED'])
 
 export default function SupplierRequests() {
   const { rentalRequests, equipment, respondRentalRequest, currentUser } = useStore()
-  const [toast, setToast] = useState<string | null>(null)
-  const mine = rentalRequests.filter((r) => r.supplierId === currentUser?.id)
+  const toast = useToast()
+  const [busy, setBusy] = useState<string | null>(null)
+  const mine = rentalRequests
+    .filter((r) => r.supplierId === currentUser?.id)
+    .sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
 
-  const showToast = (m: string) => {
-    setToast(m)
-    setTimeout(() => setToast(null), 4000)
+  const respond = async (id: string, reference: string, accepted: boolean) => {
+    setBusy(id)
+    try {
+      await respondRentalRequest(id, accepted)
+      if (accepted) toast.success('Réservation acceptée', `${reference} — VOLTA va confirmer la mise en relation.`)
+      else toast.info('Réservation refusée', `${reference} a été refusée.`)
+    } catch (err) {
+      toast.fromError(err)
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
     <div>
-      <PageTitle title="Locations" subtitle="Locations issues des devis acceptés, à confirmer puis à honorer." />
+      <PageTitle title="Réservations" subtitle="Les demandes de location qui concernent vos engins, et où elles en sont." />
       {mine.length === 0 ? (
-        <EmptyState title="Aucune demande reçue" subtitle="Les demandes de devis apparaîtront ici." />
+        <EmptyState title="Aucune réservation" subtitle="Les demandes de location de vos engins apparaîtront ici." />
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -40,40 +56,26 @@ export default function SupplierRequests() {
             <tbody className="divide-y divide-slate-100">
               {mine.map((r) => (
                 <tr key={r.id}>
-                  <td className="px-4 py-3 font-medium text-amber-700">{r.reference}</td>
+                  <td className="px-4 py-3 font-mono text-xs font-semibold text-btp-700">{r.reference}</td>
                   <td className="px-4 py-3">{equipment.find((e) => e.id === r.equipmentId)?.name}</td>
                   <td className="px-4 py-3">
                     <div>{r.clientName}</div>
                     <div className="text-xs text-slate-400">{r.clientPhone}</div>
                   </td>
-                  <td className="px-4 py-3">{r.startDate} → {r.endDate}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{r.startDate} → {r.endDate}</td>
                   <td className="px-4 py-3">{r.location}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${REQUEST_STATUS[r.status].cls}`}>
-                      {REQUEST_STATUS[r.status].label}
-                    </span>
+                    <RentalStatusBadge status={r.status} />
                   </td>
                   <td className="px-4 py-3">
-                    {r.status === 'PENDING' ? (
+                    {AWAITING_SUPPLIER.has(r.status) ? (
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            void respondRentalRequest(r.id, true)
-                            showToast('Demande acceptée.')
-                          }}
-                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-                        >
+                        <Button size="sm" tone="success" disabled={busy === r.id} onClick={() => void respond(r.id, r.reference, true)}>
                           Accepter
-                        </button>
-                        <button
-                          onClick={() => {
-                            void respondRentalRequest(r.id, false)
-                            showToast('Demande refusée.')
-                          }}
-                          className="rounded-lg border border-red-600 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
-                        >
+                        </Button>
+                        <Button size="sm" tone="secondary" disabled={busy === r.id} onClick={() => void respond(r.id, r.reference, false)}>
                           Refuser
-                        </button>
+                        </Button>
                       </div>
                     ) : (
                       <span className="text-xs text-slate-400">—</span>
@@ -85,7 +87,6 @@ export default function SupplierRequests() {
           </table>
         </Card>
       )}
-      <Toast message={toast} />
     </div>
   )
 }

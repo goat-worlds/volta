@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { CalendarCheck } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, EmptyState, PageTitle, RentalStatusBadge } from '../../components/ui'
+import { RENTAL_STATUS } from '../../lib/statuses'
 
 /**
  * Locations du client.
@@ -17,23 +18,31 @@ import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/
  */
 export default function ClientRentals() {
   const { currentUser, rentalRequests, equipment } = useStore()
-  const [filter, setFilter] = useState<'all' | 'PENDING' | 'ACCEPTED' | 'DECLINED'>('all')
+  const [filter, setFilter] = useState<'all' | 'open' | 'active' | 'closed'>('all')
 
   const mine = useMemo(() => {
     if (!currentUser) return []
     return rentalRequests
-      .filter((r) => r.clientEmail === currentUser.email)
+      .filter((r) => r.clientId === currentUser.id || r.clientEmail === currentUser.email)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }, [rentalRequests, currentUser])
 
   const equipmentName = (id: string) => equipment.find((e) => e.id === id)?.name ?? 'Équipement'
-  const visible = filter === 'all' ? mine : mine.filter((r) => r.status === filter)
+  // Trois moments du parcours : en attente d'une décision, en cours
+  // d'exécution, terminée d'une façon ou d'une autre.
+  const bucket = (status: string) =>
+    RENTAL_STATUS[status as keyof typeof RENTAL_STATUS]?.terminal
+      ? 'closed'
+      : status === 'IN_PROGRESS' || status === 'CONFIRMED'
+        ? 'active'
+        : 'open'
+  const visible = filter === 'all' ? mine : mine.filter((r) => bucket(r.status) === filter)
 
   const tabs: { key: typeof filter; label: string }[] = [
     { key: 'all', label: 'Toutes' },
-    { key: 'PENDING', label: 'En attente' },
-    { key: 'ACCEPTED', label: 'Confirmées' },
-    { key: 'DECLINED', label: 'Refusées' },
+    { key: 'open', label: 'En attente' },
+    { key: 'active', label: 'Confirmées / en cours' },
+    { key: 'closed', label: 'Terminées' },
   ]
 
   return (
@@ -45,7 +54,7 @@ export default function ClientRentals() {
 
       <div className="flex flex-wrap gap-2">
         {tabs.map((t) => {
-          const count = t.key === 'all' ? mine.length : mine.filter((r) => r.status === t.key).length
+          const count = t.key === 'all' ? mine.length : mine.filter((r) => bucket(r.status) === t.key).length
           return (
             <button
               key={t.key}
@@ -92,7 +101,7 @@ export default function ClientRentals() {
                     <td className="px-5 py-3 font-medium text-slate-900">{equipmentName(r.equipmentId)}</td>
                     <td className="px-5 py-3 text-slate-600">{r.startDate} → {r.endDate}</td>
                     <td className="px-5 py-3 text-slate-600">{r.location || '—'}</td>
-                    <td className="px-5 py-3"><QuoteStatusBadge status={r.status} /></td>
+                    <td className="px-5 py-3"><RentalStatusBadge status={r.status} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -107,7 +116,7 @@ export default function ClientRentals() {
                     <p className="font-medium text-slate-900">{equipmentName(r.equipmentId)}</p>
                     <p className="mt-0.5 font-mono text-xs text-slate-500">{r.reference}</p>
                   </div>
-                  <QuoteStatusBadge status={r.status} />
+                  <RentalStatusBadge status={r.status} />
                 </div>
                 <p className="mt-2 text-xs text-slate-500">
                   {r.startDate} → {r.endDate}
