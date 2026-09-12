@@ -104,6 +104,23 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/inspections").hasAnyRole("TECHNICAL", "ADMIN")
                 .requestMatchers("/api/inspections/**").hasAnyRole("TECHNICAL", "ADMIN")
 
+                // --- Anomalies : relevées par le technicien, traitées par le fournisseur ---
+                .requestMatchers(HttpMethod.POST, "/api/anomalies").hasAnyRole("TECHNICAL", "ADMIN")
+                .requestMatchers("/api/anomalies/*/transition").hasAnyRole("SUPPLIER", "ADMIN")
+
+                // --- Réservations : le fournisseur répond, VOLTA qualifie et suit ---
+                .requestMatchers("/api/rental-requests/*/accept",
+                                 "/api/rental-requests/*/decline").hasAnyRole("SUPPLIER", "ADMIN")
+                .requestMatchers("/api/rental-requests/*/qualify",
+                                 "/api/rental-requests/*/confirm",
+                                 "/api/rental-requests/*/start",
+                                 "/api/rental-requests/*/complete",
+                                 "/api/rental-requests/*/cancel").hasRole("ADMIN")
+
+                // --- Management commercial et journal d'audit : équipe VOLTA ---
+                .requestMatchers("/api/opportunities/**").hasRole("ADMIN")
+                .requestMatchers("/api/audit/**").hasRole("ADMIN")
+
                 .anyRequest().authenticated()
             )
 

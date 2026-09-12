@@ -20,6 +20,7 @@ import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.ReportRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.service.AuthService;
+import ci.volta.backend.service.ReservationService;
 import ci.volta.backend.service.VoltaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,6 +63,7 @@ public class ApiController {
     private final QuoteRequestRepository quoteRequestRepository;
     private final QuoteRepository quoteRepository;
     private final VoltaService service;
+    private final ReservationService reservations;
     private final AuthService authService;
 
     public ApiController(
@@ -75,7 +77,9 @@ public class ApiController {
             QuoteRequestRepository quoteRequestRepository,
             QuoteRepository quoteRepository,
             VoltaService service,
+            ReservationService reservations,
             AuthService authService) {
+        this.reservations = reservations;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.equipmentRepository = equipmentRepository;
@@ -173,6 +177,12 @@ public class ApiController {
         return service.referenceEquipment(id, body.level());
     }
 
+    /** Niveau maximal que le dossier autorise, à titre indicatif avant décision. */
+    @GetMapping("/equipment/{id}/qualification")
+    public VoltaService.QualificationView qualification(@PathVariable String id) {
+        return service.qualificationOf(id);
+    }
+
     @PostMapping("/equipment/{id}/publish")
     public Equipment publishEquipment(@PathVariable String id) {
         return service.publishEquipment(id);
@@ -211,14 +221,45 @@ public class ApiController {
         return service.createRentalRequest(request);
     }
 
+    public record NoteBody(String note) {
+    }
+
     @PostMapping("/rental-requests/{id}/accept")
     public RentalRequest acceptRentalRequest(@PathVariable String id) {
-        return service.respondRentalRequest(id, true);
+        return reservations.respond(id, true);
     }
 
     @PostMapping("/rental-requests/{id}/decline")
     public RentalRequest declineRentalRequest(@PathVariable String id) {
-        return service.respondRentalRequest(id, false);
+        return reservations.respond(id, false);
+    }
+
+    @PostMapping("/rental-requests/{id}/qualify")
+    public RentalRequest qualifyRentalRequest(@PathVariable String id,
+                                              @RequestBody(required = false) NoteBody body) {
+        return reservations.qualify(id, body == null ? null : body.note());
+    }
+
+    @PostMapping("/rental-requests/{id}/confirm")
+    public RentalRequest confirmRentalRequest(@PathVariable String id,
+                                              @RequestBody(required = false) NoteBody body) {
+        return reservations.confirm(id, body == null ? null : body.note());
+    }
+
+    @PostMapping("/rental-requests/{id}/start")
+    public RentalRequest startRentalRequest(@PathVariable String id) {
+        return reservations.start(id);
+    }
+
+    @PostMapping("/rental-requests/{id}/complete")
+    public RentalRequest completeRentalRequest(@PathVariable String id,
+                                               @RequestBody(required = false) NoteBody body) {
+        return reservations.complete(id, body == null ? null : body.note());
+    }
+
+    @PostMapping("/rental-requests/{id}/cancel")
+    public RentalRequest cancelRentalRequest(@PathVariable String id, @RequestBody NoteBody body) {
+        return reservations.cancel(id, body.note());
     }
 
     @GetMapping("/quote-requests")

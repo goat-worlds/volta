@@ -1,8 +1,12 @@
 package ci.volta.backend.service;
 
+import ci.volta.backend.domain.AnomalyWorkflow;
 import ci.volta.backend.domain.EquipmentWorkflow;
+import ci.volta.backend.domain.QualificationRules;
 import ci.volta.backend.domain.QuoteValidation;
 import ci.volta.backend.domain.QuoteWorkflow;
+import ci.volta.backend.domain.RentalWorkflow;
+import ci.volta.backend.model.Anomaly;
 import ci.volta.backend.model.ChecklistItem;
 import ci.volta.backend.model.Equipment;
 import ci.volta.backend.model.Inspection;
@@ -12,6 +16,7 @@ import ci.volta.backend.model.QuoteRequest;
 import ci.volta.backend.model.RentalRequest;
 import ci.volta.backend.model.Report;
 import ci.volta.backend.model.UserAccount;
+import ci.volta.backend.repository.AnomalyRepository;
 import ci.volta.backend.repository.EquipmentRepository;
 import ci.volta.backend.repository.InspectionRepository;
 import ci.volta.backend.repository.NotificationRepository;
@@ -64,6 +69,9 @@ public class VoltaService {
     private final QuoteRequestRepository quoteRequestRepository;
     private final QuoteRepository quoteRepository;
     private final WebhookService webhookService;
+    private final AnomalyRepository anomalyRepository;
+    private final ReferenceService references;
+    private final AuditService audit;
 
     /** Seul statut visible au catalogue public. */
     public static final String STATUS_PUBLISHED = "PUBLISHED";
@@ -80,8 +88,14 @@ public class VoltaService {
             QuoteRequestRepository quoteRequestRepository,
             QuoteRepository quoteRepository,
             WebhookService webhookService,
+            AnomalyRepository anomalyRepository,
+            ReferenceService references,
+            AuditService audit,
             UserRepository userRepository,
             CurrentUser currentUser) {
+        this.anomalyRepository = anomalyRepository;
+        this.references = references;
+        this.audit = audit;
         this.equipmentRepository = equipmentRepository;
         this.inspectionRepository = inspectionRepository;
         this.reportRepository = reportRepository;
@@ -250,7 +264,9 @@ public class VoltaService {
         u.company = input.company() == null ? "" : input.company().trim();
         u.city = input.city() == null ? "" : input.city().trim();
         u.passwordHash = authService.encodePassword(input.password());
-        return view(userRepository.save(u), true);
+        u = userRepository.save(u);
+        audit.record("USER_CREATED", "USER", u.id, u.email, "Rôle : " + u.role);
+        return view(u, true);
     }
 
     /** Rôles qu'un administrateur peut attribuer, celui d'administrateur inclus. */
@@ -296,6 +312,9 @@ public class VoltaService {
             }
             if (!ASSIGNABLE_ROLES.contains(role)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rôle inconnu : " + role);
+            }
+            if (!role.equalsIgnoreCase(u.role)) {
+                audit.record("USER_ROLE_CHANGED", "USER", u.id, u.email, u.role + " vers " + role);
             }
             u.role = role;
         }
@@ -384,11 +403,13 @@ public class VoltaService {
                     .toList();
         }
         if (CurrentUser.ROLE_CLIENT.equals(role)) {
-            // La demande de location ne porte pas d'identifiant client : elle
-            // est rattachée par l'email saisi au moment du devis.
+            // Rattachement par identifiant quand il est connu ; les demandes
+            // antérieures n'en portent pas et restent rattachées par l'email.
             String email = me.email == null ? "" : me.email;
             return rentalRequestRepository.findAll().stream()
-                    .filter(r -> email.equalsIgnoreCase(r.clientEmail))
+                    .filter(r -> me.id.equals(r.clientId)
+                            || ((r.clientId == null || r.clientId.isBlank())
+                                    && email.equalsIgnoreCase(r.clientEmail)))
                     .toList();
         }
         return List.of();
@@ -459,20 +480,34 @@ public class VoltaService {
         if (!currentUser.isAdmin() || equipment.supplierId == null || equipment.supplierId.isBlank()) {
             equipment.supplierId = currentUser.requireId();
         }
+        if (equipment.name == null || equipment.name.isBlank()
+                || equipment.categoryId == null || equipment.categoryId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le nom et la catégorie de l'équipement sont requis");
+        }
+        if (equipment.pricePerDay < 0 || equipment.hours < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le tarif et le compteur horaire ne peuvent pas être négatifs");
+        }
         equipment.id = newId("eq");
+        equipment.reference = references.next(ReferenceService.RESOURCE);
         equipment.status = "DRAFT";
         equipment.level = null;
         equipment.createdAt = today();
-        return equipmentRepository.save(equipment);
+        equipment = equipmentRepository.save(equipment);
+        audit.record("EQUIPMENT_CREATED", "EQUIPMENT", equipment.id, equipment.reference, equipment.name);
+        return equipment;
     }
 
     /** Soumet un équipement à validation. Réservé à son propriétaire. */
     public Equipment submitEquipment(String equipmentId) {
         Equipment eq = getEquipment(equipmentId);
         currentUser.requireOwnership(eq.supplierId, "cet équipement");
+        EquipmentWorkflow.checkTransition(eq.status, EquipmentWorkflow.SUBMITTED);
         eq.status = "SUBMITTED";
         notify("ADMIN", eq.name + " soumis pour vérification");
         eq = equipmentRepository.save(eq);
+        audit.record("EQUIPMENT_SUBMITTED", "EQUIPMENT", eq.id, eq.reference, eq.name);
         emit("EQUIPMENT_SUBMITTED", eq);
         return eq;
     }
@@ -501,6 +536,7 @@ public class VoltaService {
 
         Inspection inspection = new Inspection();
         inspection.id = newId("insp");
+        inspection.reference = references.next(ReferenceService.VERIFICATION);
         inspection.equipmentId = equipmentId;
         inspection.technicalTeamId = technicalTeamId;
         inspection.assignedAt = today();
@@ -513,6 +549,8 @@ public class VoltaService {
         equipmentRepository.save(eq);
         notify("TECHNICAL", "Nouvelle mission assignée : " + eq.name);
         notify("SUPPLIER", eq.name + " est en attente d'inspection");
+        audit.record("INSPECTION_ASSIGNED", "INSPECTION", inspection.id, inspection.reference,
+                eq.name + " confié à " + inspector.name);
         emit("INSPECTION_ASSIGNED", eq);
         return inspection;
     }
@@ -532,9 +570,9 @@ public class VoltaService {
 
         inspection.status = "IN_PROGRESS";
         inspection = inspectionRepository.save(inspection);
-        Equipment eq = getEquipment(inspection.equipmentId);
-        eq.status = "INSPECTION_IN_PROGRESS";
-        equipmentRepository.save(eq);
+        target.status = "INSPECTION_IN_PROGRESS";
+        equipmentRepository.save(target);
+        audit.record("INSPECTION_STARTED", "INSPECTION", inspection.id, inspection.reference, target.name);
         return inspection;
     }
 
@@ -572,6 +610,15 @@ public class VoltaService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Le rapport de cette inspection a déjà été transmis");
         }
+        if (!"IN_PROGRESS".equals(inspection.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Démarrez l'inspection avant de transmettre son rapport");
+        }
+        if (checklist == null || checklist.isEmpty()
+                || checklist.stream().anyMatch(c -> c.result == null || c.result.isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Chaque contrôle de la checklist doit avoir un résultat avant transmission");
+        }
 
         Report report = new Report();
         report.id = newId("rep");
@@ -588,6 +635,10 @@ public class VoltaService {
         eq.status = "PENDING_ADMIN_REVIEW";
         equipmentRepository.save(eq);
         notify("ADMIN", "Rapport d'inspection transmis pour " + eq.name);
+        long openAnomalies = anomalyRepository
+                .findByEquipmentIdAndStatusIn(eq.id, List.copyOf(AnomalyWorkflow.BLOCKING)).size();
+        audit.record("REPORT_SUBMITTED", "INSPECTION", inspection.id, inspection.reference,
+                eq.name + " — " + openAnomalies + " anomalie(s) ouverte(s)");
         emit("REPORT_SUBMITTED", eq);
         return report;
     }
@@ -601,9 +652,12 @@ public class VoltaService {
     public Equipment rejectEquipment(String equipmentId) {
         currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         Equipment eq = getEquipment(equipmentId);
+        EquipmentWorkflow.checkTransition(eq.status, EquipmentWorkflow.REJECTED);
         eq.status = "REJECTED";
+        eq.level = null;
         notify("SUPPLIER", eq.name + " a été refusé après vérification");
         eq = equipmentRepository.save(eq);
+        audit.record("EQUIPMENT_REJECTED", "EQUIPMENT", eq.id, eq.reference, eq.name);
         emit("EQUIPMENT_REJECTED", eq);
         return eq;
     }
@@ -612,9 +666,11 @@ public class VoltaService {
     public Equipment requestCorrection(String equipmentId) {
         currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         Equipment eq = getEquipment(equipmentId);
+        EquipmentWorkflow.checkTransition(eq.status, EquipmentWorkflow.CORRECTIONS_REQUESTED);
         eq.status = "CORRECTIONS_REQUESTED";
         notify("SUPPLIER", "Des corrections sont demandées pour " + eq.name);
         eq = equipmentRepository.save(eq);
+        audit.record("CORRECTIONS_REQUESTED", "EQUIPMENT", eq.id, eq.reference, eq.name);
         emit("CORRECTIONS_REQUESTED", eq);
         return eq;
     }
@@ -632,12 +688,62 @@ public class VoltaService {
         EquipmentWorkflow.checkLevel(level);
         Equipment eq = getEquipment(equipmentId);
         EquipmentWorkflow.checkCanBeReferenced(eq.status);
+        Report latest = latestReport(eq.id);
+        QualificationRules.checkLevelAllowed(level,
+                latest == null ? null : latest.checklist, openAnomalies(eq.id));
+        String normalized = level.trim().toUpperCase();
         eq.status = "REFERENCED";
-        eq.level = level;
-        notify("SUPPLIER", eq.name + " a été référencé " + level);
+        eq.level = normalized;
+        notify("SUPPLIER", eq.name + " a été référencé " + normalized);
         eq = equipmentRepository.save(eq);
+        audit.record("EQUIPMENT_QUALIFIED", "EQUIPMENT", eq.id, eq.reference,
+                eq.name + " — niveau " + normalized);
         emit("EQUIPMENT_REFERENCED", eq);
         return eq;
+    }
+
+    /** Dernier rapport d'inspection d'un équipement, ou null. */
+    private Report latestReport(String equipmentId) {
+        return reportRepository.findAll().stream()
+                .filter(r -> equipmentId.equals(r.equipmentId))
+                .max(java.util.Comparator.comparing((Report r) -> r.submittedAt == null ? "" : r.submittedAt)
+                        .thenComparing(r -> r.id == null ? "" : r.id))
+                .orElse(null);
+    }
+
+    private List<Anomaly> openAnomalies(String equipmentId) {
+        return anomalyRepository.findByEquipmentIdAndStatusIn(equipmentId, List.copyOf(AnomalyWorkflow.BLOCKING));
+    }
+
+    /**
+     * Niveau maximal que le dossier d'un équipement autorise, à titre indicatif
+     * pour l'administration. Ne modifie rien.
+     */
+    public record QualificationView(String equipmentId, String maxLevel, int openAnomalies,
+                                    int nonConforme, int aSurveiller, int conforme, boolean hasReport) {
+    }
+
+    @Transactional(readOnly = true)
+    public QualificationView qualificationOf(String equipmentId) {
+        Equipment eq = getEquipment(equipmentId);
+        if (!currentUser.isAdmin()) {
+            currentUser.requireOwnership(eq.supplierId, "cet équipement");
+        }
+        Report latest = latestReport(eq.id);
+        List<Anomaly> open = openAnomalies(eq.id);
+        List<ChecklistItem> checklist = latest == null ? null : latest.checklist;
+        int nonConforme = 0;
+        int aSurveiller = 0;
+        int conforme = 0;
+        if (checklist != null) {
+            for (ChecklistItem c : checklist) {
+                if (QualificationRules.CONFORME.equalsIgnoreCase(c.result)) conforme++;
+                else if (QualificationRules.NON_CONFORME.equalsIgnoreCase(c.result)) nonConforme++;
+                else if (c.result != null && !c.result.isBlank()) aSurveiller++;
+            }
+        }
+        return new QualificationView(eq.id, QualificationRules.maxAllowedLevel(checklist, open),
+                open.size(), nonConforme, aSurveiller, conforme, latest != null);
     }
 
     /**
@@ -654,6 +760,7 @@ public class VoltaService {
         eq.status = "PUBLISHED";
         notify("SUPPLIER", eq.name + " est publié sur le catalogue");
         eq = equipmentRepository.save(eq);
+        audit.record("EQUIPMENT_PUBLISHED", "EQUIPMENT", eq.id, eq.reference, eq.name + " — " + eq.level);
         emit("EQUIPMENT_PUBLISHED", eq);
         return eq;
     }
@@ -666,46 +773,60 @@ public class VoltaService {
         eq.status = "UNPUBLISHED";
         notify("SUPPLIER", eq.name + " a été dépublié du catalogue");
         eq = equipmentRepository.save(eq);
+        audit.record("EQUIPMENT_UNPUBLISHED", "EQUIPMENT", eq.id, eq.reference, eq.name);
         emit("EQUIPMENT_UNPUBLISHED", eq);
         return eq;
     }
 
+    /**
+     * Demande de location directe, au nom de l'utilisateur authentifié.
+     *
+     * Le clientId éventuel du corps est ignoré : il vient du jeton. Seul un
+     * équipement publié peut être demandé — le catalogue ne montre que ceux-là,
+     * et une demande sur un engin non vérifié contournerait la promesse VOLTA.
+     */
     public RentalRequest createRentalRequest(RentalRequest request) {
+        UserAccount me = currentUser.require();
+        if (request.equipmentId == null || request.equipmentId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'équipement est requis");
+        }
         Equipment eq = getEquipment(request.equipmentId);
-        long num = 124 + rentalRequestRepository.count();
+        if (!STATUS_PUBLISHED.equals(eq.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cet équipement n'est pas publié : aucune réservation possible");
+        }
+        if (request.startDate == null || request.endDate == null
+                || request.startDate.isBlank() || request.endDate.isBlank()
+                || request.endDate.compareTo(request.startDate) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Les dates de début et de fin sont requises et la fin ne peut précéder le début");
+        }
         request.id = newId("req");
-        request.reference = String.format("VOL-2026-%05d", num);
+        request.reference = references.next(ReferenceService.RENTAL);
         request.supplierId = eq.supplierId;
-        request.status = "PENDING";
+        if (!currentUser.isAdmin() || request.clientId == null || request.clientId.isBlank()) {
+            request.clientId = me.id;
+            if (request.clientName == null || request.clientName.isBlank()) request.clientName = me.name;
+            if (request.clientEmail == null || request.clientEmail.isBlank()) request.clientEmail = me.email;
+            if (request.clientPhone == null || request.clientPhone.isBlank()) request.clientPhone = me.phone;
+        }
+        request.adminNote = null;
+        request.status = RentalWorkflow.PENDING;
         request.createdAt = today();
+        request.updatedAt = today();
         request = rentalRequestRepository.save(request);
-        // Un événement, une notification, adressée à qui doit agir. La location
-        // se traite entre le client et le fournisseur : l'administration la suit
-        // par les webhooks, pas en doublant chaque message dans son journal.
+        // Un événement, une notification, adressée à qui doit agir. La
+        // réservation passe d'abord par VOLTA, qui la qualifie avant la mise en
+        // relation ; le fournisseur en est averti dès maintenant.
+        notify("ADMIN", "Nouvelle réservation à qualifier " + request.reference + " — " + eq.name);
         notify("SUPPLIER", "Nouvelle demande de location " + request.reference + " — " + eq.name);
+        audit.record("RENTAL_REQUESTED", "RENTAL_REQUEST", request.id, request.reference, eq.name);
         webhookService.dispatch("RENTAL_REQUEST_CREATED", Map.of(
                 "requestId", request.id,
                 "reference", request.reference,
                 "equipmentId", eq.id,
                 "equipmentName", eq.name,
                 "clientName", request.clientName == null ? "" : request.clientName));
-        return request;
-    }
-
-    public RentalRequest respondRentalRequest(String requestId, boolean accepted) {
-        RentalRequest request = rentalRequestRepository.findById(requestId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental request not found: " + requestId));
-        request.status = accepted ? "ACCEPTED" : "DECLINED";
-        request = rentalRequestRepository.save(request);
-        Equipment eq = getEquipment(request.equipmentId);
-        // Le fournisseur vient de trancher lui-même : le notifier de sa propre
-        // action n'apprend rien, et l'administration n'a rien à faire de cette
-        // décision commerciale.
-        webhookService.dispatch(accepted ? "RENTAL_REQUEST_ACCEPTED" : "RENTAL_REQUEST_DECLINED", Map.of(
-                "requestId", request.id,
-                "reference", request.reference,
-                "equipmentId", eq.id,
-                "equipmentName", eq.name));
         return request;
     }
 
@@ -868,9 +989,18 @@ public class VoltaService {
         return quoteRepository.findBySupplierId(supplierId);
     }
 
+    /** Détail d'un devis, réservé au fournisseur émetteur et au client destinataire. */
+    @Transactional(readOnly = true)
     public Quote getQuote(String quoteId) {
-        return quoteRepository.findById(quoteId)
+        Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote not found: " + quoteId));
+        if (currentUser.owns(quote.supplierId)) {
+            return quote;
+        }
+        String clientId = quoteRequestRepository.findById(quote.quoteRequestId)
+                .map(q -> q.clientId).orElse(null);
+        currentUser.requireOwnership(clientId, "ce devis");
+        return quote;
     }
 
     /**
@@ -929,9 +1059,9 @@ public class VoltaService {
 
         // Créer automatiquement une demande de location
         RentalRequest rental = new RentalRequest();
-        long num = 124 + rentalRequestRepository.count();
         rental.id = newId("rental");
-        rental.reference = String.format("VOL-2026-%05d", num);
+        rental.reference = references.next(ReferenceService.RENTAL);
+        rental.clientId = qreq.clientId;
         rental.equipmentId = qreq.equipmentId;
         rental.supplierId = qreq.supplierId;
         rental.startDate = qreq.startDate;
@@ -940,11 +1070,15 @@ public class VoltaService {
         rental.clientName = qreq.clientName;
         rental.clientPhone = qreq.clientPhone;
         rental.clientEmail = qreq.clientEmail;
-        rental.status = "PENDING";
+        rental.status = RentalWorkflow.PENDING;
         rental.createdAt = today();
+        rental.updatedAt = today();
         rentalRequestRepository.save(rental);
 
         notify("SUPPLIER", "Devis accepté pour " + eq.name + " — demande de location créée");
+        notify("ADMIN", "Nouvelle réservation à qualifier " + rental.reference + " — " + eq.name);
+        audit.record("QUOTE_ACCEPTED", "QUOTE", quote.id, rental.reference,
+                eq.name + " — réservation " + rental.reference + " créée");
         webhookService.dispatch("QUOTE_ACCEPTED", Map.of(
                 "quoteId", quoteId,
                 "equipmentId", eq.id,
@@ -978,6 +1112,7 @@ public class VoltaService {
         Equipment eq = getEquipment(qreq.equipmentId);
 
         notify("SUPPLIER", "Devis refusé pour " + eq.name);
+        audit.record("QUOTE_REJECTED", "QUOTE", quote.id, "", eq.name);
         webhookService.dispatch("QUOTE_REJECTED", Map.of(
                 "quoteId", quoteId,
                 "equipmentId", eq.id));

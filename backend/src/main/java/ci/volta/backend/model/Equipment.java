@@ -15,6 +15,8 @@ import java.util.List;
 public class Equipment {
     @Id
     public String id;
+    /** Référence métier stable, ex. VOL-RES-2026-000001. */
+    public String reference;
     public String name;
     public String categoryId;
     public String brand;

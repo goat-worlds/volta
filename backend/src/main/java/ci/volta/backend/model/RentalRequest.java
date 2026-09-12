@@ -25,4 +25,10 @@ public class RentalRequest {
     public String clientEmail;
     public String status;
     public String createdAt;
+    /** Compte du demandeur, quand il est connu ; l'email reste le repli historique. */
+    public String clientId;
+    /** Note interne de qualification par l'administration. */
+    @Column(columnDefinition = "TEXT")
+    public String adminNote;
+    public String updatedAt;
 }

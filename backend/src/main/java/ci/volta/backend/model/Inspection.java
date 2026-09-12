@@ -15,6 +15,8 @@ import java.util.List;
 public class Inspection {
     @Id
     public String id;
+    /** Référence métier stable, ex. VOL-VER-2026-000001. */
+    public String reference;
     public String equipmentId;
     public String technicalTeamId;
     public String assignedAt;
