@@ -1,0 +1,607 @@
+/**
+ * Les parcours.
+ *
+ * Huit intentions, huit formulaires — mais une seule mécanique. Chaque parcours
+ * est une suite d'étapes et de champs déclarés ici ; le composant qui les rend
+ * ne connaît aucun d'eux en particulier. Écrire huit pages de saisie aurait
+ * donné huit validations, huit fils d'étapes et huit écrans de confirmation à
+ * maintenir en accord, pour des questions qui ne diffèrent que par leur objet.
+ *
+ * L'étape des coordonnées est ajoutée automatiquement en fin de parcours : elle
+ * est identique partout, et la répéter dans chaque définition finirait par la
+ * faire diverger d'un formulaire à l'autre.
+ */
+import type { FieldOption } from '../components/requests/fields'
+import type { IntentId, RequestKind } from '../types/domain'
+
+export type FieldKind =
+  | 'text'
+  | 'textarea'
+  | 'select'
+  | 'date'
+  | 'number'
+  | 'tel'
+  | 'email'
+  | 'checkbox'
+  | 'tags'
+
+export interface FieldDef {
+  name: string
+  label: string
+  kind: FieldKind
+  required?: boolean
+  help?: string
+  placeholder?: string
+  options?: FieldOption[]
+  /** Occupe les deux colonnes : descriptions, contraintes, listes de pastilles. */
+  full?: boolean
+}
+
+export interface StepDef {
+  title: string
+  intro?: string
+  fields: FieldDef[]
+}
+
+export interface Journey {
+  intent: IntentId
+  kind: RequestKind
+  /** Titre de la page — reprend la formulation de l'intention. */
+  title: string
+  subtitle: string
+  steps: StepDef[]
+  /** Objet de la demande tel qu'il apparaîtra dans le centre des demandes. */
+  subject: (values: Record<string, string>) => string
+  /** Ce que l'écran de confirmation promet — jamais un délai non tenu. */
+  promise: string
+}
+
+/* ------------------------------------------------------------------ */
+/* Vocabulaire partagé                                                 */
+/* ------------------------------------------------------------------ */
+
+const opts = (...labels: string[]): FieldOption[] =>
+  labels.map((label) => ({ value: label, label }))
+
+const EQUIPMENT_CATEGORIES = opts(
+  'Terrassement',
+  'Levage',
+  'Transport',
+  'Compactage',
+  'Forage',
+  'Énergie',
+  'Manutention',
+  'Autre',
+)
+
+const URGENCY = opts('Immédiate', 'Sous 24 h', 'Sous 48 h', 'Cette semaine', 'Planifiée')
+
+const TRADES = opts(
+  'Mécanicien',
+  'Mécanicien diesel',
+  'Hydraulicien',
+  'Électricien',
+  'Électromécanicien',
+  'Technicien de maintenance',
+  'Opérateur d’engins',
+  'Soudeur',
+)
+
+const SKILLS = opts(
+  'Mécanique',
+  'Mécanique diesel',
+  'Hydraulique',
+  'Électricité',
+  'Électromécanique',
+  'Diagnostic',
+  'Maintenance préventive',
+  'Maintenance corrective',
+  'Engins lourds',
+)
+
+const AVAILABILITY = opts(
+  'Immédiatement',
+  'À partir d’une date',
+  'Sous délai',
+  'Indisponible',
+)
+
+/**
+ * Étape des coordonnées.
+ *
+ * Elle vient toujours en dernier : demander qui vous êtes avant de savoir ce
+ * que vous voulez fait abandonner ceux qui n'étaient venus que se renseigner.
+ */
+const CONTACT_STEP: StepDef = {
+  title: 'Vos coordonnées',
+  intro: 'Pour que Génie Sélect puisse revenir vers vous avec une proposition.',
+  fields: [
+    { name: 'contactName', label: 'Nom et prénom', kind: 'text', required: true },
+    { name: 'contactCompany', label: 'Entreprise', kind: 'text' },
+    {
+      name: 'contactPhone',
+      label: 'Téléphone',
+      kind: 'tel',
+      required: true,
+      placeholder: '+225 07 00 00 00 00',
+    },
+    { name: 'contactEmail', label: 'Email', kind: 'email', required: true },
+    { name: 'contactCity', label: 'Localisation', kind: 'text', required: true },
+  ],
+}
+
+/* ------------------------------------------------------------------ */
+/* Parcours                                                            */
+/* ------------------------------------------------------------------ */
+
+const RENT: Journey = {
+  intent: 'RENT_EQUIPMENT',
+  kind: 'RENTAL',
+  title: 'Je veux louer un engin',
+  subtitle:
+    'Décrivez votre besoin. Génie Sélect identifie l’équipement adapté et vous revient avec une proposition.',
+  promise:
+    'Notre équipe analyse votre besoin et reviendra vers vous avec une solution adaptée.',
+  subject: (v) => `Location — ${v.equipmentType || 'engin'} à ${v.siteLocation || 'préciser'}`,
+  steps: [
+    {
+      title: 'Votre besoin',
+      intro: 'Ce que vous cherchez, pour combien de temps et où.',
+      fields: [
+        {
+          name: 'equipmentType',
+          label: 'Type d’engin',
+          kind: 'text',
+          required: true,
+          placeholder: 'Pelle hydraulique, camion benne…',
+        },
+        {
+          name: 'category',
+          label: 'Catégorie',
+          kind: 'select',
+          options: EQUIPMENT_CATEGORIES,
+          required: true,
+        },
+        {
+          name: 'brandModel',
+          label: 'Marque / modèle',
+          kind: 'text',
+          help: 'Si vous avez une préférence.',
+        },
+        { name: 'quantity', label: 'Quantité', kind: 'number', required: true },
+        {
+          name: 'duration',
+          label: 'Durée',
+          kind: 'text',
+          required: true,
+          placeholder: '3 semaines',
+        },
+        { name: 'startDate', label: 'Date de début', kind: 'date', required: true },
+        { name: 'endDate', label: 'Date de fin', kind: 'date' },
+        {
+          name: 'siteLocation',
+          label: 'Localisation du chantier',
+          kind: 'text',
+          required: true,
+          full: true,
+        },
+      ],
+    },
+    {
+      title: 'Votre projet',
+      intro: 'Le contexte nous évite de vous proposer un engin inadapté au terrain.',
+      fields: [
+        {
+          name: 'siteType',
+          label: 'Type de chantier',
+          kind: 'text',
+          required: true,
+          placeholder: 'Voirie, bâtiment, carrière…',
+        },
+        { name: 'intendedUse', label: 'Utilisation prévue', kind: 'text' },
+        {
+          name: 'description',
+          label: 'Description du besoin',
+          kind: 'textarea',
+          required: true,
+          full: true,
+        },
+        {
+          name: 'constraints',
+          label: 'Contraintes',
+          kind: 'textarea',
+          full: true,
+          help: 'Accès, horaires, sol, hauteur disponible…',
+        },
+        {
+          name: 'needsTransport',
+          label: 'J’ai besoin du transport ou de la livraison',
+          kind: 'checkbox',
+        },
+        {
+          name: 'needsOperator',
+          label: 'J’ai besoin d’un opérateur ou d’un technicien',
+          kind: 'checkbox',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const BUY: Journey = {
+  intent: 'BUY_EQUIPMENT',
+  kind: 'PURCHASE',
+  title: 'Je veux acheter un engin',
+  subtitle:
+    'Votre demande est adressée à Génie Sélect, qui vérifie la disponibilité et prépare votre offre.',
+  promise:
+    'Génie Sélect vérifie la disponibilité et l’état de l’équipement, puis vous adresse une offre.',
+  subject: (v) => `Achat — ${v.equipmentType || 'équipement'} × ${v.quantity || '1'}`,
+  steps: [
+    {
+      title: 'L’équipement recherché',
+      fields: [
+        { name: 'equipmentType', label: 'Équipement', kind: 'text', required: true },
+        {
+          name: 'category',
+          label: 'Catégorie',
+          kind: 'select',
+          options: EQUIPMENT_CATEGORIES,
+          required: true,
+        },
+        { name: 'brandModel', label: 'Marque / modèle', kind: 'text' },
+        { name: 'quantity', label: 'Quantité', kind: 'number', required: true },
+        {
+          name: 'condition',
+          label: 'État souhaité',
+          kind: 'select',
+          options: opts('Neuf', 'Occasion', 'Indifférent'),
+        },
+        {
+          name: 'budget',
+          label: 'Budget indicatif',
+          kind: 'text',
+          help: 'Facultatif — il oriente la recherche, il n’engage pas.',
+        },
+        { name: 'deadline', label: 'Délai souhaité', kind: 'select', options: URGENCY },
+        {
+          name: 'details',
+          label: 'Informations complémentaires',
+          kind: 'textarea',
+          full: true,
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const TECHNICIAN: Journey = {
+  intent: 'FIND_TECHNICIAN',
+  kind: 'TECHNICIAN',
+  title: 'Je recherche un technicien',
+  subtitle:
+    'Nos profils sont étudiés, auditionnés et sélectionnés par Génie Sélect avant d’être proposés.',
+  promise:
+    'Génie Sélect recherche dans son vivier le profil correspondant et vous adresse une proposition.',
+  subject: (v) => `Technicien ${v.trade || ''} — ${v.city || 'à préciser'}`.trim(),
+  steps: [
+    {
+      title: 'Le profil recherché',
+      fields: [
+        { name: 'trade', label: 'Métier', kind: 'select', options: TRADES, required: true },
+        { name: 'specialty', label: 'Spécialité', kind: 'text' },
+        { name: 'city', label: 'Lieu d’intervention', kind: 'text', required: true },
+        { name: 'startDate', label: 'Date souhaitée', kind: 'date', required: true },
+        { name: 'urgency', label: 'Urgence', kind: 'select', options: URGENCY, required: true },
+        { name: 'duration', label: 'Durée de la mission', kind: 'text' },
+        {
+          name: 'description',
+          label: 'Description du besoin',
+          kind: 'textarea',
+          required: true,
+          full: true,
+          help: 'Panne constatée, équipement concerné, conditions d’accès.',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const OFFER_EQUIPMENT: Journey = {
+  intent: 'OFFER_EQUIPMENT',
+  kind: 'EQUIPMENT_OFFER',
+  title: 'Je veux louer mon engin',
+  subtitle:
+    'Présentez votre équipement. Génie Sélect le vérifie, puis identifie les opportunités qui lui correspondent.',
+  promise:
+    'Votre fiche est étudiée par Génie Sélect. Une vérification sera planifiée avant toute publication.',
+  subject: (v) => `Engin proposé — ${v.brand || ''} ${v.model || ''}`.trim(),
+  steps: [
+    {
+      title: 'Identification',
+      fields: [
+        { name: 'equipmentType', label: 'Type d’engin', kind: 'text', required: true },
+        {
+          name: 'category',
+          label: 'Catégorie',
+          kind: 'select',
+          options: EQUIPMENT_CATEGORIES,
+          required: true,
+        },
+        { name: 'brand', label: 'Marque', kind: 'text', required: true },
+        { name: 'model', label: 'Modèle', kind: 'text', required: true },
+        { name: 'year', label: 'Année', kind: 'number' },
+        { name: 'serial', label: 'Numéro de série / référence interne', kind: 'text' },
+      ],
+    },
+    {
+      title: 'État et disponibilité',
+      intro:
+        'Ces informations sont enregistrées comme déclarées. Elles seront confrontées à une vérification avant publication.',
+      fields: [
+        {
+          name: 'condition',
+          label: 'État général',
+          kind: 'select',
+          options: opts('Excellent', 'Bon', 'Correct', 'À réviser'),
+          required: true,
+        },
+        { name: 'hours', label: 'Heures d’utilisation', kind: 'number' },
+        { name: 'maintenance', label: 'Entretien', kind: 'text' },
+        {
+          name: 'lastWork',
+          label: 'Dernières interventions',
+          kind: 'textarea',
+          full: true,
+        },
+        {
+          name: 'availability',
+          label: 'Disponibilité',
+          kind: 'select',
+          options: AVAILABILITY,
+          required: true,
+        },
+        { name: 'availableFrom', label: 'Disponible à partir du', kind: 'date' },
+        { name: 'city', label: 'Ville', kind: 'text', required: true },
+        { name: 'zone', label: 'Zone', kind: 'text' },
+      ],
+    },
+    {
+      title: 'Conditions commerciales',
+      fields: [
+        {
+          name: 'dailyRate',
+          label: 'Tarif indicatif',
+          kind: 'text',
+          help: 'Indicatif : il ne sera pas publié comme un prix ferme.',
+        },
+        { name: 'minDuration', label: 'Durée minimale', kind: 'text' },
+        { name: 'terms', label: 'Conditions', kind: 'textarea', full: true },
+        { name: 'transport', label: 'Le transport peut être assuré', kind: 'checkbox' },
+        { name: 'operator', label: 'Un opérateur peut être fourni', kind: 'checkbox' },
+        {
+          name: 'documents',
+          label: 'Documents disponibles',
+          kind: 'tags',
+          full: true,
+          options: opts(
+            'Titre de propriété',
+            'Mise à disposition',
+            'Carte grise',
+            'Assurance',
+            'Documents techniques',
+            'Documents douaniers',
+          ),
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const LIST_CATALOG: Journey = {
+  intent: 'LIST_CATALOG',
+  kind: 'EQUIPMENT_OFFER',
+  title: 'Je veux présenter mes équipements',
+  subtitle: 'Référencez vos équipements, produits et solutions sur Volta.',
+  promise:
+    'Génie Sélect étudie votre catalogue et vous accompagne dans sa structuration avant publication.',
+  subject: (v) => `Catalogue — ${v.legalName || 'entreprise'}`,
+  steps: [
+    {
+      title: 'Votre entreprise',
+      fields: [
+        { name: 'legalName', label: 'Raison sociale', kind: 'text', required: true },
+        { name: 'sector', label: 'Secteur', kind: 'text', required: true },
+        { name: 'city', label: 'Localisation', kind: 'text', required: true },
+        {
+          name: 'coverage',
+          label: 'Zones d’intervention',
+          kind: 'text',
+          help: 'Séparées par des virgules.',
+        },
+        { name: 'description', label: 'Description', kind: 'textarea', full: true },
+      ],
+    },
+    {
+      title: 'Votre catalogue',
+      fields: [
+        {
+          name: 'catalogSize',
+          label: 'Nombre d’équipements ou de produits',
+          kind: 'number',
+          required: true,
+        },
+        {
+          name: 'families',
+          label: 'Familles de produits',
+          kind: 'tags',
+          full: true,
+          options: EQUIPMENT_CATEGORIES,
+        },
+        { name: 'services', label: 'Services associés', kind: 'textarea', full: true },
+        {
+          name: 'catalogUrl',
+          label: 'Catalogue en ligne',
+          kind: 'text',
+          help: 'Lien vers un catalogue existant, s’il y en a un.',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const GOLD: Journey = {
+  intent: 'BECOME_GOLD',
+  kind: 'GOLD',
+  title: 'Je veux devenir GOLD',
+  subtitle:
+    'Valorisez votre entreprise, améliorez votre référencement et augmentez votre visibilité auprès des opportunités correspondant à vos capacités.',
+  promise:
+    'Votre candidature entre en analyse documentaire. Génie Sélect vous transmettra ses recommandations avant l’audit.',
+  subject: (v) => `Candidature GOLD — ${v.legalName || 'entreprise'}`,
+  steps: [
+    {
+      title: 'Votre entreprise',
+      fields: [
+        { name: 'legalName', label: 'Raison sociale', kind: 'text', required: true },
+        { name: 'sector', label: 'Secteur', kind: 'text', required: true },
+        { name: 'city', label: 'Localisation', kind: 'text', required: true },
+        { name: 'staff', label: 'Effectif', kind: 'number' },
+        { name: 'description', label: 'Description', kind: 'textarea', required: true, full: true },
+      ],
+    },
+    {
+      title: 'Capacités et références',
+      intro: 'Ce sont ces éléments qui fondent l’évaluation.',
+      fields: [
+        { name: 'services', label: 'Services proposés', kind: 'textarea', required: true, full: true },
+        { name: 'certifications', label: 'Certifications', kind: 'textarea', full: true },
+        { name: 'clientRefs', label: 'Références clients', kind: 'textarea', full: true },
+        {
+          name: 'coverage',
+          label: 'Zones d’intervention',
+          kind: 'text',
+          required: true,
+          full: true,
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const SUPPORT: Journey = {
+  intent: 'GROW_SALES',
+  kind: 'SUPPORT',
+  title: 'Je veux développer mes ventes',
+  subtitle:
+    'Génie Sélect vous accompagne dans la structuration et la présentation de votre offre.',
+  promise:
+    'Un conseiller Génie Sélect étudie votre situation et vous propose un plan d’accompagnement.',
+  subject: (v) => `Accompagnement — ${v.legalName || 'entreprise'}`,
+  steps: [
+    {
+      title: 'Votre situation',
+      fields: [
+        { name: 'legalName', label: 'Raison sociale', kind: 'text', required: true },
+        { name: 'sector', label: 'Secteur', kind: 'text', required: true },
+        { name: 'city', label: 'Localisation', kind: 'text', required: true },
+        {
+          name: 'goals',
+          label: 'Ce que vous cherchez à obtenir',
+          kind: 'tags',
+          full: true,
+          options: opts(
+            'Développer mes ventes',
+            'Améliorer mon profil',
+            'Structurer mon offre',
+            'Trouver de nouvelles opportunités',
+            'Présenter mon catalogue',
+          ),
+        },
+        { name: 'context', label: 'Votre contexte', kind: 'textarea', required: true, full: true },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+const JOIN_TEAM: Journey = {
+  intent: 'JOIN_TECHNICAL_TEAM',
+  kind: 'SUPPORT',
+  title: 'Je veux rejoindre l’équipe technique',
+  subtitle: 'Mettez vos compétences au service de projets industriels et techniques.',
+  promise:
+    'Votre candidature est enregistrée. Elle sera étudiée, puis vous serez contacté pour la suite du processus.',
+  subject: (v) => `Candidature — ${v.trade || 'technicien'}`,
+  steps: [
+    {
+      title: 'Profil professionnel',
+      fields: [
+        { name: 'trade', label: 'Métier', kind: 'select', options: TRADES, required: true },
+        { name: 'specialty', label: 'Spécialité', kind: 'text', required: true },
+        {
+          name: 'experience',
+          label: 'Années d’expérience',
+          kind: 'number',
+          required: true,
+        },
+        {
+          name: 'availability',
+          label: 'Disponibilité',
+          kind: 'select',
+          options: AVAILABILITY,
+          required: true,
+        },
+        {
+          name: 'mobility',
+          label: 'Mobilité géographique',
+          kind: 'text',
+          full: true,
+          help: 'Villes ou régions où vous pouvez intervenir.',
+        },
+      ],
+    },
+    {
+      title: 'Compétences et certifications',
+      fields: [
+        {
+          name: 'skills',
+          label: 'Compétences',
+          kind: 'tags',
+          required: true,
+          full: true,
+          options: SKILLS,
+        },
+        {
+          name: 'certifications',
+          label: 'Permis, habilitations, certificats',
+          kind: 'textarea',
+          full: true,
+        },
+        { name: 'training', label: 'Formations', kind: 'textarea', full: true },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
+export const JOURNEYS: Journey[] = [
+  RENT,
+  BUY,
+  TECHNICIAN,
+  OFFER_EQUIPMENT,
+  LIST_CATALOG,
+  GOLD,
+  SUPPORT,
+  JOIN_TEAM,
+]
+
+export function journeyFor(intent: IntentId): Journey | undefined {
+  return JOURNEYS.find((journey) => journey.intent === intent)
+}

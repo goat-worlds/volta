@@ -37,6 +37,8 @@ export interface RoleTheme {
   tileChip: string
   /** Bouton d'action principal de l'espace. */
   button: string
+  /** Carte cliquable au repos, qui s'anime vers l'accent au survol. */
+  hoverCard: string
 }
 
 const THEMES: Record<Role, RoleTheme> = {
@@ -51,6 +53,7 @@ const THEMES: Record<Role, RoleTheme> = {
     text: 'text-indigo-700',
     tileChip: 'bg-indigo-50 text-indigo-600',
     button: 'bg-indigo-600 text-white hover:bg-indigo-700 focus-visible:ring-indigo-500',
+    hoverCard: 'hover:border-indigo-400 hover:bg-indigo-50 focus-visible:ring-indigo-400',
   },
   // Le fournisseur apporte les engins : l'ambre chantier de la marque.
   SUPPLIER: {
@@ -63,6 +66,7 @@ const THEMES: Record<Role, RoleTheme> = {
     text: 'text-btp-700',
     tileChip: 'bg-btp-50 text-btp-600',
     button: 'bg-btp-500 text-white hover:bg-btp-600 focus-visible:ring-btp-400',
+    hoverCard: 'hover:border-btp-400 hover:bg-btp-50 focus-visible:ring-btp-400',
   },
   // L'équipe technique atteste la conformité : l'émeraude de ses contrôles.
   TECHNICAL: {
@@ -75,6 +79,7 @@ const THEMES: Record<Role, RoleTheme> = {
     text: 'text-emerald-700',
     tileChip: 'bg-emerald-50 text-emerald-600',
     button: 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500',
+    hoverCard: 'hover:border-emerald-400 hover:bg-emerald-50 focus-visible:ring-emerald-400',
   },
   // Le client compare et décide : le bleu de ses écrans de devis.
   CLIENT: {
@@ -87,6 +92,7 @@ const THEMES: Record<Role, RoleTheme> = {
     text: 'text-blue-700',
     tileChip: 'bg-blue-50 text-blue-600',
     button: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500',
+    hoverCard: 'hover:border-blue-400 hover:bg-blue-50 focus-visible:ring-blue-400',
   },
 }
 

@@ -493,25 +493,43 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
-        <p className="text-sm font-medium text-red-600">Impossible de contacter le serveur VOLTA.</p>
-        <p className="text-xs text-slate-500">{error}</p>
-        <button
-          onClick={() => {
-            setLoading(true)
-            void reload()
-          }}
-          className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-500"
+  /**
+   * Un serveur injoignable ne condamne plus la totalité du site.
+   *
+   * L'erreur remplaçait l'application par un écran unique. Or le catalogue, les
+   * devis et les espaces connectés ont besoin du serveur ; l'accueil, le choix
+   * d'intention et les huit formulaires de demande, non. Les couper tous parce
+   * que l'un d'eux est privé de données fermait la porte d'entrée alors qu'elle
+   * fonctionnait.
+   *
+   * La panne est donc signalée en bandeau, et chaque écran affiche l'état de ce
+   * qu'il montre : les listes vides le disent, les parcours restent ouverts.
+   */
+  return (
+    <StoreContext.Provider value={store}>
+      {error && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-center gap-3 bg-amber-50 px-4 py-2 text-center text-xs text-amber-900"
         >
-          Réessayer
-        </button>
-      </div>
-    )
-  }
-
-  return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
+          <span>
+            Le catalogue et les espaces connectés sont momentanément indisponibles. Vous pouvez
+            déposer une demande normalement.
+          </span>
+          <button
+            onClick={() => {
+              setLoading(true)
+              void reload()
+            }}
+            className="rounded-md bg-amber-200 px-2.5 py-1 font-semibold text-amber-900 transition hover:bg-amber-300"
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+      {children}
+    </StoreContext.Provider>
+  )
 }
 
 export function useStore(): Store {

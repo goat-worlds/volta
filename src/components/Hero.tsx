@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BadgeCheck, Search, ShieldCheck } from 'lucide-react'
+import { ArrowDown, BadgeCheck, Search, ShieldCheck } from 'lucide-react'
 
 /** Les engins qui défilent en bandeau : ceux déjà présents dans le dépôt. */
 const SHOWCASE = [
@@ -10,6 +10,15 @@ const SHOWCASE = [
   { src: '/engins/camion-kamaz.jpeg', label: 'Camion benne Kamaz' },
 ]
 
+/**
+ * Bandeau d'accueil.
+ *
+ * Il annonçait « engins de chantier vérifiés » : exact, mais c'est le tiers de
+ * l'activité. Volta loue, vend, référence et cherche des solutions ; Génie
+ * Sélect qualifie, accompagne et constitue l'équipe technique. La promesse
+ * couvre désormais l'ensemble, et le premier geste proposé n'est pas de
+ * chercher un engin dans un catalogue — c'est de dire ce qu'on veut faire.
+ */
 export default function Hero() {
   const [query, setQuery] = useState('')
   const [slide, setSlide] = useState(0)
@@ -45,22 +54,17 @@ export default function Hero() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-btp-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-btp-300 ring-1 ring-btp-500/30">
               <ShieldCheck size={14} />
-              Plateforme d’engins vérifiés
+              Volta × Génie Sélect
             </span>
 
             <h1 className="mt-6 text-4xl font-black leading-tight text-white md:text-5xl">
-              Engins de chantier
+              Des solutions concrètes
               <br />
-              <span className="text-btp-400">vérifiés.</span>
-              <br />
-              Trouvez le bon engin,
-              <br />
-              au bon moment.
+              pour <span className="text-btp-400">vos projets.</span>
             </h1>
 
             <p className="mt-6 max-w-lg text-lg text-acier-200">
-              VOLTA référence, vérifie et publie des engins de chantier fiables. Comparez les
-              équipements et trouvez des fournisseurs contrôlés en toute confiance.
+              Location, vente, expertise, emploi et accompagnement avec Volta et Génie Sélect.
             </p>
 
             <form
@@ -68,22 +72,33 @@ export default function Hero() {
               className="mt-8 flex max-w-md overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-white/10"
             >
               <div className="flex flex-1 items-center px-4">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 shrink-0 text-slate-400" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Rechercher un engin, une catégorie…"
-                  aria-label="Rechercher un engin"
-                  className="ml-2 flex-1 py-3 text-sm text-acier-900 focus:outline-none"
+                  placeholder="Rechercher un engin, un équipement, un service ou une solution…"
+                  aria-label="Rechercher sur Volta"
+                  className="ml-2 w-full flex-1 py-3 text-sm text-acier-900 focus:outline-none"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-btp-500 px-6 font-bold text-white transition hover:bg-btp-600"
+                className="shrink-0 bg-btp-500 px-6 font-bold text-white transition hover:bg-btp-600"
               >
                 Chercher
               </button>
             </form>
+
+            {/* La recherche sert à qui sait déjà ce qu'il cherche. Les autres —
+                la majorité — ont un besoin à formuler : ce bouton les mène au
+                choix d'intention plutôt qu'à un catalogue à parcourir. */}
+            <a
+              href="#intentions"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-btp-500"
+            >
+              Que recherchez-vous ?
+              <ArrowDown size={16} />
+            </a>
 
             <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/10 pt-6">
               {[

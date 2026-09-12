@@ -7,6 +7,8 @@ import EquipmentDetail from './pages/public/EquipmentDetail'
 import Suppliers from './pages/public/Suppliers'
 import Login from './pages/public/Login'
 import Register from './pages/public/Register'
+import RequestTracking from './pages/public/RequestTracking'
+import JourneyPage from './pages/journeys/JourneyPage'
 import ClientDashboard from './pages/client/ClientDashboard'
 import ClientQuoteRequests from './pages/client/ClientQuoteRequests'
 import ClientQuoteRequestDetail from './pages/client/ClientQuoteRequestDetail'
@@ -43,6 +45,20 @@ export default function App() {
             <Route path="/fournisseurs" element={<Suppliers />} />
             <Route path="/connexion" element={<Login />} />
             <Route path="/inscription" element={<Register />} />
+
+            {/* Les huit parcours de l'accueil. L'adresse est en français et
+                décrit l'intention : elle se dicte au téléphone et se retrouve
+                dans un historique de navigation. */}
+            <Route path="/demande/location" element={<JourneyPage intent="RENT_EQUIPMENT" />} />
+            <Route path="/demande/technicien" element={<JourneyPage intent="FIND_TECHNICIAN" />} />
+            <Route path="/market" element={<JourneyPage intent="BUY_EQUIPMENT" />} />
+            <Route path="/proposer-un-engin" element={<JourneyPage intent="OFFER_EQUIPMENT" />} />
+            <Route path="/catalogue-entreprise" element={<JourneyPage intent="LIST_CATALOG" />} />
+            <Route path="/gold" element={<JourneyPage intent="BECOME_GOLD" />} />
+            <Route path="/accompagnement" element={<JourneyPage intent="GROW_SALES" />} />
+            <Route path="/equipe-technique" element={<JourneyPage intent="JOIN_TECHNICAL_TEAM" />} />
+
+            <Route path="/suivi" element={<RequestTracking />} />
           </Route>
           <Route element={<ClientLayout />}>
             <Route path="/client" element={<ClientDashboard />} />

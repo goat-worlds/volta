@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowRight, Search, ShieldCheck, Truck, Wrench } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { HOME_BY_ROLE } from '../../components/RequireRole'
 import { Card } from '../../components/ui'
+import { roleTheme } from '../../lib/roleTheme'
+import type { Role } from '../../store/types'
 
-type DemoAccount = { label: string; email: string; password: string }
+type DemoAccount = { label: string; email: string; password: string; role: Role }
 
 /**
  * Comptes semés par DataSeeder en développement, où le jeu d'essai est actif.
@@ -12,11 +16,47 @@ type DemoAccount = { label: string; email: string; password: string }
  * de développement : en ligne, le profil d'hébergement ne les crée pas.
  */
 const LOCAL_DEMO_ACCOUNTS: DemoAccount[] = [
-  { label: 'Client', email: 'jean@konan.ci', password: 'password123' },
-  { label: 'Fournisseur', email: 'contact@btpci.ci', password: 'password123' },
-  { label: 'Technique', email: 'inspection@abc.ci', password: 'password123' },
-  { label: 'Administration', email: 'admin@volta.ci', password: 'password123' },
+  { label: 'Client', email: 'jean@konan.ci', password: 'password123', role: 'CLIENT' },
+  { label: 'Fournisseur', email: 'contact@btpci.ci', password: 'password123', role: 'SUPPLIER' },
+  { label: 'Équipe technique', email: 'inspection@abc.ci', password: 'password123', role: 'TECHNICAL' },
+  { label: 'Administration', email: 'admin@volta.ci', password: 'password123', role: 'ADMIN' },
 ]
+
+/** Ce que chaque rôle vient faire ici, dit en une ligne sous son nom. */
+const ROLE_PITCH: Record<Role, string> = {
+  CLIENT: 'Chercher un engin, demander et comparer des devis',
+  SUPPLIER: 'Déclarer ses engins, répondre aux demandes',
+  TECHNICAL: 'Inspecter les engins et transmettre les rapports',
+  ADMIN: 'Assigner les vérifications, classer et publier',
+}
+
+const ROLE_ICON: Record<Role, LucideIcon> = {
+  CLIENT: Search,
+  SUPPLIER: Truck,
+  TECHNICAL: Wrench,
+  ADMIN: ShieldCheck,
+}
+
+/**
+ * Rôle d'un accès rapide.
+ *
+ * Il peut être déclaré en quatrième champ de VITE_DEMO_ACCOUNTS. À défaut, il
+ * se déduit du libellé — c'est le cas des comptes locaux, et cela évite à
+ * l'exploitant d'avoir à le répéter quand il écrit « Fournisseur ».
+ */
+function roleFromLabel(label: string): Role {
+  // Les diacritiques sont détachés puis retirés par leur plage Unicode plutôt
+  // qu'en toutes lettres : écrite littéralement, la plage dépend de l'encodage
+  // du fichier et se casse au premier outil qui le réenregistre.
+  const normalized = label
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+  if (normalized.includes('admin') || normalized.includes('direction')) return 'ADMIN'
+  if (normalized.includes('fournisseur') || normalized.includes('loueur')) return 'SUPPLIER'
+  if (normalized.includes('technique') || normalized.includes('inspect')) return 'TECHNICAL'
+  return 'CLIENT'
+}
 
 /**
  * Comptes d'essai d'une instance en ligne, déclarés par VITE_DEMO_ACCOUNTS sous
@@ -40,8 +80,14 @@ function declaredAccounts(): DemoAccount[] {
   return raw
     .split(';')
     .map((entry) => entry.split('|').map((part) => part.trim()))
-    .filter((parts) => parts.length === 3 && parts.every(Boolean))
-    .map(([label, email, password]) => ({ label, email, password }))
+    // Le rôle est facultatif : trois champs suffisent, un quatrième le force.
+    .filter((parts) => parts.length >= 3 && parts.slice(0, 3).every(Boolean))
+    .map(([label, email, password, role]) => ({
+      label,
+      email,
+      password,
+      role: role ? roleFromLabel(role) : roleFromLabel(label),
+    }))
 }
 
 const declared = declaredAccounts()
@@ -138,28 +184,46 @@ export default function Login() {
         {DEMO_ACCOUNTS.length > 0 && (
           <div className="mt-8 border-t border-slate-200 pt-5">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Comptes de démonstration
+              Entrer directement dans un espace
             </p>
+            {/* Chaque accès porte la couleur et l'icône de son rôle, les mêmes
+                que celles de l'espace où il mène : on choisit un métier, pas une
+                ligne d'identifiants. */}
             <div className="grid gap-2">
-              {DEMO_ACCOUNTS.map((a) => (
-                <button
-                  key={a.email}
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void enter(a.email, a.password, `Connexion impossible avec ${a.email}.`)}
-                  className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-lg border border-slate-200 px-3 py-2 text-left transition hover:border-amber-300 hover:bg-amber-50 disabled:opacity-60"
-                >
-                  <span className="text-xs font-semibold text-slate-700">{a.label}</span>
-                  {/* Coupé du libellé par un tiret plutôt que rejeté à droite :
-                      sur un téléphone, la ligne passe à la ligne et un
-                      alignement opposé laisserait l'adresse orpheline. */}
-                  <span className="font-mono text-[11px] text-slate-500">
-                    — {a.email} / {a.password}
-                  </span>
-                </button>
-              ))}
+              {DEMO_ACCOUNTS.map((a) => {
+                const theme = roleTheme(a.role)
+                const Icon = ROLE_ICON[a.role]
+                return (
+                  <button
+                    key={a.email}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void enter(a.email, a.password, `Connexion impossible avec ${a.email}.`)}
+                    className={`group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 ${theme.hoverCard}`}
+                  >
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${theme.tileChip}`}
+                    >
+                      <Icon size={19} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className={`block text-sm font-bold ${theme.text}`}>{a.label}</span>
+                      <span className="block truncate text-[11px] leading-tight text-slate-500">
+                        {ROLE_PITCH[a.role]}
+                      </span>
+                      <span className="mt-0.5 block truncate font-mono text-[10px] text-slate-400">
+                        {a.email} · {a.password}
+                      </span>
+                    </span>
+                    <ArrowRight
+                      size={16}
+                      className="shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500"
+                    />
+                  </button>
+                )
+              })}
             </div>
-            <p className="mt-3 text-xs text-slate-400">Un clic connecte directement.</p>
+            <p className="mt-3 text-xs text-slate-400">Un clic connecte et ouvre l’espace du rôle.</p>
           </div>
         )}
       </Card>
