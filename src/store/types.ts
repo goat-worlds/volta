@@ -240,3 +240,114 @@ export interface Quote {
   validUntil: string
   createdAt: string
 }
+
+/* ------------------------------------------------------------------ */
+/* Volta Market — servi par /api/market                                 */
+/* ------------------------------------------------------------------ */
+
+export type ListingStatus = 'DRAFT' | 'SUBMITTED' | 'PUBLISHED' | 'REJECTED' | 'WITHDRAWN' | 'SOLD'
+
+export type ListingCondition = 'NEUF' | 'OCCASION'
+
+/** Ce que la vitrine publique reçoit : jamais l'identité du vendeur. */
+export interface PublicListing {
+  id: string
+  reference: string
+  title: string
+  categoryId: string
+  brand: string
+  model: string
+  year: number | null
+  hours: number | null
+  location: string
+  condition: ListingCondition
+  askingPrice: number
+  negotiable: boolean
+  description: string
+  photos: string[]
+  documents: { name: string; type: string }[]
+  featured: boolean
+  publishedAt: string | null
+}
+
+/** L'annonce telle que le vendeur et l'administration la voient. */
+export interface SaleListing extends PublicListing {
+  equipmentId: string | null
+  sellerId: string
+  status: ListingStatus
+  reviewNote: string | null
+  createdAt: string
+  updatedAt: string
+  soldAt: string | null
+}
+
+export interface ListingInput {
+  title: string
+  categoryId: string
+  brand: string
+  model: string
+  year: number | null
+  hours: number | null
+  location: string
+  condition: ListingCondition
+  askingPrice: number
+  negotiable: boolean
+  description: string
+  photos: string[]
+  documents: { name: string; type: string }[]
+  equipmentId?: string | null
+}
+
+export type PurchaseStage =
+  | 'RECEIVED'
+  | 'QUALIFYING'
+  | 'AVAILABILITY_CHECK'
+  | 'COMMERCIAL_REVIEW'
+  | 'OFFER'
+  | 'NEGOTIATION'
+  | 'VALIDATED'
+  | 'SOLD'
+  | 'DELIVERED'
+  | 'CLOSED'
+
+export interface PurchaseRequest {
+  id: string
+  reference: string
+  listingId: string
+  sellerId: string
+  clientId: string | null
+  contactName: string
+  contactCompany: string
+  contactPhone: string
+  contactEmail: string
+  contactCity: string
+  quantity: number
+  message: string
+  status: PurchaseStage
+  offerAmount: number | null
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PurchaseInput {
+  contactName: string
+  contactCompany?: string
+  contactPhone: string
+  contactEmail: string
+  contactCity?: string
+  quantity: number
+  message?: string
+}
+
+/** Suivi public d'une demande d'offre, par sa référence. */
+export interface PurchaseTracking {
+  reference: string
+  listingId: string
+  listingTitle: string
+  status: PurchaseStage
+  offerAmount: number | null
+  quantity: number
+  createdAt: string
+  updatedAt: string
+}

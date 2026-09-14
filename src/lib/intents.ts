@@ -124,7 +124,7 @@ export const INTENTS: Intent[] = [
     title: 'Je veux rejoindre l’équipe technique',
     description: 'Déposez votre CV et rejoignez notre processus de sélection.',
     cta: 'Rejoindre l’équipe',
-    to: '/equipe-technique',
+    to: '/recrutement',
     icon: HardHat,
     audience: 'TECHNICIAN',
     kind: 'SUPPORT',

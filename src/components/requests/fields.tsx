@@ -7,7 +7,9 @@
  * Ces composants les fixent une fois : un formulaire de candidature et une
  * demande de location se remplissent de la même main.
  */
-import type { ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
+import { FileCheck2, Upload, X } from 'lucide-react'
+import { formatSize, parseAttachment, removeAttachment, saveAttachment } from '../../services/attachments'
 
 const CONTROL =
   'w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-acier-900 ' +
@@ -220,6 +222,99 @@ export function TagsField({
           )
         })}
       </div>
+    </Label>
+  )
+}
+
+/**
+ * Dépôt de fichier — le CV d'une candidature.
+ *
+ * La valeur reste une chaîne, comme partout : la description du fichier en
+ * JSON (voir services/attachments). Le contenu, lui, est rangé à part dès le
+ * choix du fichier, si bien que le formulaire n'a rien de plus à faire à
+ * l'envoi. Un fichier refusé — trop lourd, illisible — est dit sur place.
+ */
+export function FileField({
+  accept = '.pdf,.doc,.docx',
+  ...props
+}: BaseProps & { accept?: string }) {
+  const { name, label, required, help, error, value, onChange } = props
+  const [busy, setBusy] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const current = parseAttachment(value)
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return
+    setBusy(true)
+    setLocalError(null)
+    try {
+      if (current) removeAttachment(current.id)
+      const meta = await saveAttachment(file)
+      onChange(JSON.stringify(meta))
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Le fichier n’a pas pu être ajouté.')
+    } finally {
+      setBusy(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  const clear = () => {
+    if (current) removeAttachment(current.id)
+    onChange('')
+  }
+
+  return (
+    <Label htmlFor={name} label={label} required={required} help={help} error={error ?? localError ?? undefined}>
+      <input
+        ref={inputRef}
+        id={name}
+        name={name}
+        type="file"
+        accept={accept}
+        className="sr-only"
+        onChange={(e) => void pick(e.target.files?.[0])}
+      />
+      {current ? (
+        <div className="flex items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+            <FileCheck2 size={18} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-acier-900">{current.name}</span>
+            <span className="block text-xs text-slate-500">{formatSize(current.size)}</span>
+          </span>
+          <button
+            type="button"
+            onClick={clear}
+            aria-label="Retirer le fichier"
+            className="rounded-lg p-1.5 text-slate-500 transition hover:bg-white hover:text-red-600"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ) : (
+        <label
+          htmlFor={name}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            void pick(e.dataTransfer.files?.[0])
+          }}
+          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition hover:border-btp-400 hover:bg-btp-50/40 ${
+            error ? 'border-red-400' : 'border-slate-300'
+          }`}
+        >
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-btp-50 text-btp-600">
+            <Upload size={20} />
+          </span>
+          <span className="text-sm font-semibold text-acier-900">
+            {busy ? 'Lecture du fichier…' : 'Déposez votre fichier ici ou cliquez pour choisir'}
+          </span>
+          <span className="text-xs text-slate-500">PDF ou Word, 3 Mo maximum</span>
+        </label>
+      )}
     </Label>
   )
 }

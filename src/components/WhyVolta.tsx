@@ -66,7 +66,7 @@ const ARGUMENTS: Argument[] = [
 
 export default function WhyVolta() {
   return (
-    <section className="bg-slate-50 py-16 md:py-24">
+    <section id="garanties" className="scroll-mt-16 bg-white py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-12 max-w-2xl">
           <span className="text-xs font-bold uppercase tracking-widest text-btp-600">

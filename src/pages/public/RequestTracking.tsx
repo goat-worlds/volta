@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, SearchX } from 'lucide-react'
 import { getRequestByRef } from '../../services/requests'
+import { trackPurchase } from '../../services/market'
 import RequestTimeline from '../../components/requests/RequestTimeline'
+import PurchaseTimeline from '../../components/market/PurchaseTimeline'
+import { PURCHASE_STAGE } from '../../lib/statuses'
+import { fmtPrice } from '../../components/ui'
+import type { PurchaseTracking } from '../../store/types'
 import { PRIORITY_LABELS, REQUEST_STATUS_LABELS, type Request } from '../../types/domain'
 
 /**
@@ -12,43 +17,58 @@ import { PRIORITY_LABELS, REQUEST_STATUS_LABELS, type Request } from '../../type
  * est son dossier ajouterait un obstacle là où il n'attend qu'une réponse. La
  * référence qu'il a reçue suffit — c'est elle qu'il cite au téléphone, c'est
  * elle qui ouvre le suivi.
+ *
+ * Deux familles : les demandes des parcours (VOL-REQ, conservées sur
+ * l'appareil tant que le service n'existe pas côté serveur) et les demandes
+ * d'offre Volta Market (VOL-ACH, servies par l'API). Le préfixe décide où
+ * chercher.
  */
+const isPurchaseRef = (ref: string) => ref.trim().toUpperCase().startsWith('VOL-ACH-')
+
 export default function RequestTracking() {
   const [params, setParams] = useSearchParams()
   const initial = params.get('ref') ?? ''
 
   const [query, setQuery] = useState(initial)
   const [request, setRequest] = useState<Request | null>(null)
+  const [purchase, setPurchase] = useState<PurchaseTracking | null>(null)
   const [searched, setSearched] = useState(false)
+
+  const lookup = async (ref: string) => {
+    if (isPurchaseRef(ref)) {
+      setRequest(null)
+      try {
+        setPurchase(await trackPurchase(ref))
+      } catch {
+        setPurchase(null)
+      }
+    } else {
+      setPurchase(null)
+      setRequest((await getRequestByRef(ref)) ?? null)
+    }
+    setSearched(true)
+  }
 
   // La référence arrive en général par l'adresse, au retour de l'envoi : la
   // recherche part seule plutôt que de faire recopier ce qui est déjà là.
   useEffect(() => {
     if (!initial) return
-    let cancelled = false
-    void getRequestByRef(initial).then((found) => {
-      if (cancelled) return
-      setRequest(found ?? null)
-      setSearched(true)
-    })
-    return () => {
-      cancelled = true
-    }
+    void lookup(initial)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial])
 
   const search = async (e: React.FormEvent) => {
     e.preventDefault()
     setParams(query ? { ref: query } : {})
-    const found = await getRequestByRef(query)
-    setRequest(found ?? null)
-    setSearched(true)
+    await lookup(query)
   }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
       <h1 className="text-3xl font-black tracking-tight text-acier-900">Suivre ma demande</h1>
       <p className="mt-3 text-slate-600">
-        Saisissez la référence qui vous a été communiquée — « VOL-REQ-00491 ».
+        Saisissez la référence qui vous a été communiquée — « VOL-REQ-00491 » pour une demande,
+        « VOL-ACH-2026-000012 » pour une offre Volta Market.
       </p>
 
       <form
@@ -73,16 +93,56 @@ export default function RequestTracking() {
         </button>
       </form>
 
-      {searched && !request && (
+      {searched && !request && !purchase && (
         <div className="mt-8 flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
             <SearchX size={22} />
           </span>
           <p className="mt-3 font-semibold text-acier-900">Aucune demande à cette référence.</p>
           <p className="mt-1 max-w-sm text-sm text-slate-500">
-            Vérifiez la saisie. Le suivi n’est consultable que depuis le navigateur ayant déposé la
-            demande.
+            Vérifiez la saisie. Une demande de parcours (VOL-REQ) n’est consultable que depuis
+            le navigateur qui l’a déposée ; une offre Market (VOL-ACH) l’est partout.
           </p>
+        </div>
+      )}
+
+      {purchase && (
+        <div className="mt-8 space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <span className="font-mono text-sm font-bold text-slate-500">{purchase.reference}</span>
+                <h2 className="mt-1 text-xl font-bold text-acier-900">
+                  Offre d’achat — {purchase.listingTitle || 'annonce Volta Market'}
+                </h2>
+              </div>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${PURCHASE_STAGE[purchase.status]?.className ?? 'bg-slate-100'}`}>
+                {PURCHASE_STAGE[purchase.status]?.label ?? purchase.status}
+              </span>
+            </div>
+            <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-5 text-sm sm:grid-cols-3">
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Déposée le</dt>
+                <dd className="mt-1 text-acier-900">{new Date(purchase.createdAt).toLocaleDateString('fr-FR')}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Quantité</dt>
+                <dd className="mt-1 text-acier-900">{purchase.quantity}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Offre</dt>
+                <dd className="mt-1 font-semibold text-acier-900">
+                  {purchase.offerAmount != null ? fmtPrice(purchase.offerAmount) : 'En préparation'}
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">Avancement</h3>
+            <div className="mt-5">
+              <PurchaseTimeline status={purchase.status} />
+            </div>
+          </div>
         </div>
       )}
 

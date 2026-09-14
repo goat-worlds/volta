@@ -75,7 +75,7 @@ const TREE: NavSection[] = [
     label: 'Market',
     items: [
       { to: '/client/catalogue', label: 'Louer', icon: Search, roles: ['CLIENT'] },
-      { to: '/client/acheter', label: 'Acheter', icon: ShoppingCart, roles: ['CLIENT'], feature: 'MARKET_BUY' },
+      { to: '/client/market', label: 'Acheter — Volta Market', icon: ShoppingCart, roles: ['CLIENT'] },
       { to: '/client/locations', label: 'Réserver', icon: CalendarCheck, roles: ['CLIENT'] },
       { to: '/client/demandes', label: 'Demandes de devis', icon: Inbox, roles: ['CLIENT'] },
       { to: '/client/devis', label: 'Devis reçus', icon: Receipt, roles: ['CLIENT'] },
@@ -84,9 +84,10 @@ const TREE: NavSection[] = [
       { to: '/supplier/locations', label: 'Réservations', icon: CalendarCheck, roles: ['SUPPLIER'] },
       { to: '/supplier/demandes', label: 'Demandes de devis', icon: Inbox, roles: ['SUPPLIER'] },
       { to: '/supplier/devis', label: 'Mes devis', icon: Receipt, roles: ['SUPPLIER'] },
-      { to: '/supplier/vendre', label: 'Vendre', icon: Tag, roles: ['SUPPLIER'], feature: 'MARKET_SELL' },
+      { to: '/supplier/vendre', label: 'Vendre — Volta Market', icon: Tag, roles: ['SUPPLIER'] },
 
       { to: '/admin/requests', label: 'Réservations', icon: CalendarCheck, roles: ['ADMIN'] },
+      { to: '/admin/market', label: 'Volta Market', icon: Tag, roles: ['ADMIN'] },
     ],
   },
   {

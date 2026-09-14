@@ -1,7 +1,10 @@
 import type {
   AnomalyStatus,
   EquipmentStatus,
+  ListingCondition,
+  ListingStatus,
   OpportunityStage,
+  PurchaseStage,
   RentalStatus,
 } from '../store/types'
 
@@ -120,4 +123,49 @@ export const ANOMALY_SEVERITY: Record<string, StatusStyle> = {
   MINEURE: { label: 'Mineure', className: 'bg-slate-100 text-slate-700' },
   MAJEURE: { label: 'Majeure', className: 'bg-btp-100 text-btp-800' },
   CRITIQUE: { label: 'Critique', className: 'bg-red-100 text-red-800' },
+}
+
+/* ------------------------------------------------------------------ */
+/* Volta Market                                                        */
+/* ------------------------------------------------------------------ */
+
+export const LISTING_STATUS: Record<ListingStatus, StatusStyle> = {
+  DRAFT: { label: 'Brouillon', className: 'bg-slate-100 text-slate-700' },
+  SUBMITTED: { label: 'À examiner', className: 'bg-blue-100 text-blue-800' },
+  PUBLISHED: { label: 'En ligne', className: 'bg-emerald-100 text-emerald-800' },
+  REJECTED: { label: 'À corriger', className: 'bg-red-100 text-red-800' },
+  WITHDRAWN: { label: 'Retirée', className: 'bg-slate-200 text-slate-600' },
+  SOLD: { label: 'Vendue', className: 'bg-acier-900 text-btp-300', terminal: true },
+}
+
+/** Circuit d'une demande d'offre (CDC §8), dans l'ordre du serveur. */
+export const PURCHASE_FLOW: PurchaseStage[] = [
+  'RECEIVED',
+  'QUALIFYING',
+  'AVAILABILITY_CHECK',
+  'COMMERCIAL_REVIEW',
+  'OFFER',
+  'NEGOTIATION',
+  'VALIDATED',
+  'SOLD',
+  'DELIVERED',
+  'CLOSED',
+]
+
+export const PURCHASE_STAGE: Record<PurchaseStage, StatusStyle> = {
+  RECEIVED: { label: 'Demande reçue', className: 'bg-slate-100 text-slate-700' },
+  QUALIFYING: { label: 'Qualification', className: 'bg-acier-100 text-acier-800' },
+  AVAILABILITY_CHECK: { label: 'Vérification disponibilité', className: 'bg-blue-100 text-blue-800' },
+  COMMERCIAL_REVIEW: { label: 'Analyse commerciale', className: 'bg-indigo-100 text-indigo-800' },
+  OFFER: { label: 'Offre transmise', className: 'bg-btp-100 text-btp-800' },
+  NEGOTIATION: { label: 'Négociation', className: 'bg-btp-100 text-btp-800' },
+  VALIDATED: { label: 'Validée', className: 'bg-emerald-100 text-emerald-800' },
+  SOLD: { label: 'Vente conclue', className: 'bg-emerald-100 text-emerald-800' },
+  DELIVERED: { label: 'Livrée', className: 'bg-emerald-100 text-emerald-800' },
+  CLOSED: { label: 'Clôturée', className: 'bg-slate-200 text-slate-600', terminal: true },
+}
+
+export const LISTING_CONDITION: Record<ListingCondition, string> = {
+  NEUF: 'Neuf',
+  OCCASION: 'Occasion',
 }

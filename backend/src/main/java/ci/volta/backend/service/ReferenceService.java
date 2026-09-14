@@ -24,6 +24,9 @@ public class ReferenceService {
     public static final String RENTAL = "LOC";
     public static final String ANOMALY = "ANO";
     public static final String OPPORTUNITY = "OPP";
+    /** Volta Market : annonce de vente et demande d'offre d'achat. */
+    public static final String LISTING = "MKT";
+    public static final String PURCHASE = "ACH";
 
     private final ReferenceSequenceRepository sequences;
 

@@ -7,6 +7,7 @@ import { createRequest } from '../../services/requests'
 import RequestTimeline from './RequestTimeline'
 import {
   CheckboxField,
+  FileField,
   SelectField,
   TagsField,
   TextAreaField,
@@ -47,6 +48,8 @@ function renderField(
       return <CheckboxField name={field.name} label={field.label} help={field.help} value={value} onChange={onChange} />
     case 'tags':
       return <TagsField {...common} options={field.options ?? []} />
+    case 'file':
+      return <FileField {...common} accept={field.accept} />
     default:
       return <TextField {...common} type={field.kind} placeholder={field.placeholder} />
   }

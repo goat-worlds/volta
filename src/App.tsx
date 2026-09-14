@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { StoreProvider } from './store/StoreContext'
 import { ToastProvider } from './components/feedback/Toaster'
 import { AdminLayout, ClientLayout, PublicLayout, SupplierLayout, TechnicalLayout } from './components/Layouts'
@@ -9,6 +9,9 @@ import Suppliers from './pages/public/Suppliers'
 import Login from './pages/public/Login'
 import Register from './pages/public/Register'
 import RequestTracking from './pages/public/RequestTracking'
+import Market from './pages/public/Market'
+import MarketListing from './pages/public/MarketListing'
+import Recruitment from './pages/public/Recruitment'
 import JourneyPage from './pages/journeys/JourneyPage'
 import ClientDashboard from './pages/client/ClientDashboard'
 import ClientQuoteRequests from './pages/client/ClientQuoteRequests'
@@ -23,6 +26,7 @@ import SupplierEquipmentNew from './pages/supplier/SupplierEquipmentNew'
 import SupplierRequests from './pages/supplier/SupplierRequests'
 import SupplierQuoteRequests from './pages/supplier/SupplierQuoteRequests'
 import SupplierQuotes from './pages/supplier/SupplierQuotes'
+import SupplierListings from './pages/supplier/SupplierListings'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminEquipment from './pages/admin/AdminEquipment'
 import AdminInspections from './pages/admin/AdminInspections'
@@ -31,6 +35,7 @@ import AdminRequests from './pages/admin/AdminRequests'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminCommercial from './pages/admin/AdminCommercial'
 import AdminAudit from './pages/admin/AdminAudit'
+import AdminMarket from './pages/admin/AdminMarket'
 import TechnicalDashboard from './pages/technical/TechnicalDashboard'
 import TechnicalMissions from './pages/technical/TechnicalMissions'
 import TechnicalInspection from './pages/technical/TechnicalInspection'
@@ -38,6 +43,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import AnomaliesPage from './pages/AnomaliesPage'
 import FeatureUnavailable from './pages/FeatureUnavailable'
 import { NotFound } from './pages/errors'
+import ScrollManager from './components/ScrollManager'
 
 export default function App() {
   return (
@@ -46,6 +52,7 @@ export default function App() {
     <ToastProvider>
       <StoreProvider>
         <BrowserRouter>
+          <ScrollManager />
           <Routes>
             <Route element={<PublicLayout />}>
               <Route path="/" element={<Home />} />
@@ -60,12 +67,20 @@ export default function App() {
                   dans un historique de navigation. */}
               <Route path="/demande/location" element={<JourneyPage intent="RENT_EQUIPMENT" />} />
               <Route path="/demande/technicien" element={<JourneyPage intent="FIND_TECHNICIAN" />} />
-              <Route path="/market" element={<JourneyPage intent="BUY_EQUIPMENT" />} />
+              {/* Volta Market : la vitrine d'abord, le formulaire libre pour
+                  qui n'a pas trouvé. « demande » précède « :id ». */}
+              <Route path="/market" element={<Market />} />
+              <Route path="/market/demande" element={<JourneyPage intent="BUY_EQUIPMENT" />} />
+              <Route path="/market/:id" element={<MarketListing />} />
               <Route path="/proposer-un-engin" element={<JourneyPage intent="OFFER_EQUIPMENT" />} />
               <Route path="/catalogue-entreprise" element={<JourneyPage intent="LIST_CATALOG" />} />
               <Route path="/gold" element={<JourneyPage intent="BECOME_GOLD" />} />
               <Route path="/accompagnement" element={<JourneyPage intent="GROW_SALES" />} />
-              <Route path="/equipe-technique" element={<JourneyPage intent="JOIN_TECHNICAL_TEAM" />} />
+              {/* Recrutement : la page dit les métiers et le processus avant
+                  d'ouvrir le dépôt de CV. L'ancienne adresse reste servie. */}
+              <Route path="/recrutement" element={<Recruitment />} />
+              <Route path="/recrutement/candidature" element={<JourneyPage intent="JOIN_TECHNICAL_TEAM" />} />
+              <Route path="/equipe-technique" element={<Navigate to="/recrutement" replace />} />
 
               <Route path="/suivi" element={<RequestTracking />} />
 
@@ -87,8 +102,13 @@ export default function App() {
               <Route path="/client/locations" element={<ClientRentals />} />
               <Route path="/client/favoris" element={<ClientFavorites />} />
               <Route path="/client/notifications" element={<NotificationsPage />} />
+              {/* Le Market est le même qu'en public, monté dans l'espace pour
+                  garder la barre latérale. */}
+              <Route path="/client/market" element={<Market />} />
+              <Route path="/client/market/demande" element={<JourneyPage intent="BUY_EQUIPMENT" />} />
+              <Route path="/client/market/:id" element={<MarketListing />} />
+              <Route path="/client/acheter" element={<Navigate to="/client/market" replace />} />
               {/* Modules annoncés, sans serveur : l'écran le dit, il ne simule pas. */}
-              <Route path="/client/acheter" element={<FeatureUnavailable feature="MARKET_BUY" />} />
               <Route path="/client/missions" element={<FeatureUnavailable feature="MISSIONS" />} />
               <Route path="/client/techniciens" element={<FeatureUnavailable feature="TECHNICIANS" />} />
               <Route path="/client/entreprise" element={<FeatureUnavailable feature="COMPANIES" />} />
@@ -106,7 +126,7 @@ export default function App() {
               <Route path="/supplier/requests" element={<SupplierRequests />} />
               <Route path="/supplier/anomalies" element={<AnomaliesPage />} />
               <Route path="/supplier/notifications" element={<NotificationsPage />} />
-              <Route path="/supplier/vendre" element={<FeatureUnavailable feature="MARKET_SELL" />} />
+              <Route path="/supplier/vendre" element={<SupplierListings />} />
               <Route path="/supplier/*" element={<NotFound />} />
             </Route>
             <Route element={<AdminLayout />}>
@@ -117,6 +137,7 @@ export default function App() {
               <Route path="/admin/requests" element={<AdminRequests />} />
               <Route path="/admin/anomalies" element={<AnomaliesPage />} />
               <Route path="/admin/commercial" element={<AdminCommercial />} />
+              <Route path="/admin/market" element={<AdminMarket />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/audit" element={<AdminAudit />} />
               <Route path="/admin/notifications" element={<NotificationsPage />} />

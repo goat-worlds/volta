@@ -1,8 +1,9 @@
 /**
  * Modules annoncés mais sans serveur derrière.
  *
- * La navigation cible de VOLTA — Missions, Techniciens, Entreprises, Achat,
- * Vente, Mobilité — dépasse ce que l'API sait faire aujourd'hui. Deux
+ * La navigation cible de VOLTA — Missions, Techniciens, Entreprises,
+ * Mobilité — dépasse ce que l'API sait faire aujourd'hui. (Volta Market —
+ * achat et vente — est servi depuis /api/market et n'y figure plus.) Deux
  * options : ne pas en parler, et l'utilisateur ne voit pas où va le produit ;
  * ou dessiner des écrans qui ont l'air de fonctionner, et il découvre en
  * cliquant que rien ne se passe.
@@ -13,8 +14,6 @@
  * Tant qu'elle y est, aucune page ne prétend faire ce que le serveur ne fait pas.
  */
 export type FeatureId =
-  | 'MARKET_BUY'
-  | 'MARKET_SELL'
   | 'MISSIONS'
   | 'TECHNICIANS'
   | 'COMPANIES'
@@ -32,28 +31,6 @@ export interface Feature {
 }
 
 export const FEATURES: Record<FeatureId, Feature> = {
-  MARKET_BUY: {
-    id: 'MARKET_BUY',
-    title: 'Acheter un engin',
-    promise:
-      'Parcourir les engins mis en vente, vérifiés par VOLTA, et déposer une offre d’achat suivie jusqu’à la remise des clés.',
-    backend: [
-      'Annonces de vente (entité, statuts, prix demandé)',
-      'Offres d’achat et leur cycle de vie',
-      'Endpoints GET/POST /sales, /sales/{id}/offers',
-    ],
-  },
-  MARKET_SELL: {
-    id: 'MARKET_SELL',
-    title: 'Vendre un engin',
-    promise:
-      'Mettre un engin en vente depuis sa fiche, avec vérification VOLTA et gestion des offres reçues.',
-    backend: [
-      'Annonces de vente rattachées à un engin référencé',
-      'Réception et réponse aux offres',
-      'Endpoints POST /equipment/{id}/sale, /sales/{id}/offers/{offerId}/accept',
-    ],
-  },
   MISSIONS: {
     id: 'MISSIONS',
     title: 'Missions',

@@ -24,6 +24,7 @@ export type FieldKind =
   | 'email'
   | 'checkbox'
   | 'tags'
+  | 'file'
 
 export interface FieldDef {
   name: string
@@ -35,6 +36,8 @@ export interface FieldDef {
   options?: FieldOption[]
   /** Occupe les deux colonnes : descriptions, contraintes, listes de pastilles. */
   full?: boolean
+  /** Types acceptés par un champ de fichier, au format de l'attribut HTML. */
+  accept?: string
 }
 
 export interface StepDef {
@@ -585,6 +588,29 @@ const JOIN_TEAM: Journey = {
           full: true,
         },
         { name: 'training', label: 'Formations', kind: 'textarea', full: true },
+      ],
+    },
+    {
+      title: 'Votre CV',
+      intro:
+        'C’est la pièce sur laquelle Génie Sélect fonde la présélection. Une lettre courte aide à situer votre parcours.',
+      fields: [
+        {
+          name: 'cv',
+          label: 'Curriculum vitæ',
+          kind: 'file',
+          required: true,
+          full: true,
+          accept: '.pdf,.doc,.docx',
+          help: 'PDF de préférence. Conservé avec votre candidature.',
+        },
+        {
+          name: 'motivation',
+          label: 'Quelques mots sur vous',
+          kind: 'textarea',
+          full: true,
+          placeholder: 'Vos chantiers marquants, les engins que vous connaissez le mieux, ce que vous cherchez.',
+        },
       ],
     },
     CONTACT_STEP,

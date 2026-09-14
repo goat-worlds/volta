@@ -1,32 +1,65 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowDown, BadgeCheck, Search, ShieldCheck } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  ArrowDown,
+  ArrowRight,
+  BadgeCheck,
+  HardHat,
+  Search,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
+  Wrench,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 /** Les engins qui défilent en bandeau : ceux déjà présents dans le dépôt. */
 const SHOWCASE = [
-  { src: '/engins/pelle-cat-336e.jpeg', label: 'Pelle hydraulique CAT 336E' },
-  { src: '/engins/grue-mobile.jpeg', label: 'Grue mobile' },
-  { src: '/engins/compacteur-cat.jpeg', label: 'Compacteur vibrant' },
-  { src: '/engins/camion-kamaz.jpeg', label: 'Camion benne Kamaz' },
+  { src: '/engins/pelle-cat-336e.jpeg', label: 'Pelle hydraulique CAT 336E', tag: 'À louer · Gold' },
+  { src: '/engins/camion-kamaz.jpeg', label: 'Camion benne Kamaz 65115', tag: 'À vendre · 32 M FCFA' },
+  { src: '/engins/grue-mobile.jpeg', label: 'Grue mobile Liebherr', tag: 'À louer · Silver' },
+  { src: '/engins/groupe-mobile.jpeg', label: 'Groupe électrogène Atlas Copco', tag: 'À vendre · Neuf' },
+]
+
+/** Ce que couvre la plateforme, inscrit dans le décor, hors de la bande du titre. */
+const KEYWORDS = [
+  { text: 'Location d’engins', top: '14%', left: '58%', delay: '0s', duration: '9s' },
+  { text: 'Volta Market · Vente', top: '30%', left: '84%', delay: '1.2s', duration: '11s' },
+  { text: 'Inspection 18 points', top: '78%', left: '4%', delay: '2.1s', duration: '10s' },
+  { text: 'Techniciens qualifiés', top: '88%', left: '60%', delay: '0.6s', duration: '12s' },
+  { text: 'Qualification GOLD', top: '6%', left: '8%', delay: '1.8s', duration: '13s' },
+]
+
+const STREAMS = [
+  { top: '18%', duration: '14s', delay: '0s' },
+  { top: '46%', duration: '19s', delay: '4s' },
+  { top: '72%', duration: '16s', delay: '8s' },
+]
+
+/** Les quatre gestes les plus fréquents, à un clic du titre. */
+const QUICK: { icon: LucideIcon; label: string; to: string }[] = [
+  { icon: Truck, label: 'Louer', to: '/catalogue' },
+  { icon: ShoppingCart, label: 'Acheter', to: '/market' },
+  { icon: Wrench, label: 'Trouver un technicien', to: '/demande/technicien' },
+  { icon: HardHat, label: 'Rejoindre l’équipe', to: '/recrutement' },
 ]
 
 /**
- * Bandeau d'accueil.
+ * Couverture d'accueil.
  *
- * Il annonçait « engins de chantier vérifiés » : exact, mais c'est le tiers de
- * l'activité. Volta loue, vend, référence et cherche des solutions ; Génie
- * Sélect qualifie, accompagne et constitue l'équipe technique. La promesse
- * couvre désormais l'ensemble, et le premier geste proposé n'est pas de
- * chercher un engin dans un catalogue — c'est de dire ce qu'on veut faire.
+ * Elle annonce l'ensemble — location, vente, expertise, recrutement — et
+ * propose deux premiers gestes : dire ce qu'on veut faire, ou aller voir ce
+ * qui est à vendre. Le Market est mis en avant parce qu'ici on vend : c'est
+ * l'entrée qui convertit un visiteur en acheteur.
+ *
+ * Le visuel tourne seul et alterne engins à louer et engins à vendre, avec
+ * l'étiquette qui le dit : la plateforme se montre, elle ne se raconte pas.
  */
 export default function Hero() {
   const [query, setQuery] = useState('')
   const [slide, setSlide] = useState(0)
   const navigate = useNavigate()
 
-  // Le visuel tourne seul : une plateforme d'engins se montre, elle ne se
-  // raconte pas. L'intervalle reste long pour ne pas happer le regard pendant
-  // la saisie de la recherche.
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     if (media.matches) return
@@ -43,42 +76,65 @@ export default function Hero() {
     <section className="relative overflow-hidden bg-acier-900">
       <div className="btp-hazard-stripe h-2 w-full" aria-hidden />
 
-      {/* Halo ambré : la lumière d'un phare de chantier sur le châssis sombre. */}
+      {/* Décor : grille, flux, halo, mots-clés. */}
+      <div aria-hidden className="volta-grid pointer-events-none absolute inset-0" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        {STREAMS.map((s) => (
+          <span
+            key={s.top}
+            className="volta-stream"
+            style={{ top: s.top, animationDuration: s.duration, animationDelay: s.delay }}
+          />
+        ))}
+        {KEYWORDS.map((k) => (
+          <span
+            key={k.text}
+            className="volta-keyword hidden lg:block"
+            style={{ top: k.top, left: k.left, animationDuration: k.duration, animationDelay: k.delay }}
+          >
+            {k.text}
+          </span>
+        ))}
+      </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-btp-500/20 blur-3xl"
+        className="pointer-events-none absolute -right-32 -top-32 h-[30rem] w-[30rem] rounded-full bg-btp-500/20 blur-3xl"
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <div className="grid gap-12 md:grid-cols-2 md:items-center">
+      <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-24 lg:min-h-[calc(100vh-64px)] lg:py-20">
+        <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-btp-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-btp-300 ring-1 ring-btp-500/30">
+            <span className="volta-enter inline-flex items-center gap-2 rounded-full bg-btp-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-btp-300 ring-1 ring-btp-500/30">
               <ShieldCheck size={14} />
-              Volta × Génie Sélect
+              Volta × Génie Sélect · Côte d’Ivoire
             </span>
 
-            <h1 className="mt-6 text-4xl font-black leading-tight text-white md:text-5xl">
-              Des solutions concrètes
+            <h1 className="volta-enter volta-delay-1 mt-6 text-4xl font-black leading-[1.05] text-white md:text-6xl">
+              Louez, achetez,
               <br />
-              pour <span className="text-btp-400">vos projets.</span>
+              faites intervenir.
+              <br />
+              <span className="text-btp-400">Tout est vérifié.</span>
             </h1>
 
-            <p className="mt-6 max-w-lg text-lg text-acier-200">
-              Location, vente, expertise, emploi et accompagnement avec Volta et Génie Sélect.
+            <p className="volta-enter volta-delay-2 mt-6 max-w-lg text-lg text-acier-200">
+              Des engins inspectés à louer, des équipements à vendre sur Volta Market, des
+              techniciens sélectionnés par Génie Sélect. Vous décrivez, l’équipe qualifie, vous
+              recevez une proposition.
             </p>
 
             <form
               onSubmit={handleSearch}
-              className="mt-8 flex max-w-md overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-white/10"
+              className="volta-enter volta-delay-3 mt-8 flex max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-white/10"
             >
               <div className="flex flex-1 items-center px-4">
                 <Search className="h-5 w-5 shrink-0 text-slate-400" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Rechercher un engin, un équipement, un service ou une solution…"
+                  placeholder="Pelle, camion benne, grue, groupe électrogène…"
                   aria-label="Rechercher sur Volta"
-                  className="ml-2 w-full flex-1 py-3 text-sm text-acier-900 focus:outline-none"
+                  className="ml-2 w-full flex-1 py-3.5 text-sm text-acier-900 focus:outline-none"
                 />
               </div>
               <button
@@ -89,22 +145,41 @@ export default function Hero() {
               </button>
             </form>
 
-            {/* La recherche sert à qui sait déjà ce qu'il cherche. Les autres —
-                la majorité — ont un besoin à formuler : ce bouton les mène au
-                choix d'intention plutôt qu'à un catalogue à parcourir. */}
-            <a
-              href="#intentions"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-btp-500"
-            >
-              Que recherchez-vous ?
-              <ArrowDown size={16} />
-            </a>
+            <div className="volta-enter volta-delay-3 mt-4 flex flex-wrap gap-2">
+              {QUICK.map((q) => (
+                <Link
+                  key={q.to}
+                  to={q.to}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-acier-100 transition hover:border-btp-400 hover:bg-btp-500 hover:text-white"
+                >
+                  <q.icon size={13} />
+                  {q.label}
+                </Link>
+              ))}
+            </div>
 
-            <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/10 pt-6">
+            <div className="volta-enter volta-delay-4 mt-7 flex flex-wrap gap-3">
+              <Link
+                to="/market"
+                className="inline-flex items-center gap-2 rounded-xl bg-btp-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-btp-500/20 transition hover:bg-btp-600"
+              >
+                <ShoppingCart size={16} />
+                Voir Volta Market
+              </Link>
+              <a
+                href="#intentions"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-white/10"
+              >
+                Que recherchez-vous ?
+                <ArrowDown size={16} />
+              </a>
+            </div>
+
+            <dl className="volta-enter volta-delay-4 mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
               {[
-                { value: '100%', label: 'Engins inspectés' },
-                { value: '50+', label: 'Fournisseurs' },
-                { value: '24/7', label: 'Support' },
+                { value: '18', label: 'points de contrôle par engin' },
+                { value: '0 %', label: 'de commission' },
+                { value: '1', label: 'interlocuteur : Génie Sélect' },
               ].map((s) => (
                 <div key={s.label}>
                   <dt className="text-2xl font-black text-btp-400">{s.value}</dt>
@@ -114,7 +189,7 @@ export default function Hero() {
             </dl>
           </div>
 
-          <div className="relative">
+          <div className="volta-enter volta-delay-2 relative">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10">
               {SHOWCASE.map((item, index) => (
                 <img
@@ -126,18 +201,26 @@ export default function Hero() {
                     index === slide ? 'opacity-100' : 'opacity-0'
                   }`}
                   onError={(e) => {
-                    // Un visuel manquant ne doit pas laisser un cadre vide au
-                    // centre de la page d'accueil.
                     e.currentTarget.src = '/engins/pelle-cat-336e.jpeg'
                   }}
                 />
               ))}
 
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-acier-900/90 to-transparent p-4">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-bold text-acier-900">
-                  <BadgeCheck size={14} className="text-emerald-600" />
-                  {SHOWCASE[slide].label}
-                </span>
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-acier-900/95 via-acier-900/50 to-transparent p-4 pt-16">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-bold text-acier-900">
+                    <BadgeCheck size={14} className="text-emerald-600" />
+                    {SHOWCASE[slide].label}
+                  </span>
+                  <div className="mt-2 text-sm font-semibold text-btp-300">{SHOWCASE[slide].tag}</div>
+                </div>
+                <Link
+                  to={SHOWCASE[slide].tag.startsWith('À vendre') ? '/market' : '/catalogue'}
+                  className="inline-flex items-center gap-1 rounded-lg bg-btp-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-btp-600"
+                >
+                  Voir
+                  <ArrowRight size={13} />
+                </Link>
               </div>
             </div>
 

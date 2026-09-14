@@ -63,6 +63,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/equipment").permitAll()
+                // Volta Market : la vitrine se consulte et une offre se demande
+                // sans compte. « mine » est exclu de la règle publique par sa
+                // propre ligne, plus bas.
+                .requestMatchers(HttpMethod.GET, "/api/market/listings/mine").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/market/listings", "/api/market/listings/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/market/listings/*/requests").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/market/requests/track/*").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 // Spring redirige vers /error après une exception du contrôleur.
                 // Protéger cette route ferait répondre 401 à la place du statut
@@ -116,6 +123,17 @@ public class SecurityConfig {
                                  "/api/rental-requests/*/start",
                                  "/api/rental-requests/*/complete",
                                  "/api/rental-requests/*/cancel").hasRole("ADMIN")
+
+                // --- Volta Market : le vendeur rédige, l'équipe VOLTA publie ---
+                .requestMatchers(HttpMethod.POST, "/api/market/listings").hasAnyRole("SUPPLIER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/market/listings/*").hasAnyRole("SUPPLIER", "ADMIN")
+                .requestMatchers("/api/market/listings/*/submit",
+                                 "/api/market/listings/*/withdraw").hasAnyRole("SUPPLIER", "ADMIN")
+                .requestMatchers("/api/market/listings/*/publish",
+                                 "/api/market/listings/*/reject",
+                                 "/api/market/listings/*/feature",
+                                 "/api/market/listings/*/sold",
+                                 "/api/market/requests/*/stage").hasRole("ADMIN")
 
                 // --- Management commercial et journal d'audit : équipe VOLTA ---
                 .requestMatchers("/api/opportunities/**").hasRole("ADMIN")

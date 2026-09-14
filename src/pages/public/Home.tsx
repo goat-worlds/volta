@@ -3,6 +3,8 @@ import { ArrowRight, Building2, Hammer, Package, Truck, Zap } from 'lucide-react
 import { useStore } from '../../store/StoreContext'
 import Hero from '../../components/Hero'
 import IntentGrid from '../../components/home/IntentGrid'
+import MarketShowcase from '../../components/home/MarketShowcase'
+import RecruitmentBand from '../../components/home/RecruitmentBand'
 import CategoryCard from '../../components/CategoryCard'
 import EquipmentCard from '../../components/EquipmentCard'
 import HowItWorks from '../../components/HowItWorks'
@@ -24,10 +26,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
 /**
  * Accueil.
  *
- * L'ordre des sections porte la promesse : on annonce ce que fait la maison,
- * on demande ce que veut le visiteur, et seulement ensuite on montre le stock.
- * L'inverse — catalogue d'abord — ne parlait qu'à ceux qui cherchaient un engin
- * précis et laissait les sept autres parcours invisibles.
+ * L'ordre des sections suit un argumentaire, et ici on vend : la promesse,
+ * la question au visiteur, ce qui est à vendre, ce qui est à louer, comment
+ * ça se passe, pourquoi nous faire confiance, l'appel aux techniciens, les
+ * niveaux, et l'invitation à ceux qui ont du matériel.
+ *
+ * Le Market vient avant le catalogue de location parce que c'est l'entrée qui
+ * convertit ; le catalogue avant « comment ça marche » parce qu'on montre le
+ * stock avant d'expliquer la mécanique. L'inverse — catalogue d'abord — ne
+ * parlait qu'à ceux qui cherchaient un engin précis.
  */
 export default function Home() {
   const { equipment, categories } = useStore()
@@ -45,15 +52,18 @@ export default function Home() {
 
         <IntentGrid />
 
+        <MarketShowcase />
+
         {published.length > 0 && (
-          <section className="mx-auto max-w-7xl px-4 py-16 md:py-24">
-            <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
+          <section id="location" className="scroll-mt-16 mx-auto max-w-7xl px-4 py-16 md:py-24">
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-acier-900 md:text-4xl">
-                  Équipements disponibles
+                <span className="text-xs font-bold uppercase tracking-widest text-btp-600">À louer</span>
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-acier-900 md:text-4xl">
+                  Des engins inspectés, disponibles.
                 </h2>
-                <p className="mt-2 text-lg text-slate-600">
-                  Des engins référencés sur Volta et contrôlés par Génie Sélect.
+                <p className="mt-3 text-lg text-slate-600">
+                  Chaque engin du catalogue a été contrôlé sur place avant publication.
                 </p>
               </div>
               <Link
@@ -111,6 +121,8 @@ export default function Home() {
         <HowItWorks />
 
         <WhyVolta />
+
+        <RecruitmentBand />
 
         <VerificationLevels />
 
