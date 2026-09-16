@@ -2,28 +2,26 @@
  * Demandes adressées à Génie Sélect.
  *
  * Tous les parcours publics — louer, acheter, chercher un technicien, proposer
- * un engin, candidater GOLD, demander un accompagnement — aboutissent ici. Le
+ * un engin, candidater GOLD, demander un accompagnement, rejoindre l'équipe
+ * technique — aboutissent ici, sur le serveur (`/api/public/requests`). Le
  * client ne contacte jamais le détenteur du matériel directement (§8) : il
- * dépose une demande, et l'opérateur qualifie.
+ * dépose une demande, et l'opérateur qualifie depuis la console
+ * d'administration (`/admin/demandes`).
  *
- * Les fonctions sont asynchrones bien que le stockage soit local : c'est la
- * signature qu'aura l'appel HTTP, et les écrans écrits contre elle n'auront pas
- * à être repris le jour de la bascule.
+ * Le déposant n'a pas de compte : il ne revoit son dossier que par sa
+ * référence et le secret de suivi reçus à l'instant du dépôt (`trackingCode`),
+ * jamais autrement — les revoir suppose de les avoir notés.
  */
-import {
-  REQUEST_FLOW,
-  type IntentId,
-  type Contact,
-  type Priority,
-  type Request,
-  type RequestKind,
-  type RequestStatus,
-} from '../types/domain'
-import { requestRef } from '../lib/references'
-import { record } from './audit'
-import { newId, prepend, readCollection, replaceRow } from './storage'
+import { REQUEST_FLOW, type Contact, type IntentId, type Priority, type RequestKind, type RequestStatus } from '../types/domain'
+import { apiDownload, apiGet, apiPost } from '../store/api'
 
-const COLLECTION = 'requests'
+export interface RequestAttachmentInput {
+  field: string
+  name: string
+  type: string
+  size: number
+  contentBase64: string
+}
 
 export interface NewRequest {
   kind: RequestKind
@@ -32,64 +30,94 @@ export interface NewRequest {
   contact: Contact
   location: string
   priority?: Priority
-  payload: Record<string, unknown>
+  payload: Record<string, string>
+  attachments?: RequestAttachmentInput[]
 }
 
-export async function createRequest(input: NewRequest): Promise<Request> {
-  const id = newId()
-  const now = new Date().toISOString()
+/** Ce que le déposant garde : à défaut, il ne pourra plus jamais retrouver son dossier. */
+export interface RequestReceipt {
+  id: string
+  reference: string
+  trackingToken: string
+  trackingCode: string
+  status: RequestStatus
+  createdAt: string
+}
 
-  const request: Request = {
-    id,
-    reference: requestRef(id),
+export function createRequest(input: NewRequest): Promise<RequestReceipt> {
+  return apiPost<RequestReceipt>('/public/requests', {
     kind: input.kind,
     intent: input.intent,
     subject: input.subject,
-    contact: input.contact,
     location: input.location,
-    // Toute demande entre par le même point : « reçue ». Laisser un formulaire
-    // choisir son statut d'arrivée ouvrirait la porte à des demandes qui se
-    // déclarent qualifiées sans que personne les ait lues.
-    status: 'RECEIVED',
     priority: input.priority ?? 'NORMAL',
-    ownerId: null,
+    contact: input.contact,
     payload: input.payload,
-    createdAt: now,
-    updatedAt: now,
-  }
-
-  prepend(COLLECTION, request)
-  record({
-    actor: request.contact.name,
-    targetRef: request.reference,
-    action: 'CREATE',
-    after: request.subject,
+    attachments: input.attachments ?? [],
   })
-
-  return request
 }
 
-export async function listRequests(): Promise<Request[]> {
-  return readCollection<Request>(COLLECTION)
+/** Ce que le suivi public montre : l'avancement, jamais les coordonnées ni les réponses saisies. */
+export interface RequestTrackingInfo {
+  reference: string
+  subject: string
+  location: string
+  status: RequestStatus
+  priority: Priority
+  createdAt: string
+  updatedAt: string
 }
 
-export async function getRequest(id: string): Promise<Request | undefined> {
-  return readCollection<Request>(COLLECTION).find((r) => r.id === id)
+/** Suivi public : référence et secret remis au dépôt, l'avancement seulement. */
+export function trackRequest(reference: string, token: string): Promise<RequestTrackingInfo> {
+  const ref = encodeURIComponent(reference.trim().toUpperCase())
+  return apiGet<RequestTrackingInfo>(`/public/requests/track/${ref}?token=${encodeURIComponent(token)}`)
 }
 
-/** Retrouve une demande par sa référence — c'est ce que le client a sous les yeux. */
-export async function getRequestByRef(reference: string): Promise<Request | undefined> {
-  const wanted = reference.trim().toUpperCase()
-  return readCollection<Request>(COLLECTION).find((r) => r.reference === wanted)
+// ------------------------------------------------------------------
+// Console d'administration
+// ------------------------------------------------------------------
+
+/** Fiche complète d'une demande, telle que l'équipe VOLTA la voit et la traite. */
+export interface AdminRequestView {
+  id: string
+  reference: string
+  kind: RequestKind
+  intent: IntentId
+  subject: string
+  contact: Contact
+  location: string
+  status: RequestStatus
+  priority: Priority
+  ownerId: string | null
+  payload: Record<string, string>
+  /** Historique horodaté des décisions de traitement, en texte libre. */
+  notes: string
+  createdAt: string
+  updatedAt: string
 }
+
+export interface AttachmentMeta {
+  id: string
+  fieldName: string
+  originalName: string
+  contentType: string
+  size: number
+}
+
+export interface RequestDetail {
+  request: AdminRequestView
+  attachments: AttachmentMeta[]
+}
+
+/** Toutes les demandes, du plus récent au plus ancien — réservé à l'administration. */
+export const listRequests = () => apiGet<AdminRequestView[]>('/admin/requests')
+
+export const getRequestDetail = (id: string) => apiGet<RequestDetail>(`/admin/requests/${id}`)
 
 /**
- * Transitions autorisées (§31).
- *
- * Le parcours est linéaire, mais deux écarts sont légitimes : revenir d'un cran
- * quand une qualification rouvre un point, et clôturer depuis n'importe où —
- * une demande abandonnée par le client ne doit pas être poussée jusqu'à
- * « mission » pour pouvoir être refermée.
+ * Transitions autorisées (§31), pour activer ou griser les actions à l'écran.
+ * Le serveur applique la même règle et tranche en dernier ressort.
  */
 export function canTransition(from: RequestStatus, to: RequestStatus): boolean {
   if (to === 'CLOSED') return true
@@ -98,63 +126,21 @@ export function canTransition(from: RequestStatus, to: RequestStatus): boolean {
   return next === current + 1 || next === current - 1
 }
 
-export async function advanceRequest(
-  id: string,
-  to: RequestStatus,
-  actor: string,
-): Promise<Request> {
-  const request = await getRequest(id)
-  if (!request) throw new Error(`Demande introuvable : ${id}`)
-  if (!canTransition(request.status, to)) {
-    throw new Error(`Passage de « ${request.status} » à « ${to} » non autorisé`)
+export const advanceRequest = (id: string, status: RequestStatus, notes?: string) =>
+  apiPost<AdminRequestView>(`/admin/requests/${id}/status`, { status, notes })
+
+/** Télécharge une pièce jointe (protégée par la session admin) et déclenche son enregistrement. */
+export async function downloadAttachment(requestId: string, attachmentId: string, fallbackName: string) {
+  const { blob, filename } = await apiDownload(`/admin/requests/${requestId}/attachments/${attachmentId}`)
+  const url = URL.createObjectURL(blob)
+  try {
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename ?? fallbackName
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } finally {
+    URL.revokeObjectURL(url)
   }
-
-  const updated: Request = { ...request, status: to, updatedAt: new Date().toISOString() }
-  replaceRow(COLLECTION, updated)
-  record({
-    actor,
-    targetRef: request.reference,
-    action: 'STATUS_CHANGE',
-    field: 'statut',
-    before: request.status,
-    after: to,
-  })
-
-  return updated
-}
-
-export async function assignRequest(id: string, ownerId: string, actor: string): Promise<Request> {
-  const request = await getRequest(id)
-  if (!request) throw new Error(`Demande introuvable : ${id}`)
-
-  const updated: Request = { ...request, ownerId, updatedAt: new Date().toISOString() }
-  replaceRow(COLLECTION, updated)
-  record({
-    actor,
-    targetRef: request.reference,
-    action: 'ASSIGN',
-    field: 'responsable',
-    before: request.ownerId ?? '—',
-    after: ownerId,
-  })
-
-  return updated
-}
-
-export async function setPriority(id: string, priority: Priority, actor: string): Promise<Request> {
-  const request = await getRequest(id)
-  if (!request) throw new Error(`Demande introuvable : ${id}`)
-
-  const updated: Request = { ...request, priority, updatedAt: new Date().toISOString() }
-  replaceRow(COLLECTION, updated)
-  record({
-    actor,
-    targetRef: request.reference,
-    action: 'UPDATE',
-    field: 'priorité',
-    before: request.priority,
-    after: priority,
-  })
-
-  return updated
 }

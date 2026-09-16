@@ -1,40 +1,40 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, SearchX } from 'lucide-react'
-import { getRequestByRef } from '../../services/requests'
+import { trackRequest, type RequestTrackingInfo } from '../../services/requests'
 import { trackPurchase } from '../../services/market'
 import RequestTimeline from '../../components/requests/RequestTimeline'
 import PurchaseTimeline from '../../components/market/PurchaseTimeline'
 import { PURCHASE_STAGE } from '../../lib/statuses'
 import { fmtPrice } from '../../components/ui'
 import type { PurchaseTracking } from '../../store/types'
-import { PRIORITY_LABELS, REQUEST_STATUS_LABELS, type Request } from '../../types/domain'
+import { PRIORITY_LABELS, REQUEST_STATUS_LABELS } from '../../types/domain'
 
 /**
  * Suivi d'une demande par sa référence.
  *
  * Le déposant n'a pas de compte : lui imposer une inscription pour savoir où en
  * est son dossier ajouterait un obstacle là où il n'attend qu'une réponse. La
- * référence qu'il a reçue suffit — c'est elle qu'il cite au téléphone, c'est
- * elle qui ouvre le suivi.
+ * référence et le code de suivi qu'il a reçus suffisent.
  *
- * Deux familles : les demandes des parcours (VOL-REQ, conservées sur
- * l'appareil tant que le service n'existe pas côté serveur) et les demandes
- * d'offre Volta Market (VOL-ACH, servies par l'API). Le préfixe décide où
- * chercher.
+ * Deux familles, deux services : les demandes des parcours (VOL-REQ, référence
+ * + code de suivi) et les demandes d'offre Volta Market (VOL-ACH, référence
+ * seule). Le préfixe décide où chercher.
  */
 const isPurchaseRef = (ref: string) => ref.trim().toUpperCase().startsWith('VOL-ACH-')
 
 export default function RequestTracking() {
   const [params, setParams] = useSearchParams()
   const initial = params.get('ref') ?? ''
+  const initialToken = params.get('token') ?? ''
 
   const [query, setQuery] = useState(initial)
-  const [request, setRequest] = useState<Request | null>(null)
+  const [tokenInput, setTokenInput] = useState(initialToken)
+  const [request, setRequest] = useState<RequestTrackingInfo | null>(null)
   const [purchase, setPurchase] = useState<PurchaseTracking | null>(null)
   const [searched, setSearched] = useState(false)
 
-  const lookup = async (ref: string) => {
+  const lookup = async (ref: string, token: string) => {
     if (isPurchaseRef(ref)) {
       setRequest(null)
       try {
@@ -44,7 +44,11 @@ export default function RequestTracking() {
       }
     } else {
       setPurchase(null)
-      setRequest((await getRequestByRef(ref)) ?? null)
+      try {
+        setRequest(await trackRequest(ref, token))
+      } catch {
+        setRequest(null)
+      }
     }
     setSearched(true)
   }
@@ -53,44 +57,55 @@ export default function RequestTracking() {
   // recherche part seule plutôt que de faire recopier ce qui est déjà là.
   useEffect(() => {
     if (!initial) return
-    void lookup(initial)
+    void lookup(initial, initialToken)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial])
 
   const search = async (e: React.FormEvent) => {
     e.preventDefault()
-    setParams(query ? { ref: query } : {})
-    await lookup(query)
+    const next: Record<string, string> = {}
+    if (query) next.ref = query
+    if (tokenInput) next.token = tokenInput
+    setParams(next)
+    await lookup(query, tokenInput)
   }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
       <h1 className="text-3xl font-black tracking-tight text-acier-900">Suivre ma demande</h1>
       <p className="mt-3 text-slate-600">
-        Saisissez la référence qui vous a été communiquée — « VOL-REQ-00491 » pour une demande,
-        « VOL-ACH-2026-000012 » pour une offre Volta Market.
+        Saisissez la référence qui vous a été communiquée — « VOL-REQ-2026-000491 » pour une
+        demande (avec son code de suivi), « VOL-ACH-2026-000012 » pour une offre Volta Market.
       </p>
 
-      <form
-        onSubmit={search}
-        className="mt-6 flex overflow-hidden rounded-xl border border-slate-300 bg-white"
-      >
-        <div className="flex flex-1 items-center px-4">
-          <Search className="h-5 w-5 shrink-0 text-slate-400" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="VOL-REQ-00491"
-            aria-label="Référence de la demande"
-            className="ml-2 w-full py-3 font-mono text-sm uppercase text-acier-900 focus:outline-none"
-          />
+      <form onSubmit={search} className="mt-6 space-y-2">
+        <div className="flex overflow-hidden rounded-xl border border-slate-300 bg-white">
+          <div className="flex flex-1 items-center px-4">
+            <Search className="h-5 w-5 shrink-0 text-slate-400" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="VOL-REQ-2026-000491"
+              aria-label="Référence de la demande"
+              className="ml-2 w-full py-3 font-mono text-sm uppercase text-acier-900 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-acier-900 px-6 text-sm font-bold text-white transition hover:bg-acier-800"
+          >
+            Rechercher
+          </button>
         </div>
-        <button
-          type="submit"
-          className="bg-acier-900 px-6 text-sm font-bold text-white transition hover:bg-acier-800"
-        >
-          Rechercher
-        </button>
+        {!isPurchaseRef(query) && (
+          <input
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            placeholder="Code de suivi (uniquement pour une demande VOL-REQ)"
+            aria-label="Code de suivi"
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-mono text-sm uppercase text-acier-900 focus:border-btp-500 focus:outline-none"
+          />
+        )}
       </form>
 
       {searched && !request && !purchase && (
@@ -100,8 +115,8 @@ export default function RequestTracking() {
           </span>
           <p className="mt-3 font-semibold text-acier-900">Aucune demande à cette référence.</p>
           <p className="mt-1 max-w-sm text-sm text-slate-500">
-            Vérifiez la saisie. Une demande de parcours (VOL-REQ) n’est consultable que depuis
-            le navigateur qui l’a déposée ; une offre Market (VOL-ACH) l’est partout.
+            Vérifiez la référence. Une demande de parcours (VOL-REQ) exige aussi son code de suivi,
+            remis une seule fois au dépôt.
           </p>
         </div>
       )}

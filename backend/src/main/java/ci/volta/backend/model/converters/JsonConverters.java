@@ -8,7 +8,9 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class JsonConverters {
 
@@ -74,6 +76,32 @@ public final class JsonConverters {
         public DocumentListConverter() {
             super(new TypeReference<>() {
             });
+        }
+    }
+
+    /** Réponses libres d'un formulaire de demande : un texte par champ, rien d'imbriqué. */
+    @Converter
+    public static class StringMapConverter implements AttributeConverter<Map<String, String>, String> {
+        @Override
+        public String convertToDatabaseColumn(Map<String, String> attribute) {
+            try {
+                return MAPPER.writeValueAsString(attribute == null ? Map.of() : attribute);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to serialize map", e);
+            }
+        }
+
+        @Override
+        public Map<String, String> convertToEntityAttribute(String dbData) {
+            if (dbData == null || dbData.isBlank()) {
+                return new LinkedHashMap<>();
+            }
+            try {
+                return MAPPER.readValue(dbData, new TypeReference<Map<String, String>>() {
+                });
+            } catch (Exception e) {
+                return new LinkedHashMap<>();
+            }
         }
     }
 }

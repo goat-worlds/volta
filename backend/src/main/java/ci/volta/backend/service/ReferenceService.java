@@ -27,6 +27,8 @@ public class ReferenceService {
     /** Volta Market : annonce de vente et demande d'offre d'achat. */
     public static final String LISTING = "MKT";
     public static final String PURCHASE = "ACH";
+    /** Demande d'un parcours public : location, achat libre, technicien, GOLD, candidature… */
+    public static final String REQUEST = "REQ";
 
     private final ReferenceSequenceRepository sequences;
 

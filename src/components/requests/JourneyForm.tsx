@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Send } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Copy, Send } from 'lucide-react'
 import type { Journey, FieldDef } from '../../lib/journeys'
-import type { Request } from '../../types/domain'
-import { createRequest } from '../../services/requests'
+import { createRequest, type RequestAttachmentInput, type RequestReceipt } from '../../services/requests'
+import { attachmentPayload, parseAttachment } from '../../services/attachments'
 import RequestTimeline from './RequestTimeline'
 import {
   CheckboxField,
@@ -60,7 +60,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
   const [values, setValues] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState<Request | null>(null)
+  const [submitted, setSubmitted] = useState<RequestReceipt | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
 
   const step = journey.steps[stepIndex]
@@ -89,12 +89,28 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
     return Object.keys(found).length === 0
   }
 
+  /** Pièces jointes du parcours : leur contenu voyage avec la demande, pas avant. */
+  const collectAttachments = (): RequestAttachmentInput[] => {
+    const fileFields = journey.steps.flatMap((s) => s.fields).filter((f) => f.kind === 'file')
+    return fileFields.flatMap((field) => {
+      const meta = parseAttachment(values[field.name] ?? '')
+      if (!meta) return []
+      const content = attachmentPayload(meta.id)
+      if (!content) {
+        throw new Error(
+          `Le fichier « ${meta.name} » n’est plus disponible : resélectionnez-le avant d’envoyer.`,
+        )
+      }
+      return [{ field: field.name, name: meta.name, size: meta.size, type: content.type, contentBase64: content.contentBase64 }]
+    })
+  }
+
   const submit = async () => {
     if (!validateStep()) return
     setSubmitting(true)
     setFailure(null)
     try {
-      const request = await createRequest({
+      const receipt = await createRequest({
         kind: journey.kind,
         intent: journey.intent,
         subject: journey.subject(values),
@@ -107,8 +123,9 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
           city: values.contactCity ?? '',
         },
         payload: values,
+        attachments: collectAttachments(),
       })
-      setSubmitted(request)
+      setSubmitted(receipt)
     } catch (err) {
       // La demande n'est pas partie : le dire, plutôt que d'afficher une
       // confirmation pour un dossier qui n'existe pas.
@@ -131,15 +148,6 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
             Votre demande est enregistrée.
           </h1>
           <p className="mt-3 text-slate-700">{journey.promise}</p>
-          {/* Le dépôt est local tant que le service de demandes n'existe pas
-              côté serveur : on le dit, plutôt que d'annoncer une transmission
-              qui n'a pas eu lieu. */}
-          <p className="mx-auto mt-4 max-w-md rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            <span className="font-bold uppercase tracking-wide">Backend requis</span> — la demande est
-            conservée sur cet appareil. Sa transmission automatique à l’équipe sera activée avec le
-            service de demandes côté serveur ; en attendant, citez la référence ci-dessous lors de
-            votre prise de contact.
-          </p>
 
           <div className="mx-auto mt-6 inline-flex flex-col items-center rounded-xl border border-emerald-300 bg-white px-6 py-4">
             <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
@@ -149,8 +157,27 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
               {submitted.reference}
             </span>
           </div>
+
+          <div className="mx-auto mt-3 flex max-w-md items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <span className="flex-1 text-left">
+              <span className="font-bold uppercase tracking-wide">Code de suivi</span> — à saisir avec
+              votre référence sur la page de suivi. Il n’est montré qu’une fois : notez-le maintenant.
+              <span className="mt-1 block break-all font-mono text-sm font-bold">
+                {submitted.trackingCode}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => void navigator.clipboard?.writeText(submitted.trackingCode)}
+              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-1 font-semibold text-amber-900 transition hover:bg-amber-100"
+            >
+              <Copy size={12} />
+              Copier
+            </button>
+          </div>
           <p className="mt-3 text-xs text-slate-500">
-            Conservez-la : elle identifie votre dossier dans tous nos échanges.
+            La référence identifie votre dossier dans tous nos échanges ; le code de suivi vous
+            appartient seul et ouvre son avancement.
           </p>
         </div>
 
@@ -171,7 +198,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
             Retour à l’accueil
           </Link>
           <Link
-            to={`/suivi?ref=${submitted.reference}`}
+            to={`/suivi?ref=${submitted.reference}&token=${submitted.trackingToken}`}
             className="rounded-lg bg-acier-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-acier-800"
           >
             Suivre ma demande

@@ -70,6 +70,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/market/listings", "/api/market/listings/*").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/market/listings/*/requests").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/market/requests/track/*").permitAll()
+                // Parcours publics (location, achat libre, technicien, candidature…) :
+                // dépôt et suivi sans compte, comme Volta Market. La console qui les
+                // traite vit sous /api/admin/requests, déjà couverte par la règle
+                // « /api/admin/** » plus bas.
+                .requestMatchers(HttpMethod.POST, "/api/public/requests").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/requests/track/*").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 // Spring redirige vers /error après une exception du contrôleur.
                 // Protéger cette route ferait répondre 401 à la place du statut

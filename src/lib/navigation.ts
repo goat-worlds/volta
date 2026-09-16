@@ -131,6 +131,7 @@ const TREE: NavSection[] = [
     id: 'admin',
     label: 'Administration',
     items: [
+      { to: '/admin/demandes', label: 'Demandes publiques', icon: Inbox, roles: ['ADMIN'] },
       { to: '/admin/users', label: 'Utilisateurs', icon: Users, roles: ['ADMIN'] },
       { to: '/admin/audit', label: 'Journal d’audit', icon: ScrollText, roles: ['ADMIN'] },
     ],

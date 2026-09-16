@@ -32,6 +32,7 @@ import AdminEquipment from './pages/admin/AdminEquipment'
 import AdminInspections from './pages/admin/AdminInspections'
 import AdminReports from './pages/admin/AdminReports'
 import AdminRequests from './pages/admin/AdminRequests'
+import AdminSubmissions from './pages/admin/AdminSubmissions'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminCommercial from './pages/admin/AdminCommercial'
 import AdminAudit from './pages/admin/AdminAudit'
@@ -135,6 +136,7 @@ export default function App() {
               <Route path="/admin/inspections" element={<AdminInspections />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/requests" element={<AdminRequests />} />
+              <Route path="/admin/demandes" element={<AdminSubmissions />} />
               <Route path="/admin/anomalies" element={<AnomaliesPage />} />
               <Route path="/admin/commercial" element={<AdminCommercial />} />
               <Route path="/admin/market" element={<AdminMarket />} />

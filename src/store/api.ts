@@ -149,6 +149,38 @@ export const apiPut = <T>(path: string, body: unknown) =>
 export const apiDelete = <T>(path: string) => request<T>(path, { method: 'DELETE' })
 
 /**
+ * Téléchargement d'un fichier protégé par la session — une pièce jointe de
+ * demande, par exemple.
+ *
+ * Un simple lien `<a href>` ne porterait pas l'en-tête de session : le
+ * navigateur ne l'ajoute qu'aux requêtes que le code déclenche lui-même. La
+ * réponse est donc récupérée ici en mémoire, puis remise à l'appelant comme un
+ * `Blob` qu'il matérialise en lien de téléchargement le temps d'un clic.
+ */
+export async function apiDownload(path: string): Promise<{ blob: Blob; filename: string | null }> {
+  const token = getToken()
+  let res: Response
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      headers: token ? { 'X-Session-Token': token } : {},
+    })
+  } catch {
+    emit(API_EVENTS.unavailable)
+    throw new ApiUnavailableError()
+  }
+  if (!res.ok) {
+    const body = await readErrorBody(res)
+    emit(API_EVENTS.reachable)
+    if (res.status === 401 && token) emit(API_EVENTS.unauthorized)
+    throw new ApiError(res.status, body.message ?? describeStatus(res.status), 'GET', path)
+  }
+  emit(API_EVENTS.reachable)
+  const disposition = res.headers.get('content-disposition') ?? ''
+  const match = /filename="?([^"]+)"?/.exec(disposition)
+  return { blob: await res.blob(), filename: match ? match[1] : null }
+}
+
+/**
  * Message à montrer pour une erreur quelconque.
  *
  * Les écrans faisaient chacun leur `err instanceof Error ? err.message : '…'`,
