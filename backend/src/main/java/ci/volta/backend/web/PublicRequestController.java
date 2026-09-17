@@ -70,7 +70,7 @@ public class PublicRequestController {
     }
 
     @PostMapping("/admin/requests/{id}/status")
-    public PublicRequestService.AdminView advance(@PathVariable String id, @RequestBody StatusInput body) {
+    public PublicRequestService.AdvanceResult advance(@PathVariable String id, @RequestBody StatusInput body) {
         return service.advance(id, body == null ? null : body.status(), body == null ? null : body.notes());
     }
 

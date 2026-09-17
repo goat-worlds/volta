@@ -126,8 +126,24 @@ export function canTransition(from: RequestStatus, to: RequestStatus): boolean {
   return next === current + 1 || next === current - 1
 }
 
+/**
+ * Compte créé pour le candidat dont la candidature technique vient d'être
+ * validée. Le mot de passe n'apparaît qu'ici, une seule fois : à transmettre
+ * au candidat par un canal distinct, comme la clé d'un transfert chiffré.
+ */
+export interface ProvisionedAccount {
+  email: string
+  temporaryPassword: string
+  role: string
+}
+
+export interface AdvanceResult {
+  request: AdminRequestView
+  account: ProvisionedAccount | null
+}
+
 export const advanceRequest = (id: string, status: RequestStatus, notes?: string) =>
-  apiPost<AdminRequestView>(`/admin/requests/${id}/status`, { status, notes })
+  apiPost<AdvanceResult>(`/admin/requests/${id}/status`, { status, notes })
 
 /** Télécharge une pièce jointe (protégée par la session admin) et déclenche son enregistrement. */
 export async function downloadAttachment(requestId: string, attachmentId: string, fallbackName: string) {

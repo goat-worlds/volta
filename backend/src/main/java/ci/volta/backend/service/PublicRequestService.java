@@ -4,9 +4,11 @@ import ci.volta.backend.domain.RequestWorkflow;
 import ci.volta.backend.model.Notification;
 import ci.volta.backend.model.PublicRequest;
 import ci.volta.backend.model.RequestAttachment;
+import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.NotificationRepository;
 import ci.volta.backend.repository.PublicRequestRepository;
 import ci.volta.backend.repository.RequestAttachmentRepository;
+import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.security.CurrentUser;
 import ci.volta.backend.security.TrackingTokens;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Base64;
@@ -82,11 +85,12 @@ public class PublicRequestService {
     public record AdminView(String id, String reference, String kind, String intent, String subject,
                             ContactInput contact, String location, String status, String priority,
                             String ownerId, Map<String, String> payload, String notes,
-                            String createdAt, String updatedAt) {
+                            String createdUserId, String createdAt, String updatedAt) {
         static AdminView of(PublicRequest r) {
             return new AdminView(r.id, r.reference, r.kind, r.intent, r.subject,
                     new ContactInput(r.contactName, r.contactCompany, r.contactPhone, r.contactEmail, r.contactCity),
-                    r.location, r.status, r.priority, r.ownerId, r.payload, r.notes, r.createdAt, r.updatedAt);
+                    r.location, r.status, r.priority, r.ownerId, r.payload, r.notes,
+                    r.createdUserId, r.createdAt, r.updatedAt);
         }
     }
 
@@ -97,21 +101,44 @@ public class PublicRequestService {
     public record DownloadedFile(byte[] bytes, String contentType, String originalName) {
     }
 
+    /**
+     * Identifiants d'un compte que la validation vient de créer.
+     *
+     * Le mot de passe n'est jamais conservé ailleurs que dans son empreinte :
+     * cette fiche est la seule occasion où il apparaît en clair, pour que
+     * l'administration le transmette au candidat par un canal distinct.
+     */
+    public record ProvisionedAccount(String email, String temporaryPassword, String role) {
+    }
+
+    /** Résultat d'un changement de statut : la demande, et le compte créé s'il y en a un. */
+    public record AdvanceResult(AdminView request, ProvisionedAccount account) {
+    }
+
+    /** Seule cette intention ouvre un accès : les autres parcours demandent un service, pas un compte. */
+    private static final String INTENT_JOIN_TECHNICAL_TEAM = "JOIN_TECHNICAL_TEAM";
+
     private final PublicRequestRepository requests;
     private final RequestAttachmentRepository attachments;
     private final NotificationRepository notifications;
+    private final UserRepository users;
     private final ReferenceService references;
     private final AuditService audit;
+    private final AuthService authService;
     private final CurrentUser currentUser;
+    private final SecureRandom random = new SecureRandom();
 
     public PublicRequestService(PublicRequestRepository requests, RequestAttachmentRepository attachments,
-                                NotificationRepository notifications, ReferenceService references,
-                                AuditService audit, CurrentUser currentUser) {
+                                NotificationRepository notifications, UserRepository users,
+                                ReferenceService references, AuditService audit, AuthService authService,
+                                CurrentUser currentUser) {
         this.requests = requests;
         this.attachments = attachments;
         this.notifications = notifications;
+        this.users = users;
         this.references = references;
         this.audit = audit;
+        this.authService = authService;
         this.currentUser = currentUser;
     }
 
@@ -254,7 +281,7 @@ public class PublicRequestService {
         return new RequestDetail(AdminView.of(r), metas);
     }
 
-    public AdminView advance(String id, String status, String notes) {
+    public AdvanceResult advance(String id, String status, String notes) {
         currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         PublicRequest r = load(id);
         String target = status == null ? null : status.trim().toUpperCase();
@@ -266,10 +293,65 @@ public class PublicRequestService {
             r.notes = (blank(r.notes) ? "" : r.notes + "\n")
                     + "[" + today() + " · " + target + "] " + notes.trim();
         }
+
+        ProvisionedAccount account = null;
+        if (RequestWorkflow.VALIDATED.equals(target) && INTENT_JOIN_TECHNICAL_TEAM.equals(r.intent)
+                && blank(r.createdUserId)) {
+            account = provisionTechnicalAccount(r);
+        }
+
         r.updatedAt = Instant.now().toString();
         r = requests.save(r);
         audit.record("REQUEST_" + target, "REQUEST", r.id, r.reference, previous + " vers " + target);
-        return AdminView.of(r);
+        return new AdvanceResult(AdminView.of(r), account);
+    }
+
+    /**
+     * Ouvre un accès au candidat dont la candidature technique vient d'être
+     * validée : sans lui, l'équipe technique nouvellement recrutée ne peut ni
+     * se connecter, ni recevoir de mission.
+     *
+     * Un email déjà inscrit garde son compte existant — la validation ne le
+     * remplace pas, elle se contente de lier le dossier au compte qui existe
+     * déjà, pour que l'idempotence ne dépende pas de deviner s'il l'a créé lui.
+     */
+    private ProvisionedAccount provisionTechnicalAccount(PublicRequest r) {
+        var existing = users.findByEmailIgnoreCase(r.contactEmail);
+        if (existing.isPresent()) {
+            r.createdUserId = existing.get().id;
+            r.notes = (blank(r.notes) ? "" : r.notes + "\n")
+                    + "[" + today() + "] Compte existant réutilisé (" + r.contactEmail + ").";
+            return null;
+        }
+
+        String rawPassword = generateTemporaryPassword();
+        UserAccount account = new UserAccount();
+        account.id = shortId("u");
+        account.name = r.contactName;
+        account.role = CurrentUser.ROLE_TECHNICAL;
+        account.company = blank(r.contactCompany) ? r.payload.getOrDefault("specialty", "") : r.contactCompany;
+        account.email = r.contactEmail;
+        account.phone = r.contactPhone;
+        account.city = blank(r.contactCity) ? r.location : r.contactCity;
+        account.passwordHash = authService.encodePassword(rawPassword);
+        account = users.save(account);
+
+        r.createdUserId = account.id;
+        r.notes = (blank(r.notes) ? "" : r.notes + "\n")
+                + "[" + today() + "] Compte équipe technique créé (" + account.email + ").";
+        audit.record("REQUEST_ACCOUNT_CREATED", "REQUEST", r.id, r.reference, "Compte " + account.id + " créé");
+
+        return new ProvisionedAccount(account.email, rawPassword, account.role);
+    }
+
+    /** Alphabet sans I, O, 0 ni 1 : un mot de passe temporaire se recopie aussi à la main. */
+    private String generateTemporaryPassword() {
+        String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) {
+            sb.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+        return sb.toString();
     }
 
     @Transactional(readOnly = true)

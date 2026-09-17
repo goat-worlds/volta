@@ -62,6 +62,13 @@ public class PublicRequest {
     public String ownerId;
 
     /**
+     * Compte créé pour le déposant à la validation de sa candidature (voir
+     * PublicRequestService.provisionAccount). Nul tant qu'aucun compte n'a été
+     * créé ; garde l'idempotence si la demande repasse par « VALIDATED ».
+     */
+    public String createdUserId;
+
+    /**
      * Réponses propres au parcours emprunté : un besoin de location et une
      * candidature GOLD ne remplissent pas les mêmes champs, et les aplatir en
      * colonnes obligerait à rendre optionnel presque tout le modèle.

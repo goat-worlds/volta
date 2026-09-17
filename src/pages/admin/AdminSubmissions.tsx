@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Download, Inbox, Loader2, Paperclip } from 'lucide-react'
+import { Copy, Download, Inbox, KeyRound, Loader2, Paperclip } from 'lucide-react'
 import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, EmptyState, Modal, PageTitle, StatCard } from '../../components/ui'
@@ -19,6 +19,7 @@ import {
   getRequestDetail,
   type AdminRequestView,
   type AttachmentMeta,
+  type ProvisionedAccount,
 } from '../../services/requests'
 
 /**
@@ -209,11 +210,13 @@ function RequestDetailModal({
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [provisioned, setProvisioned] = useState<ProvisionedAccount | null>(null)
 
   useEffect(() => {
     setTarget(null)
     setNotes('')
     setAttachments([])
+    setProvisioned(null)
     if (!request) return
     setLoadingAttachments(true)
     getRequestDetail(request.id)
@@ -233,9 +236,16 @@ function RequestDetailModal({
     if (!target) return
     setBusy(true)
     try {
-      const updated = await advanceRequest(request.id, target, notes.trim() || undefined)
-      onAdvanced(updated)
-      onClose()
+      const result = await advanceRequest(request.id, target, notes.trim() || undefined)
+      onAdvanced(result.request)
+      setTarget(null)
+      // Un compte vient d'être créé : son mot de passe ne sera plus jamais
+      // visible ensuite, la fenêtre reste ouverte le temps qu'il soit relevé.
+      if (result.account) {
+        setProvisioned(result.account)
+      } else {
+        onClose()
+      }
     } catch (err) {
       onError(err)
     } finally {
@@ -321,45 +331,94 @@ function RequestDetailModal({
           </div>
         )}
 
-        <div className="border-t border-slate-100 pt-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Faire avancer le dossier</div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {allowedTargets.map((status) => (
-              <Button
-                key={status}
-                size="sm"
-                tone={status === 'CLOSED' ? 'danger' : 'primary'}
-                onClick={() => setTarget(status)}
-              >
-                {REQUEST_STATUS_LABELS[status]}
-              </Button>
-            ))}
-          </div>
-
-          {target && (
-            <div className="mt-3 space-y-2 rounded-lg border border-slate-200 p-3">
-              <p className="text-sm text-slate-600">
-                Passage à « {REQUEST_STATUS_LABELS[target]} ».
-                {target === 'CLOSED' && ' Cette action est définitive.'}
-              </p>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-                placeholder="Note interne (facultative)"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
-              />
-              <div className="flex justify-end gap-2">
-                <Button size="sm" tone="secondary" onClick={() => setTarget(null)} disabled={busy}>
-                  Annuler
-                </Button>
-                <Button size="sm" onClick={() => void confirm()} disabled={busy}>
-                  {busy ? 'Envoi…' : 'Confirmer'}
-                </Button>
+        {provisioned ? (
+          <div className="border-t border-slate-100 pt-4">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                <KeyRound size={15} />
+                Compte équipe technique créé
               </div>
+              <p className="mt-1 text-xs text-emerald-800">
+                Ce mot de passe ne sera plus jamais affiché : transmettez-le au candidat par un canal
+                distinct (téléphone, en main propre) avant de fermer cette fenêtre.
+              </p>
+              <dl className="mt-3 space-y-1.5 text-sm">
+                <div className="flex items-center justify-between gap-2 rounded-md bg-white px-3 py-2">
+                  <span className="text-slate-500">Identifiant</span>
+                  <span className="font-mono font-semibold text-acier-900">{provisioned.email}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 rounded-md bg-white px-3 py-2">
+                  <span className="text-slate-500">Mot de passe</span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono font-semibold text-acier-900">{provisioned.temporaryPassword}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void navigator.clipboard?.writeText(
+                          `${provisioned.email} / ${provisioned.temporaryPassword}`,
+                        )
+                      }
+                      aria-label="Copier les identifiants"
+                      className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </span>
+                </div>
+              </dl>
             </div>
-          )}
-        </div>
+            <div className="mt-3 flex justify-end">
+              <Button size="sm" onClick={onClose}>
+                Terminé
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="border-t border-slate-100 pt-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Faire avancer le dossier</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {allowedTargets.map((status) => (
+                <Button
+                  key={status}
+                  size="sm"
+                  tone={status === 'CLOSED' ? 'danger' : 'primary'}
+                  onClick={() => setTarget(status)}
+                >
+                  {REQUEST_STATUS_LABELS[status]}
+                </Button>
+              ))}
+            </div>
+
+            {target && (
+              <div className="mt-3 space-y-2 rounded-lg border border-slate-200 p-3">
+                <p className="text-sm text-slate-600">
+                  Passage à « {REQUEST_STATUS_LABELS[target]} ».
+                  {target === 'CLOSED' && ' Cette action est définitive.'}
+                  {target === 'VALIDATED' && request.intent === 'JOIN_TECHNICAL_TEAM' && (
+                    <span className="mt-1 block font-medium text-btp-700">
+                      Un compte équipe technique sera créé pour ce candidat.
+                    </span>
+                  )}
+                </p>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Note interne (facultative)"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" tone="secondary" onClick={() => setTarget(null)} disabled={busy}>
+                    Annuler
+                  </Button>
+                  <Button size="sm" onClick={() => void confirm()} disabled={busy}>
+                    {busy ? 'Envoi…' : 'Confirmer'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Modal>
   )
