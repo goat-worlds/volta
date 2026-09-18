@@ -97,11 +97,11 @@ export default function HowItWorks() {
   return (
     <section id="comment" className="scroll-mt-16 mx-auto max-w-7xl px-4 py-16 md:py-24">
       <div className="max-w-2xl">
-        <span className="text-xs font-bold uppercase tracking-widest text-btp-600">Comment ça fonctionne</span>
-        <h2 className="mt-3 text-3xl font-black tracking-tight text-acier-900 md:text-4xl">
+        <span className="volta-eyebrow text-btp-600">Comment ça fonctionne</span>
+        <h2 className="mt-3 volta-display text-4xl text-acier-900 md:text-5xl">
           Du besoin à la remise, en quatre temps.
         </h2>
-        <p className="mt-3 text-lg text-slate-600">
+        <p className="mt-3 text-lg text-papier-700">
           Le même circuit pour louer, acheter ou trouver un technicien. Vous ne traitez jamais à
           l’aveugle : chaque étape est visible sur votre référence.
         </p>
@@ -130,7 +130,7 @@ export default function HowItWorks() {
               <li key={step.title} className="relative flex gap-5 lg:block">
                 <div
                   className={`relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-500 ${
-                    reached ? 'border-btp-500 text-btp-600' : 'border-slate-200 text-slate-400'
+                    reached ? 'border-btp-500 text-btp-600' : 'border-papier-200 text-slate-400'
                   }`}
                 >
                   <span className="text-sm font-extrabold">0{i + 1}</span>
@@ -144,10 +144,10 @@ export default function HowItWorks() {
                     <h3 className="font-bold text-acier-900">{step.title}</h3>
                   </div>
                   <div className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{step.duration}</div>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.text}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-papier-700">{step.text}</p>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {step.outputs.map((o) => (
-                      <li key={o} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                      <li key={o} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-papier-700">
                         {o}
                       </li>
                     ))}

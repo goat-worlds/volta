@@ -1,66 +1,40 @@
 import { Link } from 'react-router-dom'
-import {
-  ArrowRight, Award, BadgeCheck, ClipboardCheck, GitBranch, Scale, ShieldCheck,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 /**
- * Ce qui distingue VOLTA.
+ * Ce que VOLTA vérifie à votre place.
  *
- * La section reprenait les trois chiffres déjà affichés dans le hero — 100%,
- * 50+, 24/7 — dans trois cadres gris. Le visiteur lisait donc deux fois la même
- * chose, et rien qui explique en quoi la plateforme vaut mieux qu'une petite
- * annonce. Les cartes portent maintenant les garanties réelles du produit :
- * l'inspection physique, le classement, la traçabilité, la comparaison des
- * offres et l'absence de commission.
+ * La section a d'abord répété les trois chiffres du bandeau dans trois cadres
+ * gris, puis a énuméré six garanties en six cartes à icône — la même carte que
+ * les parcours, que les niveaux, que le Market. À force, la page entière se
+ * lisait comme une grille de vignettes interchangeables.
+ *
+ * Ici, pas de carte. L'inspection est racontée : ce qu'il se passe quand le
+ * vérificateur arrive, en une prose qu'un loueur reconnaît. Les autres
+ * garanties suivent en liste de définitions — un terme, son explication — la
+ * forme d'un contrat plutôt que d'une plaquette.
  */
 
-interface Argument {
-  Icon: LucideIcon
-  title: string
-  description: string
-  /** Chiffre ou mention mise en avant, quand elle éclaire l'argument. */
-  metric?: string
-}
-
-const HIGHLIGHT: Argument = {
-  Icon: ClipboardCheck,
-  title: 'Une équipe se déplace et contrôle la machine',
-  description:
-    "Aucun engin n'atteint le catalogue sur simple déclaration. Un vérificateur mandaté par VOLTA se rend sur place, déroule une checklist de dix-huit points, photographie les organes sensibles et consigne les anomalies. Son rapport est lu avant toute publication.",
-  metric: '18 points de contrôle',
-}
-
-const ARGUMENTS: Argument[] = [
+const GUARANTEES: { term: string; text: string }[] = [
   {
-    Icon: Award,
-    title: 'Un classement, pas une étiquette',
-    description:
-      "Basic, Silver ou Gold : le niveau est attribué après lecture du rapport d'inspection, pas déclaré par le propriétaire.",
+    term: 'Le niveau est attribué, pas déclaré',
+    text: 'Basic, Silver ou Gold : c’est l’administration qui tranche, après lecture du rapport. Le propriétaire ne choisit pas la note de sa machine.',
   },
   {
-    Icon: GitBranch,
-    title: 'Un dossier traçable',
-    description:
-      "Le fournisseur suit chaque étape de son dossier — qui l'a inspecté, quand, ce qui a été relevé, ce qu'il reste à corriger.",
+    term: 'Le dossier reste ouvert',
+    text: 'Qui a inspecté, quel jour, ce qui a été relevé, ce qu’il reste à corriger. Le fournisseur suit son dossier sans avoir à téléphoner pour savoir où il en est.',
   },
   {
-    Icon: Scale,
-    title: 'Plusieurs devis comparés',
-    description:
-      'Une demande, plusieurs offres chiffrées mises côte à côte : prix, délai de mise à disposition, conditions.',
+    term: 'Plusieurs devis, côte à côte',
+    text: 'Une demande part à plusieurs loueurs. Vous comparez les prix, les délais de mise à disposition et les conditions sur le même écran.',
   },
   {
-    Icon: BadgeCheck,
-    title: 'Des fournisseurs identifiés',
-    description:
-      'Raison sociale, coordonnées et parc contrôlés. Vous savez à qui vous confiez votre chantier.',
+    term: 'On sait à qui vous confiez le chantier',
+    text: 'Raison sociale, coordonnées, parc contrôlé. Pas de numéro de téléphone anonyme au bout d’une annonce.',
   },
   {
-    Icon: ShieldCheck,
-    title: 'Aucune commission',
-    description:
-      'VOLTA met en relation et ne prend rien au passage : vous traitez directement avec le fournisseur, aux conditions convenues entre vous.',
+    term: 'Rien n’est prélevé au passage',
+    text: 'VOLTA met en relation et ne prend pas de commission. Vous traitez aux conditions convenues entre vous.',
   },
 ]
 
@@ -68,61 +42,56 @@ export default function WhyVolta() {
   return (
     <section id="garanties" className="scroll-mt-16 bg-white py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="mb-12 max-w-2xl">
-          <span className="text-xs font-bold uppercase tracking-widest text-btp-600">
-            Nos garanties
-          </span>
-          <h2 className="mt-3 text-3xl font-bold text-acier-900 md:text-4xl">
-            Pourquoi choisir VOLTA ?
-          </h2>
-          <p className="mt-4 text-lg text-slate-600">
-            Louer un engin sans l’avoir vu engage un chantier entier. Voici ce que nous
-            vérifions à votre place.
-          </p>
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          {/* L'inspection est la promesse qui porte toutes les autres : elle
-              occupe une colonne entière plutôt qu'une carte parmi six. */}
-          <article className="relative overflow-hidden rounded-2xl bg-acier-900 p-8 lg:row-span-2">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-btp-500/20 blur-3xl"
-            />
-            <div className="relative">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-btp-500 text-white">
-                <HIGHLIGHT.Icon size={24} />
-              </span>
-              {HIGHLIGHT.metric && (
-                <div className="mt-6 text-3xl font-black text-btp-400">{HIGHLIGHT.metric}</div>
-              )}
-              <h3 className="mt-2 text-xl font-bold text-white">{HIGHLIGHT.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-acier-200">
-                {HIGHLIGHT.description}
+        {/* Le récit de l'inspection, en pleine largeur : c'est la promesse qui
+            porte toutes les autres, elle mérite mieux qu'une carte parmi six. */}
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-end lg:gap-16">
+          <div>
+            <span className="volta-eyebrow text-btp-600">Avant la mise en ligne</span>
+            <h2 className="volta-display mt-4 max-w-2xl text-4xl text-acier-900 md:text-5xl">
+              Quelqu’un se déplace et monte sur la machine.
+            </h2>
+            <div className="mt-6 max-w-2xl space-y-4 text-lg leading-relaxed text-papier-700">
+              <p>
+                Aucun engin n’entre au catalogue sur parole. Un vérificateur mandaté par Génie
+                Sélect se rend là où la machine travaille, la fait démarrer, déroule dix-huit
+                points de contrôle — moteur, transmission, hydraulique, freinage, sécurité,
+                structure — photographie les organes sensibles et note ce qui cloche.
               </p>
-              <Link
-                to="/catalogue"
-                className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-btp-400 transition hover:text-btp-300"
-              >
-                Voir les engins vérifiés
-                <ArrowRight size={15} />
-              </Link>
+              <p>
+                Son rapport est lu avant toute publication. Si la machine n’est pas en état, elle
+                ne sort pas : le propriétaire reçoit la liste de ce qu’il doit reprendre, et la
+                fiche attend.
+              </p>
             </div>
-          </article>
+          </div>
 
-          {ARGUMENTS.map(({ Icon, title, description }) => (
-            <article
-              key={title}
-              className="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-btp-300 hover:shadow-lg"
+          {/* Le seul chiffre de la section, tenu comme un tampon. Trois chiffres
+              alignés auraient fait « statistiques de page d'accueil ». */}
+          <div className="border-l-4 border-btp-500 pl-6">
+            <div className="volta-display text-7xl leading-none text-acier-900">18</div>
+            <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-papier-600">
+              points de contrôle, sur place
+            </p>
+            <Link
+              to="/catalogue"
+              className="mt-5 inline-flex items-center gap-1.5 border-b-2 border-btp-400 pb-0.5 text-sm font-semibold text-acier-900 transition hover:border-btp-600 hover:text-btp-700"
             >
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-btp-50 text-btp-600 transition group-hover:bg-btp-500 group-hover:text-white">
-                <Icon size={20} />
-              </span>
-              <h3 className="mt-4 font-bold text-acier-900">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{description}</p>
-            </article>
-          ))}
+              Voir les engins qui sont passés par là
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
+
+        {/* Les garanties, en liste de définitions sur deux colonnes. Le filet
+            sépare, l'alignement du terme et de son explication fait le reste. */}
+        <dl className="mt-14 grid gap-x-16 gap-y-0 border-t border-papier-200 md:grid-cols-2">
+          {GUARANTEES.map((g) => (
+            <div key={g.term} className="border-b border-papier-200 py-6">
+              <dt className="volta-display text-xl text-acier-900">{g.term}</dt>
+              <dd className="mt-2 leading-relaxed text-papier-600">{g.text}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   )

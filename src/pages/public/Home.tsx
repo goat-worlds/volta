@@ -58,11 +58,11 @@ export default function Home() {
           <section id="location" className="scroll-mt-16 mx-auto max-w-7xl px-4 py-16 md:py-24">
             <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-btp-600">À louer</span>
-                <h2 className="mt-3 text-3xl font-black tracking-tight text-acier-900 md:text-4xl">
+                <span className="volta-eyebrow text-btp-600">À louer</span>
+                <h2 className="mt-3 volta-display text-4xl text-acier-900 md:text-5xl">
                   Des engins inspectés, disponibles.
                 </h2>
-                <p className="mt-3 text-lg text-slate-600">
+                <p className="mt-3 text-lg text-papier-700">
                   Chaque engin du catalogue a été contrôlé sur place avant publication.
                 </p>
               </div>
@@ -99,7 +99,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-acier-900 md:text-3xl">
                 Explorer par catégorie
               </h2>
-              <p className="mt-2 text-slate-600">
+              <p className="mt-2 text-papier-700">
                 Pour ceux qui savent déjà quel type d’engin ils cherchent.
               </p>
             </div>

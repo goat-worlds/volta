@@ -134,7 +134,7 @@ export default function Market() {
                 <Tag size={14} />
                 Volta Market
               </span>
-              <h1 className="mt-5 text-4xl font-black leading-tight text-white md:text-5xl">
+              <h1 className="mt-5 volta-display text-5xl text-white md:text-6xl">
                 Des engins à vendre,
                 <br />
                 <span className="text-btp-400">vérifiés avant l’offre.</span>
@@ -166,22 +166,20 @@ export default function Market() {
                 </a>
               </form>
 
-              <dl className="mt-8 grid max-w-md grid-cols-3 gap-4 border-t border-white/10 pt-6">
-                <div>
-                  <dt className="text-2xl font-black text-btp-400">{listings.length}</dt>
-                  <dd className="mt-0.5 text-xs text-acier-300">annonces en ligne</dd>
-                </div>
-                <div>
-                  <dt className="text-2xl font-black text-btp-400">{newCount}</dt>
-                  <dd className="mt-0.5 text-xs text-acier-300">matériels neufs</dd>
-                </div>
-                <div>
-                  <dt className="text-2xl font-black text-btp-400">
-                    {cheapest != null ? `${Math.round(cheapest / 1_000_000)} M` : '—'}
-                  </dt>
-                  <dd className="mt-0.5 text-xs text-acier-300">FCFA, prix d’entrée</dd>
-                </div>
-              </dl>
+              {/* L'état du stock, dit en une ligne. Trois chiffres encadrés
+                  sous un slogan sont la signature de n'importe quelle page
+                  d'accueil ; la phrase porte la même information et se lit. */}
+              {listings.length > 0 && (
+                <p className="mt-8 max-w-md border-t border-white/10 pt-6 text-sm leading-relaxed text-acier-300">
+                  <span className="font-semibold text-btp-400">
+                    {listings.length} {listings.length > 1 ? 'annonces' : 'annonce'} en ligne
+                  </span>
+                  {newCount > 0 && `, dont ${newCount} ${newCount > 1 ? 'neufs' : 'neuf'}`}
+                  {cheapest != null &&
+                    ` — à partir de ${Math.round(cheapest / 1_000_000)} millions de FCFA`}
+                  . Toutes examinées par l’équipe avant publication.
+                </p>
+              )}
             </div>
 
             {/* La sélection de l'équipe, en grand : c'est la vitrine dans la
@@ -215,7 +213,7 @@ export default function Market() {
       {/* Filtres, collés sous l'en-tête pour rester sous la main en défilant. */}
       <section
         id="annonces"
-        className="sticky top-[64px] z-30 scroll-mt-20 border-b border-slate-200 bg-white/95 backdrop-blur"
+        className="sticky top-[64px] z-30 scroll-mt-20 border-b border-papier-200 bg-white/95 backdrop-blur"
       >
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3">
           <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -268,10 +266,10 @@ export default function Market() {
       <section className="mx-auto max-w-7xl px-4 py-12 md:py-16">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-acier-900 md:text-3xl">
+            <h2 className="volta-display text-3xl text-acier-900 md:text-4xl">
               {hasFilter ? 'Résultats' : 'Toutes les annonces'}
             </h2>
-            <p className="mt-1 text-slate-600">
+            <p className="mt-1 text-papier-700">
               {loading
                 ? 'Chargement des annonces…'
                 : `${filtered.length} annonce${filtered.length > 1 ? 's' : ''} publiée${filtered.length > 1 ? 's' : ''} par l’équipe VOLTA`}
@@ -340,14 +338,14 @@ export default function Market() {
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           <Link
             to={requestPath}
-            className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-btp-400 hover:shadow-lg"
+            className="group flex items-start gap-4 rounded-2xl border border-papier-200 bg-white p-6 transition hover:border-btp-400 hover:shadow-lg"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-acier-900 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
               <Search size={20} />
             </span>
             <span>
               <span className="block font-bold text-acier-900">Vous ne trouvez pas ?</span>
-              <span className="mt-1 block text-sm text-slate-600">
+              <span className="mt-1 block text-sm text-papier-700">
                 Décrivez l’équipement recherché, votre budget et votre délai. Génie Sélect le
                 cherche dans son réseau et vous adresse une offre.
               </span>
@@ -358,14 +356,14 @@ export default function Market() {
           </Link>
           <Link
             to="/supplier/vendre"
-            className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-btp-400 hover:shadow-lg"
+            className="group flex items-start gap-4 rounded-2xl border border-papier-200 bg-white p-6 transition hover:border-btp-400 hover:shadow-lg"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-acier-900 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
               <Truck size={20} />
             </span>
             <span>
               <span className="block font-bold text-acier-900">Vous vendez un engin ?</span>
-              <span className="mt-1 block text-sm text-slate-600">
+              <span className="mt-1 block text-sm text-papier-700">
                 Déposez votre annonce depuis votre espace fournisseur. L’équipe VOLTA l’examine,
                 la publie et la met en avant.
               </span>
@@ -379,31 +377,31 @@ export default function Market() {
 
       {/* Le circuit, en quatre temps lisibles. Les dix étapes du serveur
           restent sur la fiche de suivi ; ici on rassure, on ne détaille pas. */}
-      <section className="bg-slate-50 py-16 md:py-20">
+      <section className="bg-papier-100 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4">
           <div className="max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-widest text-btp-600">
+            <span className="volta-eyebrow text-btp-600">
               Comment ça marche
             </span>
-            <h2 className="mt-3 text-3xl font-black text-acier-900">
+            <h2 className="mt-3 volta-display text-4xl text-acier-900">
               Un achat suivi, jamais une transaction à l’aveugle.
             </h2>
           </div>
           <ol className="mt-10 grid gap-5 md:grid-cols-4">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="relative rounded-2xl border border-slate-200 bg-white p-6">
-                <span className="absolute right-5 top-4 text-4xl font-black text-btp-100">
+              <li key={s.title} className="relative rounded-2xl border border-papier-200 bg-white p-6">
+                <span className="absolute right-5 top-4 volta-display text-5xl text-btp-100">
                   0{i + 1}
                 </span>
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-btp-50 text-btp-600">
                   <s.icon size={20} />
                 </span>
                 <h3 className="mt-4 font-bold text-acier-900">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{s.text}</p>
+                <p className="mt-2 text-sm leading-relaxed text-papier-700">{s.text}</p>
               </li>
             ))}
           </ol>
-          <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-slate-600 ring-1 ring-slate-200">
+          <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-papier-700 ring-1 ring-slate-200">
             <BadgeCheck size={16} className="text-emerald-600" />
             Aucune commission : vous traitez avec Génie Sélect aux conditions de l’offre.
           </p>

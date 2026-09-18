@@ -20,10 +20,10 @@ export default function SupplierCTA() {
       <div className="mx-auto max-w-7xl px-4 py-16 md:py-24">
         <div className="grid gap-12 md:grid-cols-2 md:items-center">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-btp-400">
+            <span className="volta-eyebrow text-btp-400">
               Vous avez du matériel
             </span>
-            <h2 className="mt-3 text-3xl font-black md:text-4xl">
+            <h2 className="mt-3 volta-display text-4xl md:text-5xl">
               Louez-le. Vendez-le.
               <br />
               <span className="text-btp-400">VOLTA s’occupe de la mise en relation.</span>

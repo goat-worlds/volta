@@ -27,7 +27,7 @@ export default function RecruitmentBand() {
               <HardHat size={14} />
               Recrutement · Équipe technique
             </span>
-            <h2 className="mt-5 text-3xl font-black text-white md:text-4xl">
+            <h2 className="mt-5 volta-display text-4xl text-white md:text-5xl">
               Vous réparez, vous conduisez, vous inspectez ?
               <br />
               <span className="text-btp-400">Rejoignez l’équipe technique de Génie Sélect.</span>

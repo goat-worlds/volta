@@ -72,8 +72,8 @@ export default function RequestTracking() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-      <h1 className="text-3xl font-black tracking-tight text-acier-900">Suivre ma demande</h1>
-      <p className="mt-3 text-slate-600">
+      <h1 className="volta-display text-4xl text-acier-900">Suivre ma demande</h1>
+      <p className="mt-3 text-papier-700">
         Saisissez la référence qui vous a été communiquée — « VOL-REQ-2026-000491 » pour une
         demande (avec son code de suivi), « VOL-ACH-2026-000012 » pour une offre Volta Market.
       </p>
@@ -123,7 +123,7 @@ export default function RequestTracking() {
 
       {purchase && (
         <div className="mt-8 space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-papier-200 bg-white p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <span className="font-mono text-sm font-bold text-slate-500">{purchase.reference}</span>
@@ -152,7 +152,7 @@ export default function RequestTracking() {
               </div>
             </dl>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-papier-200 bg-white p-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">Avancement</h3>
             <div className="mt-5">
               <PurchaseTimeline status={purchase.status} />
@@ -163,7 +163,7 @@ export default function RequestTracking() {
 
       {request && (
         <div className="mt-8 space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-papier-200 bg-white p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <span className="font-mono text-sm font-bold text-slate-500">
@@ -200,7 +200,7 @@ export default function RequestTracking() {
             </dl>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-papier-200 bg-white p-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
               Avancement
             </h3>

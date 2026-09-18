@@ -84,7 +84,7 @@ export default function Recruitment() {
                 <HardHat size={14} />
                 Recrutement · Équipe technique Génie Sélect
               </span>
-              <h1 className="mt-6 text-4xl font-black leading-tight text-white md:text-5xl">
+              <h1 className="mt-6 volta-display text-5xl text-white md:text-6xl">
                 Vos compétences,
                 <br />
                 <span className="text-btp-400">nos chantiers.</span>
@@ -117,7 +117,7 @@ export default function Recruitment() {
                   { value: '18', label: 'points de contrôle par inspection' },
                 ].map((s) => (
                   <div key={s.label}>
-                    <dt className="text-2xl font-black text-btp-400">{s.value}</dt>
+                    <dt className="volta-display text-3xl text-btp-400">{s.value}</dt>
                     <dd className="mt-0.5 text-xs text-acier-300">{s.label}</dd>
                   </div>
                 ))}
@@ -146,45 +146,45 @@ export default function Recruitment() {
 
       <section id="metiers" className="scroll-mt-20 mx-auto max-w-7xl px-4 py-16 md:py-24">
         <div className="max-w-2xl">
-          <span className="text-xs font-bold uppercase tracking-widest text-btp-600">Métiers recherchés</span>
-          <h2 className="mt-3 text-3xl font-black text-acier-900 md:text-4xl">Huit métiers, un même terrain.</h2>
-          <p className="mt-4 text-lg text-slate-600">
+          <span className="volta-eyebrow text-btp-600">Métiers recherchés</span>
+          <h2 className="mt-3 volta-display text-4xl text-acier-900 md:text-5xl">Huit métiers, un même terrain.</h2>
+          <p className="mt-4 text-lg text-papier-700">
             Les besoins viennent des clients de VOLTA : parcs d’engins à entretenir, pannes à
             diagnostiquer, machines à inspecter avant publication.
           </p>
         </div>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {TRADES.map((t) => (
-            <article key={t.title} className="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-btp-300 hover:shadow-lg">
+            <article key={t.title} className="group rounded-2xl border border-papier-200 bg-white p-6 transition hover:border-btp-300 hover:shadow-lg">
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-acier-900 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
                 <t.icon size={20} />
               </span>
               <h3 className="mt-4 font-bold text-acier-900">{t.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{t.text}</p>
+              <p className="mt-2 text-sm leading-relaxed text-papier-700">{t.text}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="bg-slate-50 py-16 md:py-24">
+      <section className="bg-papier-100 py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4">
           <div className="max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-widest text-btp-600">Processus de sélection</span>
-            <h2 className="mt-3 text-3xl font-black text-acier-900 md:text-4xl">Ce qui se passe après l’envoi.</h2>
-            <p className="mt-4 text-lg text-slate-600">
+            <span className="volta-eyebrow text-btp-600">Processus de sélection</span>
+            <h2 className="mt-3 volta-display text-4xl text-acier-900 md:text-5xl">Ce qui se passe après l’envoi.</h2>
+            <p className="mt-4 text-lg text-papier-700">
               Cinq étapes, et une référence pour suivre la vôtre. Une candidature non retenue
               est mise en attente, jamais perdue : les besoins changent.
             </p>
           </div>
           <ol className="mt-10 grid gap-5 md:grid-cols-5">
             {PROCESS.map((p, i) => (
-              <li key={p.status} className="relative rounded-2xl border border-slate-200 bg-white p-5">
-                <span className="absolute right-4 top-3 text-3xl font-black text-btp-100">0{i + 1}</span>
+              <li key={p.status} className="relative rounded-2xl border border-papier-200 bg-white p-5">
+                <span className="absolute right-4 top-3 volta-display text-4xl text-btp-100">0{i + 1}</span>
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-btp-50 text-btp-600">
                   <p.icon size={18} />
                 </span>
                 <h3 className="mt-3 font-bold text-acier-900">{CANDIDATE_STATUS_LABELS[p.status]}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{p.text}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-papier-700">{p.text}</p>
               </li>
             ))}
           </ol>
@@ -194,12 +194,12 @@ export default function Recruitment() {
       <section className="mx-auto max-w-7xl px-4 py-16 md:py-24">
         <div className="grid gap-5 lg:grid-cols-3">
           {OFFERS.map((o) => (
-            <article key={o.title} className="rounded-2xl border border-slate-200 bg-white p-7">
+            <article key={o.title} className="rounded-2xl border border-papier-200 bg-white p-7">
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-btp-50 text-btp-600">
                 <o.icon size={20} />
               </span>
               <h3 className="mt-4 text-lg font-bold text-acier-900">{o.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{o.text}</p>
+              <p className="mt-2 text-sm leading-relaxed text-papier-700">{o.text}</p>
             </article>
           ))}
         </div>
@@ -209,7 +209,7 @@ export default function Recruitment() {
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
-              <h2 className="text-3xl font-black text-white">Prêt à déposer votre CV ?</h2>
+              <h2 className="volta-display text-4xl text-white">Prêt à déposer votre CV ?</h2>
               <p className="mt-2 max-w-xl text-acier-200">
                 Trois étapes courtes : votre profil, vos compétences, votre CV. Vous recevez une
                 référence pour suivre votre candidature.

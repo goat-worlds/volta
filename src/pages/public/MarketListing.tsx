@@ -167,7 +167,7 @@ export default function MarketListing() {
       <div className="mt-5 grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         {/* Fiche */}
         <div>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+          <div className="overflow-hidden rounded-2xl border border-papier-200 bg-slate-100">
             <div className="relative aspect-[4/3]">
               <img src={photos[photo]} alt={listing.title} className="h-full w-full object-cover" />
               <div className="absolute left-4 top-4 flex gap-2">
@@ -206,7 +206,7 @@ export default function MarketListing() {
 
           <div className="mt-6">
             <span className="font-mono text-xs font-bold text-slate-400">{listing.reference}</span>
-            <h1 className="mt-1 text-3xl font-black tracking-tight text-acier-900">{listing.title}</h1>
+            <h1 className="volta-display mt-1 text-4xl text-acier-900">{listing.title}</h1>
             <p className="mt-1 text-sm font-medium uppercase tracking-wide text-slate-500">
               {listing.brand} {listing.model}
             </p>
@@ -238,7 +238,7 @@ export default function MarketListing() {
                   {listing.documents.map((d) => (
                     <li
                       key={d.name}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-papier-200 bg-white px-3 py-1.5 text-sm text-slate-700"
                     >
                       <FileText size={14} className="text-slate-400" />
                       {d.name}
@@ -251,7 +251,7 @@ export default function MarketListing() {
               </div>
             )}
 
-            <div className="mt-8 grid gap-3 rounded-2xl bg-slate-50 p-5 sm:grid-cols-3">
+            <div className="mt-8 grid gap-3 rounded-2xl bg-papier-100 p-5 sm:grid-cols-3">
               {[
                 { icon: ShieldCheck, text: 'Annonce examinée par l’équipe VOLTA' },
                 { icon: BadgeCheck, text: 'État et disponibilité vérifiés avant l’offre' },
@@ -268,13 +268,13 @@ export default function MarketListing() {
 
         {/* Demande d'offre */}
         <aside className="lg:sticky lg:top-24">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
+          <div className="rounded-2xl border border-papier-200 bg-white p-6 shadow-lg">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
                   Prix demandé
                 </span>
-                <div className="text-3xl font-black text-acier-900">{fmtPrice(listing.askingPrice)}</div>
+                <div className="volta-display text-4xl text-acier-900">{fmtPrice(listing.askingPrice)}</div>
               </div>
               {listing.negotiable && (
                 <span className="rounded-full bg-btp-50 px-3 py-1 text-xs font-bold text-btp-700 ring-1 ring-btp-200">
@@ -289,7 +289,7 @@ export default function MarketListing() {
                   <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
                     <Check size={22} />
                   </span>
-                  <h2 className="mt-3 text-lg font-black text-acier-900">Demande transmise.</h2>
+                  <h2 className="volta-display mt-3 text-2xl text-acier-900">Demande transmise.</h2>
                   <p className="mt-1 text-sm text-slate-700">
                     Génie Sélect vérifie la disponibilité et l’état, puis vous adresse une offre.
                   </p>
@@ -367,7 +367,7 @@ function Spec({
   value: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3">
+    <div className="rounded-xl border border-papier-200 bg-white p-3">
       <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
         <Icon size={13} />
         {label}

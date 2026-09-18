@@ -109,18 +109,18 @@ export default function Hero() {
               Volta × Génie Sélect · Côte d’Ivoire
             </span>
 
-            <h1 className="volta-enter volta-delay-1 mt-6 text-4xl font-black leading-[1.05] text-white md:text-6xl">
-              Louez, achetez,
+            <h1 className="volta-display volta-enter volta-delay-1 mt-6 text-5xl text-white md:text-7xl">
+              Une pelle pour lundi,
               <br />
-              faites intervenir.
+              un mécanicien pour
               <br />
-              <span className="text-btp-400">Tout est vérifié.</span>
+              <span className="text-btp-400">la panne de ce matin.</span>
             </h1>
 
-            <p className="volta-enter volta-delay-2 mt-6 max-w-lg text-lg text-acier-200">
-              Des engins inspectés à louer, des équipements à vendre sur Volta Market, des
-              techniciens sélectionnés par Génie Sélect. Vous décrivez, l’équipe qualifie, vous
-              recevez une proposition.
+            <p className="volta-enter volta-delay-2 mt-6 max-w-lg text-lg leading-relaxed text-acier-200">
+              VOLTA loue, vend et fait vérifier des engins en Côte d’Ivoire. Génie Sélect inspecte
+              les machines sur place, sélectionne les techniciens, et répond à votre demande — une
+              personne, pas un formulaire perdu.
             </p>
 
             <form
@@ -175,18 +175,14 @@ export default function Hero() {
               </a>
             </div>
 
-            <dl className="volta-enter volta-delay-4 mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
-              {[
-                { value: '18', label: 'points de contrôle par engin' },
-                { value: '0 %', label: 'de commission' },
-                { value: '1', label: 'interlocuteur : Génie Sélect' },
-              ].map((s) => (
-                <div key={s.label}>
-                  <dt className="text-2xl font-black text-btp-400">{s.value}</dt>
-                  <dd className="mt-0.5 text-xs text-acier-300">{s.label}</dd>
-                </div>
-              ))}
-            </dl>
+            {/* Trois chiffres alignés sous un slogan, c'est la signature de
+                n'importe quelle page d'accueil. Une phrase suffit à dire la
+                même chose, et elle se retient. */}
+            <p className="volta-enter volta-delay-4 mt-10 max-w-lg border-t border-white/10 pt-6 text-sm leading-relaxed text-acier-300">
+              Dix-huit points de contrôle sur chaque machine, avant qu’elle soit proposée. Aucune
+              commission prélevée au passage. Un seul interlocuteur du premier appel à la remise
+              des clés.
+            </p>
           </div>
 
           <div className="volta-enter volta-delay-2 relative">

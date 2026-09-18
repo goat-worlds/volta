@@ -27,11 +27,11 @@ export default function MarketShowcase() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-btp-400">
+            <span className="volta-eyebrow text-btp-400">
               <ShoppingCart size={14} />
               Volta Market
             </span>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl">
+            <h2 className="mt-3 volta-display text-4xl text-white md:text-5xl">
               {featured.length >= 2 ? 'La sélection VOLTA à vendre.' : 'Des engins à vendre, vérifiés avant l’offre.'}
             </h2>
             <p className="mt-3 text-lg text-acier-200">

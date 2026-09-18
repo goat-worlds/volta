@@ -44,6 +44,15 @@ export interface StepDef {
   title: string
   intro?: string
   fields: FieldDef[]
+  /**
+   * Ce que l'étape suivante dit de ce qui vient d'être saisi.
+   *
+   * Un formulaire qui affiche « Étape 2 sur 3 · Votre projet » pourrait servir
+   * n'importe qui. Celui qui affiche « Votre pelle hydraulique, à Yopougon »
+   * montre qu'il a lu. La fonction renvoie null quand il n'y a rien à
+   * reprendre — mieux vaut ne rien dire qu'une phrase à trous.
+   */
+  echo?: (values: Record<string, string>) => string | null
 }
 
 export interface Journey {
@@ -57,6 +66,35 @@ export interface Journey {
   subject: (values: Record<string, string>) => string
   /** Ce que l'écran de confirmation promet — jamais un délai non tenu. */
   promise: string
+  /**
+   * La demande relue à la première personne, avant l'envoi.
+   *
+   * Chaque parcours écrit la sienne : une candidature de mécanicien et une
+   * demande de pelle ne se racontent pas avec les mêmes mots, et une phrase
+   * assemblée mécaniquement à partir des libellés de champs se reconnaîtrait
+   * immédiatement. Les lignes vides sont écartées par l'appelant.
+   */
+  recap: (values: Record<string, string>) => (string | null)[]
+}
+
+/** Raccourci de rédaction : « 3 semaines » plutôt que « undefined ». */
+const said = (value: string | undefined, fallback = ''): string =>
+  (value ?? '').trim() || fallback
+
+/**
+ * Une date d'input telle qu'on la dirait au téléphone : « 3 octobre ».
+ *
+ * Relire sa propre demande sous la forme « 2026-10-03 » donne le sentiment de
+ * vérifier une ligne de base de données. La valeur brute est renvoyée telle
+ * quelle si elle n'est pas une date — un champ à moitié saisi ne doit pas
+ * produire « Invalid Date » en plein récapitulatif.
+ */
+const frenchDate = (value: string | undefined): string => {
+  const raw = (value ?? '').trim()
+  if (!raw) return ''
+  const parsed = new Date(raw)
+  if (Number.isNaN(parsed.getTime())) return raw
+  return parsed.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
 }
 
 /* ------------------------------------------------------------------ */
@@ -146,6 +184,25 @@ const RENT: Journey = {
   promise:
     'Notre équipe analyse votre besoin et reviendra vers vous avec une solution adaptée.',
   subject: (v) => `Location — ${v.equipmentType || 'engin'} à ${v.siteLocation || 'préciser'}`,
+  recap: (v) => [
+    `Je cherche ${said(v.equipmentType, 'un engin').toLowerCase()}${
+      Number(v.quantity) > 1 ? ` — ${v.quantity} unités` : ''
+    }${v.brandModel ? `, de préférence un ${v.brandModel}` : ''}.`,
+    v.siteLocation
+      ? `Le chantier est à ${v.siteLocation}${v.siteType ? `, en ${v.siteType.toLowerCase()}` : ''}.`
+      : null,
+    v.startDate
+      ? `J’en ai besoin à partir du ${frenchDate(v.startDate)}${v.duration ? `, pour ${v.duration}` : ''}.`
+      : null,
+    v.needsTransport === 'oui' && v.needsOperator === 'oui'
+      ? 'Il me faut aussi le transport et un opérateur.'
+      : v.needsTransport === 'oui'
+        ? 'Il me faut aussi le transport jusqu’au chantier.'
+        : v.needsOperator === 'oui'
+          ? 'Il me faut aussi un opérateur.'
+          : null,
+    v.constraints ? `À savoir : ${v.constraints}` : null,
+  ],
   steps: [
     {
       title: 'Votre besoin',
@@ -193,6 +250,12 @@ const RENT: Journey = {
     {
       title: 'Votre projet',
       intro: 'Le contexte nous évite de vous proposer un engin inadapté au terrain.',
+      echo: (v) =>
+        v.equipmentType
+          ? `${v.equipmentType}${Number(v.quantity) > 1 ? ` ×${v.quantity}` : ''}${
+              v.siteLocation ? ` · ${v.siteLocation}` : ''
+            }${v.startDate ? ` · dès le ${frenchDate(v.startDate)}` : ''}`
+          : null,
       fields: [
         {
           name: 'siteType',
@@ -241,6 +304,15 @@ const BUY: Journey = {
   promise:
     'Génie Sélect vérifie la disponibilité et l’état de l’équipement, puis vous adresse une offre.',
   subject: (v) => `Achat — ${v.equipmentType || 'équipement'} × ${v.quantity || '1'}`,
+  recap: (v) => [
+    `Je veux acheter ${said(v.equipmentType, 'un équipement').toLowerCase()}${
+      Number(v.quantity) > 1 ? ` — ${v.quantity} unités` : ''
+    }${v.brandModel ? `, de préférence un ${v.brandModel}` : ''}.`,
+    v.condition ? `Je le cherche en ${v.condition.toLowerCase()}.` : null,
+    v.budget ? `Mon budget indicatif tourne autour de ${v.budget}.` : null,
+    v.deadline ? `Mon délai : ${v.deadline.toLowerCase()}.` : null,
+    v.details ? `Précision : ${v.details}` : null,
+  ],
   steps: [
     {
       title: 'L’équipement recherché',
@@ -289,6 +361,18 @@ const TECHNICIAN: Journey = {
   promise:
     'Génie Sélect recherche dans son vivier le profil correspondant et vous adresse une proposition.',
   subject: (v) => `Technicien ${v.trade || ''} — ${v.city || 'à préciser'}`.trim(),
+  recap: (v) => [
+    `Je cherche un ${said(v.trade, 'technicien').toLowerCase()}${
+      v.specialty ? ` spécialisé en ${v.specialty.toLowerCase()}` : ''
+    }.`,
+    v.city ? `L’intervention est à ${v.city}.` : null,
+    v.startDate
+      ? `Je le voudrais pour le ${frenchDate(v.startDate)}${
+          v.urgency ? ` — urgence : ${v.urgency.toLowerCase()}` : ''
+        }${v.duration ? `, sur ${v.duration}` : ''}.`
+      : null,
+    v.description ? `Ce qu’il y a à faire : ${v.description}` : null,
+  ],
   steps: [
     {
       title: 'Le profil recherché',
@@ -322,6 +406,26 @@ const OFFER_EQUIPMENT: Journey = {
   promise:
     'Votre fiche est étudiée par Génie Sélect. Une vérification sera planifiée avant toute publication.',
   subject: (v) => `Engin proposé — ${v.brand || ''} ${v.model || ''}`.trim(),
+  recap: (v) => [
+    `Je propose à la location ${said(v.equipmentType, 'mon engin').toLowerCase()}${
+      v.brand || v.model ? ` — ${said(v.brand)} ${said(v.model)}`.trimEnd() : ''
+    }${v.year ? `, de ${v.year}` : ''}.`,
+    v.condition
+      ? `Je le déclare en ${v.condition.toLowerCase()} état${
+          v.hours ? `, avec ${Number(v.hours).toLocaleString('fr-FR')} heures au compteur` : ''
+        }.`
+      : null,
+    v.city ? `Il est basé à ${v.city}${v.zone ? ` et je peux couvrir ${v.zone}` : ''}.` : null,
+    v.availability ? `Disponibilité : ${v.availability.toLowerCase()}.` : null,
+    v.dailyRate ? `Mon tarif indicatif : ${v.dailyRate}.` : null,
+    v.transport === 'oui' && v.operator === 'oui'
+      ? 'Je peux fournir le transport et un opérateur.'
+      : v.transport === 'oui'
+        ? 'Je peux assurer le transport.'
+        : v.operator === 'oui'
+          ? 'Je peux fournir un opérateur.'
+          : null,
+  ],
   steps: [
     {
       title: 'Identification',
@@ -344,6 +448,10 @@ const OFFER_EQUIPMENT: Journey = {
       title: 'État et disponibilité',
       intro:
         'Ces informations sont enregistrées comme déclarées. Elles seront confrontées à une vérification avant publication.',
+      echo: (v) =>
+        v.brand || v.model
+          ? `${said(v.brand)} ${said(v.model)}${v.year ? ` · ${v.year}` : ''}`.trim()
+          : null,
       fields: [
         {
           name: 'condition',
@@ -374,6 +482,8 @@ const OFFER_EQUIPMENT: Journey = {
     },
     {
       title: 'Conditions commerciales',
+      echo: (v) =>
+        v.city ? `Basé à ${v.city}${v.availability ? ` · ${v.availability.toLowerCase()}` : ''}` : null,
       fields: [
         {
           name: 'dailyRate',
@@ -413,6 +523,15 @@ const LIST_CATALOG: Journey = {
   promise:
     'Génie Sélect étudie votre catalogue et vous accompagne dans sa structuration avant publication.',
   subject: (v) => `Catalogue — ${v.legalName || 'entreprise'}`,
+  recap: (v) => [
+    `${said(v.legalName, 'Mon entreprise')} veut référencer son catalogue sur VOLTA.`,
+    v.sector
+      ? `Nous travaillons dans ${v.sector.toLowerCase()}${v.city ? `, depuis ${v.city}` : ''}.`
+      : null,
+    v.catalogSize ? `Nous avons environ ${v.catalogSize} équipements ou produits à présenter.` : null,
+    v.families ? `Familles concernées : ${v.families.split(';').join(', ')}.` : null,
+    v.coverage ? `Nous intervenons sur ${v.coverage}.` : null,
+  ],
   steps: [
     {
       title: 'Votre entreprise',
@@ -431,6 +550,7 @@ const LIST_CATALOG: Journey = {
     },
     {
       title: 'Votre catalogue',
+      echo: (v) => (v.legalName ? `${v.legalName}${v.sector ? ` · ${v.sector}` : ''}` : null),
       fields: [
         {
           name: 'catalogSize',
@@ -467,6 +587,17 @@ const GOLD: Journey = {
   promise:
     'Votre candidature entre en analyse documentaire. Génie Sélect vous transmettra ses recommandations avant l’audit.',
   subject: (v) => `Candidature GOLD — ${v.legalName || 'entreprise'}`,
+  recap: (v) => [
+    `${said(v.legalName, 'Mon entreprise')} candidate à la qualification GOLD.`,
+    v.sector
+      ? `Nous sommes dans ${v.sector.toLowerCase()}${v.city ? `, à ${v.city}` : ''}${
+          v.staff ? `, à ${v.staff} personnes` : ''
+        }.`
+      : null,
+    v.services ? `Ce que nous savons faire : ${v.services}` : null,
+    v.certifications ? `Nos certifications : ${v.certifications}` : null,
+    v.coverage ? `Nous couvrons ${v.coverage}.` : null,
+  ],
   steps: [
     {
       title: 'Votre entreprise',
@@ -481,6 +612,7 @@ const GOLD: Journey = {
     {
       title: 'Capacités et références',
       intro: 'Ce sont ces éléments qui fondent l’évaluation.',
+      echo: (v) => (v.legalName ? `Candidature de ${v.legalName}` : null),
       fields: [
         { name: 'services', label: 'Services proposés', kind: 'textarea', required: true, full: true },
         { name: 'certifications', label: 'Certifications', kind: 'textarea', full: true },
@@ -507,6 +639,12 @@ const SUPPORT: Journey = {
   promise:
     'Un conseiller Génie Sélect étudie votre situation et vous propose un plan d’accompagnement.',
   subject: (v) => `Accompagnement — ${v.legalName || 'entreprise'}`,
+  recap: (v) => [
+    `${said(v.legalName, 'Mon entreprise')} cherche à développer son activité avec Génie Sélect.`,
+    v.sector ? `Nous sommes dans ${v.sector.toLowerCase()}${v.city ? `, à ${v.city}` : ''}.` : null,
+    v.goals ? `Ce que nous visons : ${v.goals.split(';').join(', ').toLowerCase()}.` : null,
+    v.context ? `Notre situation : ${v.context}` : null,
+  ],
   steps: [
     {
       title: 'Votre situation',
@@ -542,6 +680,19 @@ const JOIN_TEAM: Journey = {
   promise:
     'Votre candidature est enregistrée. Elle sera étudiée, puis vous serez contacté pour la suite du processus.',
   subject: (v) => `Candidature — ${v.trade || 'technicien'}`,
+  recap: (v) => [
+    `Je suis ${said(v.trade, 'technicien').toLowerCase()}${
+      v.specialty ? `, spécialisé en ${v.specialty.toLowerCase()}` : ''
+    }${v.experience ? `, avec ${v.experience} ans de métier` : ''}.`,
+    v.skills ? `Je sais faire : ${v.skills.split(';').join(', ').toLowerCase()}.` : null,
+    v.certifications ? `Mes permis et habilitations : ${v.certifications}` : null,
+    v.availability
+      ? `Je suis disponible ${v.availability.toLowerCase()}${
+          v.mobility ? ` et je peux intervenir sur ${v.mobility}` : ''
+        }.`
+      : null,
+    v.cv ? 'Mon CV est joint à cette candidature.' : null,
+  ],
   steps: [
     {
       title: 'Profil professionnel',
@@ -572,6 +723,12 @@ const JOIN_TEAM: Journey = {
     },
     {
       title: 'Compétences et certifications',
+      echo: (v) =>
+        v.trade
+          ? `${v.trade}${v.specialty ? ` · ${v.specialty}` : ''}${
+              v.experience ? ` · ${v.experience} ans` : ''
+            }`
+          : null,
       fields: [
         {
           name: 'skills',
@@ -592,6 +749,7 @@ const JOIN_TEAM: Journey = {
     },
     {
       title: 'Votre CV',
+      echo: (v) => (v.skills ? v.skills.split(';').slice(0, 3).join(' · ') : null),
       intro:
         'C’est la pièce sur laquelle Génie Sélect fonde la présélection. Une lettre courte aide à situer votre parcours.',
       fields: [

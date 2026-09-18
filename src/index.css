@@ -40,12 +40,83 @@
   --color-signal-400: #ffe14d;
   --color-signal-500: #ffd500;
   --color-signal-600: #e0ba00;
+
+  /**
+   * Papier.
+   *
+   * Le fond était le gris bleuté par défaut des tableaux de bord (#f8fafc) :
+   * la couleur d'un outil de gestion, pas d'une maison qui loue des engins.
+   * Ces neutres tirent vers le sable et la poussière de chantier — posés à
+   * côté de l'ambre, ils réchauffent la page au lieu de la refroidir.
+   */
+  --color-papier-50: #faf8f4;
+  --color-papier-100: #f4f0e8;
+  --color-papier-200: #e8e1d5;
+  --color-papier-300: #d4c9b7;
+  --color-papier-600: #6f6558;
+  --color-papier-700: #554c42;
+
+  /**
+   * Lettres.
+   *
+   * Barlow est dessinée pour la signalétique des infrastructures publiques :
+   * grotesque basse en contraste, légèrement arrondie — la lettre des panneaux
+   * de chantier et des flancs d'engins. La condensée porte les titres, où elle
+   * serre le propos ; la normale porte le texte courant, où elle respire.
+   */
+  --font-sans: "Barlow", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Barlow Condensed", "Barlow", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: #f8fafc;
+  font-family: var(--font-sans);
+  background: var(--color-papier-50);
   color: #0f172a;
+  /* Barlow porte des chiffres tabulaires : prix, heures et références
+     s'alignent en colonne au lieu de danser d'une ligne à l'autre. */
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * Titres.
+ *
+ * La condensée est appelée par une classe plutôt que par un sélecteur global
+ * sur h1-h6 : les titres de tableaux et de cartes d'administration restent en
+ * Barlow normale, où la condensée ferait décor sans rien dire.
+ */
+.volta-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+/**
+ * Surtitre gravé.
+ *
+ * Remplace le « petit texte ambre en majuscules » posé au-dessus de chaque
+ * titre : ici un trait court précède le mot, comme un repère porté au crayon
+ * sur un plan. Le trait donne une accroche visuelle que la majuscule seule
+ * n'avait pas, et évite que huit sections commencent exactement pareil.
+ */
+.volta-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.volta-eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 2px;
+  background: currentColor;
+  flex: none;
 }
 
 /**
