@@ -210,7 +210,7 @@ export default function ClientQuotes() {
                 </div>
 
                 <div className="flex flex-col gap-5 p-5 lg:flex-row">
-                  <img
+                  <img loading="lazy"
                     src={eq?.photos[0] ?? '/images/placeholders/equipment.svg'}
                     alt={eq?.name ?? 'Équipement'}
                     className="h-24 w-full shrink-0 rounded-lg object-cover lg:w-40"

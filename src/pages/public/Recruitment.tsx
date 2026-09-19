@@ -126,7 +126,7 @@ export default function Recruitment() {
 
             <div className="relative">
               <div className="overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10">
-                <img src="/engins/pelle-cat-6015b.jpeg" alt="Pelle sur chantier" className="aspect-[4/3] w-full object-cover" />
+                <img loading="lazy" src="/engins/pelle-cat-6015b.jpeg" alt="Pelle sur chantier" className="aspect-[4/3] w-full object-cover" />
               </div>
               <div className="absolute -bottom-5 left-5 right-5 rounded-xl border border-white/10 bg-acier-800/95 p-4 backdrop-blur">
                 <div className="flex items-center gap-3">

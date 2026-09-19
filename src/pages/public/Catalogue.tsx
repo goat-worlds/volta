@@ -91,7 +91,7 @@ export default function Catalogue() {
                 return (
                   <Link key={e.id} to={`/equipment/${e.id}`}>
                     <Card className="overflow-hidden transition hover:shadow-md">
-                      <img src={e.photos[0]} alt={e.name} className="h-40 w-full object-cover" />
+                      <img loading="lazy" src={e.photos[0]} alt={e.name} className="h-40 w-full object-cover" />
                       <div className="p-4">
                         <div className="flex items-start justify-between gap-2">
                           <div className="font-semibold">{e.name}</div>

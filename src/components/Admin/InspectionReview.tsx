@@ -199,7 +199,7 @@ export default function InspectionReview({ inspection, report, inspector }: Prop
           <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Preuves photographiques</div>
           <div className="flex flex-wrap gap-2">
             {inspection.photos.map((p, i) => (
-              <img key={i} src={p} alt="" className="h-20 w-28 rounded border border-slate-200 object-cover" />
+              <img loading="lazy" key={i} src={p} alt="" className="h-20 w-28 rounded border border-slate-200 object-cover" />
             ))}
           </div>
         </div>

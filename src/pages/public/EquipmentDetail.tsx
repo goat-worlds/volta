@@ -81,10 +81,10 @@ export default function EquipmentDetail() {
       <Link to="/catalogue" className="text-sm font-medium text-blue-600 hover:underline">← Retour au catalogue</Link>
       <div className="mt-4 grid gap-6 lg:grid-cols-2">
         <div>
-          <img src={eq.photos[0]} alt={eq.name} className="h-80 w-full rounded-xl object-cover" />
+          <img loading="lazy" src={eq.photos[0]} alt={eq.name} className="h-80 w-full rounded-xl object-cover" />
           <div className="mt-2 flex gap-2">
             {eq.photos.map((p, i) => (
-              <img key={i} src={p} alt="" className="h-16 w-24 rounded-lg object-cover" />
+              <img loading="lazy" key={i} src={p} alt="" className="h-16 w-24 rounded-lg object-cover" />
             ))}
           </div>
         </div>

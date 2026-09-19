@@ -24,7 +24,7 @@ export default function TechnicalMissions() {
             const supplier = users.find((u) => u.id === eq?.supplierId)
             return (
               <Card key={i.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                <img src={eq?.photos[0]} alt={eq?.name} className="h-20 w-32 rounded-lg object-cover" />
+                <img loading="lazy" src={eq?.photos[0]} alt={eq?.name} className="h-20 w-32 rounded-lg object-cover" />
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{eq?.name}</span>

@@ -79,7 +79,7 @@ export default function AdminEquipment() {
                 <tr key={e.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <img src={e.photos[0]} alt="" className="h-10 w-14 rounded object-cover" />
+                      <img loading="lazy" src={e.photos[0]} alt="" className="h-10 w-14 rounded object-cover" />
                       <div>
                         <div className="font-medium">{e.name}</div>
                         <div className="text-xs text-slate-400">{categories.find((c) => c.id === e.categoryId)?.name}</div>
@@ -107,7 +107,7 @@ export default function AdminEquipment() {
           <div className="grid gap-4">
             <div className="flex gap-2">
               {selected.photos.slice(0, 3).map((p, i) => (
-                <img key={i} src={p} alt="" className="h-20 w-28 rounded-lg object-cover" />
+                <img loading="lazy" key={i} src={p} alt="" className="h-20 w-28 rounded-lg object-cover" />
               ))}
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">

@@ -169,7 +169,7 @@ export default function MarketListing() {
         <div>
           <div className="overflow-hidden rounded-2xl border border-papier-200 bg-slate-100">
             <div className="relative aspect-[4/3]">
-              <img src={photos[photo]} alt={listing.title} className="h-full w-full object-cover" />
+              <img loading="lazy" src={photos[photo]} alt={listing.title} className="h-full w-full object-cover" />
               <div className="absolute left-4 top-4 flex gap-2">
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
@@ -197,7 +197,7 @@ export default function MarketListing() {
                       i === photo ? 'ring-btp-500' : 'ring-transparent hover:ring-slate-300'
                     }`}
                   >
-                    <img src={src} alt="" className="h-full w-full object-cover" />
+                    <img loading="lazy" src={src} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>

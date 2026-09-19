@@ -28,7 +28,7 @@ export default function EquipmentCard({ id, name, image, location, price, level 
     <Link to={href} className="group block">
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-lg">
         <div className="relative h-48 overflow-hidden bg-slate-200">
-          <img src={image} alt={name} className="h-full w-full object-cover transition group-hover:scale-105" />
+          <img loading="lazy" src={image} alt={name} className="h-full w-full object-cover transition group-hover:scale-105" />
           {level && (
             <div className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${levelColors[level]}`}>
               <Check className="h-3 w-3" />

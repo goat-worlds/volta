@@ -82,7 +82,7 @@ export default function AdminInspections() {
           <div className="grid gap-3">
             {awaiting.map((e) => (
               <Card key={e.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                <img src={e.photos[0]} alt={e.name} className="h-16 w-24 shrink-0 rounded-lg object-cover" />
+                <img loading="lazy" src={e.photos[0]} alt={e.name} className="h-16 w-24 shrink-0 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-acier-900">{e.name}</span>
@@ -195,7 +195,7 @@ export default function AdminInspections() {
               const report = reports.find((r) => r.equipmentId === e.id)
               return (
                 <Card key={e.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                  <img src={e.photos[0]} alt={e.name} className="h-16 w-24 shrink-0 rounded-lg object-cover" />
+                  <img loading="lazy" src={e.photos[0]} alt={e.name} className="h-16 w-24 shrink-0 rounded-lg object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-acier-900">{e.name}</span>

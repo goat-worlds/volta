@@ -30,7 +30,7 @@ export default function ListingCard({
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-btp-400 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btp-400 focus-visible:ring-offset-2"
     >
       <div className={`relative overflow-hidden bg-slate-200 ${compact ? 'h-40' : 'h-52'}`}>
-        <img
+        <img loading="lazy"
           src={photo}
           alt={listing.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"

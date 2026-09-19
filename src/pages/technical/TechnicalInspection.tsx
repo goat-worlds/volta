@@ -183,7 +183,7 @@ export default function TechnicalInspection() {
             {photos.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {photos.map((p, i) => (
-                  <img key={i} src={p} alt="" className="h-16 w-24 rounded-lg object-cover" />
+                  <img loading="lazy" key={i} src={p} alt="" className="h-16 w-24 rounded-lg object-cover" />
                 ))}
               </div>
             )}

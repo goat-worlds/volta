@@ -159,7 +159,7 @@ export default function SupplierListings() {
             return (
               <Card key={l.id} className="overflow-hidden">
                 <div className="flex flex-col gap-4 p-4 sm:flex-row">
-                  <img
+                  <img loading="lazy"
                     src={l.photos[0] || '/images/placeholders/equipment.svg'}
                     alt=""
                     className="h-32 w-full shrink-0 rounded-lg object-cover sm:w-44"

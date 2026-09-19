@@ -100,7 +100,7 @@ export default function SupplierEquipment() {
             return (
               <Card key={e.id} className="overflow-hidden">
                 <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                  <img
+                  <img loading="lazy"
                     src={e.photos[0]}
                     alt={e.name}
                     className="h-20 w-32 shrink-0 rounded-lg object-cover"

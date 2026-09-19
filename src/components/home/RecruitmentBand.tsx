@@ -14,7 +14,7 @@ export default function RecruitmentBand() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-8">
       <div className="relative overflow-hidden rounded-3xl bg-acier-900">
-        <img
+        <img loading="lazy"
           src="/engins/pelle-cat-6015b.jpeg"
           alt=""
           aria-hidden

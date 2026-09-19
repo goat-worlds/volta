@@ -126,7 +126,7 @@ export default function AdminMarket() {
                 const status = LISTING_STATUS[l.status] ?? { label: l.status, className: 'bg-slate-100 text-slate-700' }
                 return (
                   <Card key={l.id} className="flex flex-col gap-4 p-4 sm:flex-row">
-                    <img src={l.photos[0] || '/images/placeholders/equipment.svg'} alt="" className="h-28 w-full shrink-0 rounded-lg object-cover sm:w-40" />
+                    <img loading="lazy" src={l.photos[0] || '/images/placeholders/equipment.svg'} alt="" className="h-28 w-full shrink-0 rounded-lg object-cover sm:w-40" />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-xs text-slate-400">{l.reference}</span>

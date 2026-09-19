@@ -66,7 +66,7 @@ export default function SupplierCTA() {
           </div>
 
           <div className="relative hidden md:block">
-            <img
+            <img loading="lazy"
               src="/engins/grue-mobile.jpeg"
               alt="Grue mobile"
               className="rounded-2xl object-cover shadow-2xl ring-1 ring-white/10"

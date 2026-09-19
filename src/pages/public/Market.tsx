@@ -189,7 +189,7 @@ export default function Market() {
                 to={inClientSpace ? `/client/market/${featured[0].id}` : `/market/${featured[0].id}`}
                 className="group relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10"
               >
-                <img
+                <img loading="lazy"
                   src={featured[0].photos[0] || '/images/placeholders/equipment.svg'}
                   alt={featured[0].title}
                   className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105"
