@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileText } from 'lucide-react'
+import { FileText, Loader2, Upload, X } from 'lucide-react'
 import { photosForCategory } from '../../lib/enginPhotos'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle, ProgressBar } from '../../components/ui'
+import { errorMessage } from '../../store/api'
+import { uploadEquipmentPhoto } from '../../services/uploads'
 
 
 export default function SupplierEquipmentNew() {
@@ -26,6 +28,10 @@ export default function SupplierEquipmentNew() {
     declaredCondition: 'Bon état',
   })
   const [photos, setPhotos] = useState<string[]>([])
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [documents, setDocuments] = useState<{ name: string; type: string }[]>([])
 
   const input = 'w-full rounded-lg border border-slate-300 p-2 text-sm'
@@ -37,6 +43,36 @@ export default function SupplierEquipmentNew() {
   const togglePhoto = (src: string) =>
     setPhotos((p) => (p.includes(src) ? p.filter((x) => x !== src) : [...p, src]))
   const addDocument = (name: string) => setDocuments((d) => [...d, { name, type: 'PDF' }])
+
+  /**
+   * Import de photos réelles de l'engin, en plus de la photothèque de
+   * démonstration ci-dessous. Chaque fichier part vers
+   * EquipmentPhotoController, qui le stocke sous un nom UUID et renvoie son
+   * URL publique ; c'est cette URL qui rejoint `photos`, la même liste que
+   * les visuels piochés dans la photothèque.
+   */
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setUploadError(null)
+    setUploading(true)
+    try {
+      for (const file of Array.from(files)) {
+        const { url } = await uploadEquipmentPhoto(file)
+        setUploadedPhotos((p) => [...p, url])
+        setPhotos((p) => [...p, url])
+      }
+    } catch (err) {
+      setUploadError(errorMessage(err, "L'envoi de la photo a échoué."))
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const removeUploadedPhoto = (url: string) => {
+    setUploadedPhotos((p) => p.filter((x) => x !== url))
+    setPhotos((p) => p.filter((x) => x !== url))
+  }
 
   const finish = async (submit: boolean) => {
     setSaving(true)
@@ -186,7 +222,7 @@ export default function SupplierEquipmentNew() {
                         chosen ? 'border-btp-500 ring-2 ring-btp-200' : 'border-transparent hover:border-slate-300'
                       }`}
                     >
-                      <img src={photo.src} alt={photo.label} className="h-24 w-full object-cover" />
+                      <img loading="lazy" src={photo.src} alt={photo.label} className="h-24 w-full object-cover" />
                       {chosen && (
                         <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-btp-500 text-xs font-bold text-white">
                           {index + 1}
@@ -199,6 +235,48 @@ export default function SupplierEquipmentNew() {
                   )
                 })}
               </div>
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-sm font-semibold">Vos propres photos ({uploadedPhotos.length})</span>
+              </div>
+              <p className="mb-3 text-xs text-slate-500">
+                Préférez vos propres photos à la photothèque : elles montrent l'engin réel, pas un modèle
+                similaire.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFilesSelected(e.target.files)}
+              />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {uploadedPhotos.map((url) => (
+                  <div key={url} className="group relative overflow-hidden rounded-lg border-2 border-transparent">
+                    <img loading="lazy" src={url} alt="" className="h-24 w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeUploadedPhoto(url)}
+                      className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/70 text-white hover:bg-red-600"
+                      aria-label="Retirer cette photo"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex h-24 flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-btp-500 hover:text-btp-600 disabled:opacity-50"
+                >
+                  {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                  <span className="text-xs font-medium">{uploading ? 'Envoi…' : 'Importer'}</span>
+                </button>
+              </div>
+              {uploadError && <p className="mt-2 text-xs font-medium text-red-600">{uploadError}</p>}
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between">

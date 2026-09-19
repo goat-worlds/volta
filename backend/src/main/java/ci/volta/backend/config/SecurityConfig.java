@@ -63,6 +63,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/equipment").permitAll()
+                // Photos d'engins : servies à quiconque consulte le catalogue,
+                // au même titre que les fiches produit elles-mêmes.
+                .requestMatchers(HttpMethod.GET, "/uploads/equipment/**").permitAll()
                 // Volta Market : la vitrine se consulte et une offre se demande
                 // sans compte. « mine » est exclu de la règle publique par sa
                 // propre ligne, plus bas.
@@ -96,6 +99,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                 // --- Catalogue : consultation ouverte, écriture réservée ---
+                .requestMatchers(HttpMethod.POST, "/api/equipment/photos").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/equipment").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/equipment/**").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/equipment/**").hasAnyRole("SUPPLIER", "ADMIN")
