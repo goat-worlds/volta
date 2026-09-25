@@ -6,9 +6,9 @@ import {
   quoteRequestsClient, quotesClient, estimateTotal, formatFcfa,
   type QuoteRequest, type Quote,
 } from '../../store/quotesClient'
-import { Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, CopyRef, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus, fmtDate } from '../../components/ui'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
-import { quoteRef } from '../../lib/references'
+import { quoteRef, quoteRequestRef } from '../../lib/references'
 
 /**
  * Détail d'une demande et comparaison des devis reçus.
@@ -131,8 +131,12 @@ export default function ClientQuoteRequestDetail() {
       <PageTitle
         title={eq?.name ?? 'Demande de devis'}
         subtitle={`Du ${request.startDate} au ${request.endDate} · ${request.quantity} unité${request.quantity > 1 ? 's' : ''}`}
-        actions={<QuoteStatusBadge status={request.status} />}
+        actions={<QuoteStatusBadge status={displayQuoteRequestStatus(request.status, quotes.length)} />}
       />
+      {/* La référence que VOLTA cite au téléphone : la même que dans la console admin. */}
+      <div className="-mt-3 flex items-center gap-2 text-sm text-slate-500">
+        Référence de la demande <CopyRef value={quoteRequestRef(request.id)} />
+      </div>
 
       <Card className="p-5">
         <h2 className="mb-4 font-semibold text-slate-900">Détail de la demande</h2>
@@ -141,7 +145,7 @@ export default function ClientQuoteRequestDetail() {
             ['Équipement', eq?.name ?? request.equipmentId],
             ['Période', `${request.startDate} → ${request.endDate}`],
             ['Quantité', String(request.quantity)],
-            ['Demandé le', request.createdAt],
+            ['Demandé le', fmtDate(request.createdAt)],
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="text-xs uppercase tracking-wide text-slate-500">{label}</dt>
@@ -220,7 +224,7 @@ export default function ClientQuoteRequestDetail() {
                           référence n'étant qu'un repère pour la citer. */}
                       <SupplierIdentityCompact supplier={supplierOf(q.supplierId)} />
                       <div className="mt-1 font-mono text-[11px] font-normal text-slate-400">
-                        {quoteRef(q.id, q.createdAt)}
+                        <CopyRef value={quoteRef(q.id, q.createdAt)} />
                       </div>
                       <div className="mt-1"><QuoteStatusBadge status={q.status} /></div>
                     </th>

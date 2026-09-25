@@ -32,9 +32,19 @@ public final class QuoteWorkflow {
     public static final String QUOTE_REJECTED = "REJECTED";
 
     // --- Statuts de demande de devis ---
+    /**
+     * Reçue, pas encore vue par VOLTA. Le fournisseur ne la voit pas : c'est
+     * l'administration qui lit d'abord le client, son numéro et la demande,
+     * puis autorise. Sans ce sas, la demande partait directement au fournisseur
+     * et VOLTA découvrait la relation commerciale une fois conclue.
+     */
+    public static final String REQUEST_AWAITING_VALIDATION = "AWAITING_VALIDATION";
+    /** Validée par VOLTA : le fournisseur la voit et peut y répondre. */
     public static final String REQUEST_PENDING = "PENDING";
     public static final String REQUEST_ACCEPTED = "ACCEPTED";
     public static final String REQUEST_DECLINED = "DECLINED";
+    /** Refusée par VOLTA avant transmission : le fournisseur ne l'a jamais vue. */
+    public static final String REQUEST_REJECTED = "REJECTED";
 
     /**
      * Suites autorisées pour un devis.
@@ -57,10 +67,18 @@ public final class QuoteWorkflow {
      * besoin.
      */
     private static final Map<String, Set<String>> REQUEST_TRANSITIONS = Map.of(
+        REQUEST_AWAITING_VALIDATION, Set.of(REQUEST_PENDING, REQUEST_REJECTED),
         REQUEST_PENDING, Set.of(REQUEST_ACCEPTED, REQUEST_DECLINED),
         REQUEST_ACCEPTED, Set.of(),
-        REQUEST_DECLINED, Set.of()
+        REQUEST_DECLINED, Set.of(),
+        REQUEST_REJECTED, Set.of()
     );
+
+    /** Statuts qu'un fournisseur a le droit de voir : à partir de la validation par VOLTA. */
+    public static boolean visibleToSupplier(String requestStatus) {
+        String current = normalize(requestStatus, REQUEST_PENDING);
+        return !REQUEST_AWAITING_VALIDATION.equals(current) && !REQUEST_REJECTED.equals(current);
+    }
 
     private QuoteWorkflow() {
     }
@@ -88,6 +106,10 @@ public final class QuoteWorkflow {
     /** Vrai si un devis peut encore être créé pour cette demande. */
     public static void checkRequestAcceptsQuotes(String requestStatus) {
         String current = normalize(requestStatus, REQUEST_PENDING);
+        if (REQUEST_AWAITING_VALIDATION.equals(current)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette demande est en attente de validation par VOLTA : aucun devis ne peut y répondre avant");
+        }
         if (!REQUEST_PENDING.equals(current)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cette demande est déjà traitée (" + current + ") : aucun nouveau devis ne peut y être ajouté");

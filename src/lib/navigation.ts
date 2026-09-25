@@ -1,12 +1,8 @@
 import {
   AlertOctagon,
   Bell,
-  Briefcase,
-  Building2,
   CalendarCheck,
   ClipboardCheck,
-  FileText,
-  HardHat,
   Heart,
   Inbox,
   LayoutDashboard,
@@ -22,7 +18,6 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { Role } from '../store/types'
-import type { FeatureId } from './features'
 
 /**
  * La navigation de VOLTA, en un seul endroit.
@@ -36,9 +31,6 @@ import type { FeatureId } from './features'
  * Entreprises, Commercial, Administration — et pour chaque entrée les rôles
  * qui la voient. La barre latérale filtre ; le menu d'un technicien ne contient
  * ni Administration ni Commercial parce que ces entrées ne le nomment pas.
- *
- * Une entrée peut pointer un module sans serveur (`feature`) : elle reste
- * visible, marquée comme telle, et mène à l'écran qui explique ce qui manque.
  */
 export interface NavItem {
   to: string
@@ -47,8 +39,6 @@ export interface NavItem {
   roles: Role[]
   /** Vrai pour la racine de l'espace, qui sinon resterait active partout. */
   end?: boolean
-  /** Module annoncé mais sans serveur : l'entrée est marquée « bientôt ». */
-  feature?: FeatureId
 }
 
 export interface NavSection {
@@ -87,6 +77,7 @@ const TREE: NavSection[] = [
       { to: '/supplier/vendre', label: 'Vendre — Volta Market', icon: Tag, roles: ['SUPPLIER'] },
 
       { to: '/admin/requests', label: 'Réservations', icon: CalendarCheck, roles: ['ADMIN'] },
+      { to: '/admin/devis', label: 'Devis', icon: Receipt, roles: ['ADMIN'] },
       { to: '/admin/market', label: 'Volta Market', icon: Tag, roles: ['ADMIN'] },
     ],
   },
@@ -102,24 +93,10 @@ const TREE: NavSection[] = [
       { to: '/technical/anomalies', label: 'Anomalies', icon: AlertOctagon, roles: ['TECHNICAL'] },
 
       { to: '/admin/equipment', label: 'Ressources', icon: Truck, roles: ['ADMIN'] },
+      // Vérification porte déjà les rapports et la décision de qualification
+      // engin par engin ; « Qualification » en était une seconde vue, et
+      // « Anomalies » un suivi que l'administration ne traite pas elle-même.
       { to: '/admin/inspections', label: 'Vérification', icon: ClipboardCheck, roles: ['ADMIN'] },
-      { to: '/admin/reports', label: 'Qualification', icon: FileText, roles: ['ADMIN'] },
-      { to: '/admin/anomalies', label: 'Anomalies', icon: AlertOctagon, roles: ['ADMIN'] },
-    ],
-  },
-  {
-    id: 'operations',
-    label: 'Opérations',
-    items: [
-      { to: '/client/missions', label: 'Missions', icon: Briefcase, roles: ['CLIENT'], feature: 'MISSIONS' },
-      { to: '/client/techniciens', label: 'Techniciens', icon: HardHat, roles: ['CLIENT'], feature: 'TECHNICIANS' },
-      { to: '/client/entreprise', label: 'Mon entreprise', icon: Building2, roles: ['CLIENT'], feature: 'COMPANIES' },
-
-      { to: '/technical/interventions', label: 'Missions', icon: Briefcase, roles: ['TECHNICAL'], feature: 'MISSIONS' },
-
-      { to: '/admin/missions', label: 'Missions', icon: Briefcase, roles: ['ADMIN'], feature: 'MISSIONS' },
-      { to: '/admin/techniciens', label: 'Techniciens', icon: HardHat, roles: ['ADMIN'], feature: 'TECHNICIANS' },
-      { to: '/admin/entreprises', label: 'Entreprises', icon: Building2, roles: ['ADMIN'], feature: 'COMPANIES' },
     ],
   },
   {
@@ -131,7 +108,9 @@ const TREE: NavSection[] = [
     id: 'admin',
     label: 'Administration',
     items: [
-      { to: '/admin/demandes', label: 'Demandes publiques', icon: Inbox, roles: ['ADMIN'] },
+      // Les réponses aux formulaires du site : location, achat, technicien,
+      // candidature. C'est par là qu'arrive la majorité du travail de VOLTA.
+      { to: '/admin/demandes', label: 'Demandes des formulaires', icon: Inbox, roles: ['ADMIN'] },
       { to: '/admin/users', label: 'Utilisateurs', icon: Users, roles: ['ADMIN'] },
       { to: '/admin/audit', label: 'Journal d’audit', icon: ScrollText, roles: ['ADMIN'] },
     ],

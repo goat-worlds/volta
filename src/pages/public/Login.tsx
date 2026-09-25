@@ -122,17 +122,17 @@ export default function Login() {
     }
   }
 
-  const field = 'w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-amber-500 focus:outline-none'
+  const field = 'w-full rounded-lg border border-papier-200 p-2.5 text-sm focus:border-amber-500 focus:outline-none'
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <Card className="p-8">
         <div className="mb-6 text-center">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-xl font-black text-slate-900">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-xl font-black text-acier-900">
             V
           </span>
-          <h1 className="mt-3 text-2xl font-bold text-slate-900">Connexion</h1>
-          <p className="mt-1 text-sm text-slate-500">Accédez à votre espace VOLTA</p>
+          <h1 className="mt-3 text-2xl font-bold text-acier-900">Connexion</h1>
+          <p className="mt-1 text-sm text-papier-600">Accédez à votre espace VOLTA</p>
         </div>
 
         <form
@@ -143,7 +143,7 @@ export default function Login() {
           className="grid gap-4"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+            <label className="mb-1 block text-sm font-medium text-papier-700">Email</label>
             <input
               type="email"
               required
@@ -154,7 +154,7 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Mot de passe</label>
+            <label className="mb-1 block text-sm font-medium text-papier-700">Mot de passe</label>
             <input
               type="password"
               required
@@ -168,13 +168,13 @@ export default function Login() {
           <button
             type="submit"
             disabled={busy}
-            className="rounded-lg bg-amber-400 py-2.5 font-semibold text-slate-900 transition hover:bg-amber-500 disabled:opacity-60"
+            className="rounded-lg bg-amber-400 py-2.5 font-semibold text-acier-900 transition hover:bg-amber-500 disabled:opacity-60"
           >
             {busy ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-papier-600">
           Pas encore de compte ?{' '}
           <Link to="/inscription" className="font-semibold text-amber-600 hover:underline">
             S'inscrire
@@ -182,8 +182,8 @@ export default function Login() {
         </p>
 
         {DEMO_ACCOUNTS.length > 0 && (
-          <div className="mt-8 border-t border-slate-200 pt-5">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="mt-8 border-t border-papier-200 pt-5">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-papier-600">
               Entrer directement dans un espace
             </p>
             {/* Chaque accès porte la couleur et l'icône de son rôle, les mêmes
@@ -199,7 +199,7 @@ export default function Login() {
                     type="button"
                     disabled={busy}
                     onClick={() => void enter(a.email, a.password, `Connexion impossible avec ${a.email}.`)}
-                    className={`group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 ${theme.hoverCard}`}
+                    className={`group flex items-center gap-3 rounded-xl border border-papier-200 bg-white p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 ${theme.hoverCard}`}
                   >
                     <span
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${theme.tileChip}`}
@@ -208,22 +208,22 @@ export default function Login() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className={`block text-sm font-bold ${theme.text}`}>{a.label}</span>
-                      <span className="block truncate text-[11px] leading-tight text-slate-500">
+                      <span className="block truncate text-[11px] leading-tight text-papier-600">
                         {ROLE_PITCH[a.role]}
                       </span>
-                      <span className="mt-0.5 block truncate font-mono text-[10px] text-slate-400">
+                      <span className="mt-0.5 block truncate font-mono text-[10px] text-papier-600">
                         {a.email} · {a.password}
                       </span>
                     </span>
                     <ArrowRight
                       size={16}
-                      className="shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500"
+                      className="shrink-0 text-papier-300 transition group-hover:translate-x-0.5 group-hover:text-papier-600"
                     />
                   </button>
                 )
               })}
             </div>
-            <p className="mt-3 text-xs text-slate-400">Un clic connecte et ouvre l’espace du rôle.</p>
+            <p className="mt-3 text-xs text-papier-600">Un clic connecte et ouvre l’espace du rôle.</p>
           </div>
         )}
       </Card>

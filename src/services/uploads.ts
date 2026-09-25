@@ -32,14 +32,33 @@ export function validatePhotoFile(file: File): string | null {
 export async function uploadEquipmentPhoto(file: File): Promise<UploadedPhoto> {
   const invalid = validatePhotoFile(file)
   if (invalid) throw new Error(invalid)
+  return postFile('/equipment/photos', file)
+}
 
+/** Pièces d'inspection : clichés de terrain et papiers de douane (PDF accepté). */
+export const MAX_INSPECTION_BYTES = 10 * 1024 * 1024
+const INSPECTION_TYPES = [...ALLOWED_TYPES, 'application/pdf']
+
+export function validateInspectionFile(file: File): string | null {
+  if (!INSPECTION_TYPES.includes(file.type)) return 'Formats acceptés : JPEG, PNG, WebP ou PDF.'
+  if (file.size > MAX_INSPECTION_BYTES) return 'Le fichier dépasse 10 Mo.'
+  return null
+}
+
+export async function uploadInspectionFile(file: File): Promise<UploadedPhoto> {
+  const invalid = validateInspectionFile(file)
+  if (invalid) throw new Error(invalid)
+  return postFile('/inspections/files', file)
+}
+
+async function postFile(path: string, file: File): Promise<UploadedPhoto> {
   const token = getToken()
   const form = new FormData()
   form.append('file', file)
 
   let res: Response
   try {
-    res = await fetch(`${BASE}/equipment/photos`, {
+    res = await fetch(`${BASE}${path}`, {
       method: 'POST',
       headers: token ? { 'X-Session-Token': token } : {},
       body: form,
@@ -57,7 +76,7 @@ export async function uploadEquipmentPhoto(file: File): Promise<UploadedPhoto> {
       // Réponse non JSON (ex. 413 renvoyé par un reverse proxy) : le statut
       // générique suffit, describeStatus() ci-dessous s'en charge.
     }
-    throw new ApiError(res.status, message ?? describeStatus(res.status), 'POST', '/equipment/photos')
+    throw new ApiError(res.status, message ?? describeStatus(res.status), 'POST', path)
   }
 
   return (await res.json()) as UploadedPhoto

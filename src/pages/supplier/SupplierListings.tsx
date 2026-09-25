@@ -117,7 +117,7 @@ export default function SupplierListings() {
     <div>
       <PageTitle
         title="Vendre sur Volta Market"
-        subtitle="Vos annonces sont examinées par l’équipe VOLTA avant publication. Les acheteurs passent par Génie Sélect."
+        subtitle="Vos annonces sont examinées par l’équipe VOLTA avant publication. Les acheteurs passent par VOLTA."
         actions={
           <Button onClick={() => setCreating(true)}>
             <Plus size={16} />

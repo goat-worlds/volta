@@ -1,86 +1,96 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Building2, Hammer, Package, Truck, Zap } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import Hero from '../../components/Hero'
 import IntentGrid from '../../components/home/IntentGrid'
 import MarketShowcase from '../../components/home/MarketShowcase'
 import RecruitmentBand from '../../components/home/RecruitmentBand'
-import CategoryCard from '../../components/CategoryCard'
 import EquipmentCard from '../../components/EquipmentCard'
 import HowItWorks from '../../components/HowItWorks'
 import WhyVolta from '../../components/WhyVolta'
 import VerificationLevels from '../../components/VerificationLevels'
-import SupplierCTA from '../../components/SupplierCTA'
-import Carousel from '../../components/Carousel'
-import type { LucideIcon } from 'lucide-react'
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  'c-pelle': Package,
-  'c-chargeuse': Truck,
-  'c-camion': Truck,
-  'c-grue': Zap,
-  'c-compacteur': Building2,
-  'c-groupe': Hammer,
-}
+import {
+  CtaBanner,
+  MoreLink,
+  Reveal,
+  Section,
+  SectionActions,
+  SectionHeader,
+} from '../../components/site/SiteKit'
 
 /**
  * Accueil.
  *
- * L'ordre des sections suit un argumentaire, et ici on vend : la promesse,
- * la question au visiteur, ce qui est à vendre, ce qui est à louer, comment
- * ça se passe, pourquoi nous faire confiance, l'appel aux techniciens, les
- * niveaux, et l'invitation à ceux qui ont du matériel.
+ * L'ordre des sections suit un argumentaire, et ici on vend : la promesse, la
+ * question au visiteur, ce qui est à vendre, ce qui est à louer, comment ça se
+ * passe, pourquoi nous faire confiance, ce que vaut chaque mention, l'appel
+ * aux techniciens, et l'invitation à dire son besoin.
  *
  * Le Market vient avant le catalogue de location parce que c'est l'entrée qui
  * convertit ; le catalogue avant « comment ça marche » parce qu'on montre le
- * stock avant d'expliquer la mécanique. L'inverse — catalogue d'abord — ne
- * parlait qu'à ceux qui cherchaient un engin précis.
+ * stock avant d'expliquer la mécanique.
+ *
+ * Ce qui a changé, c'est la forme. Chaque section apportait sa disposition, sa
+ * gouttière, sa taille de titre et son fond : on descendait la page en
+ * changeant huit fois de mise en page. Toutes passent maintenant par le même
+ * vocabulaire (components/site/SiteKit) et les fonds alternent — sombre,
+ * blanc, sombre, papier — sans que deux voisines se ressemblent au point de se
+ * confondre ni ne s'opposent au point de casser la lecture.
+ *
+ * Les catégories avaient leur propre section de quatre vignettes à icône,
+ * juste sous le catalogue qu'elles filtrent : elles sont devenues des
+ * étiquettes dans le chapeau du catalogue, là où elles servent.
  */
 export default function Home() {
   const { equipment, categories } = useStore()
   const published = equipment.filter((e) => e.status === 'PUBLISHED')
 
-  // Ni écran de chargement ni écran d'erreur ici : le bandeau et le choix
+  // Ni écran de chargement ni écran d'erreur ici : la couverture et le choix
   // d'intention ne dépendent d'aucune donnée du serveur, et les faire attendre
   // — ou disparaître — pour un catalogue absent priverait le visiteur de la
   // seule chose qu'il est venu faire.
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <main className="flex-1">
-        <Hero />
+    <>
+      <Hero />
 
-        <IntentGrid />
+      <IntentGrid />
 
-        <MarketShowcase />
+      <MarketShowcase />
 
-        {published.length > 0 && (
-          <section id="location" className="scroll-mt-16 mx-auto max-w-7xl px-4 py-16 md:py-24">
-            <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <span className="volta-eyebrow text-btp-600">À louer</span>
-                <h2 className="mt-3 volta-display text-4xl text-acier-900 md:text-5xl">
-                  Des engins inspectés, disponibles.
-                </h2>
-                <p className="mt-3 text-lg text-papier-700">
-                  Chaque engin du catalogue a été contrôlé sur place avant publication.
-                </p>
-              </div>
-              <Link
-                to="/catalogue"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-btp-600 transition hover:text-btp-700"
-              >
-                Voir tous les équipements <ArrowRight size={15} />
-              </Link>
-            </div>
+      {published.length > 0 && (
+        <Section id="location" tone="muted">
+          <SectionHeader
+            tone="muted"
+            label="À louer"
+            title="Des engins inspectés, disponibles."
+            text="Chaque engin du catalogue a été contrôlé sur place avant publication."
+          />
 
-            {/* Le catalogue publié dépasse vite quatre engins : une grille figée
-                en cachait le reste derrière un lien. Le carrousel les fait
-                défiler sur place. */}
-            <Carousel ariaLabel="Équipements disponibles">
-              {published.slice(0, 12).map((e) => (
+          {categories.length > 0 && (
+            <Reveal className="mt-8">
+              <ul className="flex flex-wrap justify-center gap-2">
+                {categories.map((cat) => {
+                  const count = equipment.filter((e) => e.categoryId === cat.id).length
+                  return (
+                    <li key={cat.id}>
+                      <Link
+                        to={`/catalogue?categorie=${cat.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-papier-200 bg-white px-4 py-1.5 text-sm font-semibold text-acier-900 transition hover:border-btp-400 hover:text-btp-700"
+                      >
+                        {cat.name}
+                        <span className="text-xs font-normal text-papier-600">{count}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </Reveal>
+          )}
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {published.slice(0, 8).map((e, i) => (
+              <Reveal key={e.id} delay={(i % 4) * 0.06}>
                 <EquipmentCard
-                  key={e.id}
                   id={e.id}
                   name={e.name}
                   image={e.photos[0] || '/images/placeholders/equipment.svg'}
@@ -88,46 +98,25 @@ export default function Home() {
                   price={e.pricePerDay}
                   level={e.level as 'BASIC' | 'SILVER' | 'GOLD'}
                 />
-              ))}
-            </Carousel>
-          </section>
-        )}
+              </Reveal>
+            ))}
+          </div>
 
-        {categories.length > 0 && (
-          <section className="mx-auto max-w-7xl px-4 pb-16 md:pb-24">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-acier-900 md:text-3xl">
-                Explorer par catégorie
-              </h2>
-              <p className="mt-2 text-papier-700">
-                Pour ceux qui savent déjà quel type d’engin ils cherchent.
-              </p>
-            </div>
+          <SectionActions>
+            <MoreLink to="/catalogue">Voir tous les équipements</MoreLink>
+          </SectionActions>
+        </Section>
+      )}
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {categories.slice(0, 4).map((cat) => (
-                <CategoryCard
-                  key={cat.id}
-                  id={cat.id}
-                  name={cat.name}
-                  icon={ICON_MAP[cat.id] || Package}
-                  count={equipment.filter((e) => e.categoryId === cat.id).length}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+      <HowItWorks />
 
-        <HowItWorks />
+      <WhyVolta />
 
-        <WhyVolta />
+      <VerificationLevels />
 
-        <RecruitmentBand />
+      <RecruitmentBand />
 
-        <VerificationLevels />
-
-        <SupplierCTA />
-      </main>
-    </div>
+      <CtaBanner />
+    </>
   )
 }

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
+import InstallAppButton from './site/InstallAppButton'
 
 /**
  * Pied de page.
@@ -9,13 +10,16 @@ import { JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
  * principales, les parcours, le suivi. Les liens morts « Comment ça marche »,
  * « Vérification », « Conditions » — trois « # » — sont remplacés par des
  * ancres réelles de l'accueil.
+ *
+ * La bande de sécurité signe l'en-tête, en haut de chaque page : répétée ici,
+ * elle ne signait plus rien. C'est le téléchargement de l'application qui
+ * ferme la colonne de gauche — le pied de page est l'endroit où on le cherche.
  */
 export default function Footer() {
   const journeys = JOURNEY_COLUMNS.flatMap((c) => c.intents)
 
   return (
     <footer className="bg-acier-900 text-white">
-      <div className="btp-hazard-stripe h-1 w-full" aria-hidden />
       <div className="mx-auto max-w-7xl px-4 py-14">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
@@ -26,14 +30,14 @@ export default function Footer() {
               <span className="leading-none">
                 <span className="block text-lg font-black tracking-tight">VOLTA</span>
                 <span className="block text-[10px] font-semibold uppercase tracking-widest text-acier-300">
-                  × Génie Sélect
-                </span>
+              <span className="lowercase">by</span> Génie Sélect Digital
+            </span>
               </span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-acier-200">
               Location, vente, expertise technique et recrutement d’engins et d’équipements de
               chantier en Côte d’Ivoire. Chaque engin est inspecté, chaque demande est qualifiée
-              par Génie Sélect.
+              par VOLTA.
             </p>
             <ul className="mt-5 space-y-2 text-sm text-acier-200">
               <li className="flex items-center gap-2">
@@ -49,6 +53,10 @@ export default function Footer() {
                 Abidjan, Côte d’Ivoire
               </li>
             </ul>
+
+            {/* Sur un chantier, le réseau tombe : l'application posée sur
+                l'écran d'accueil garde ce qui a déjà été consulté. */}
+            <InstallAppButton tone="dark" className="mt-6" />
           </div>
 
           <div>
@@ -92,7 +100,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-6 text-xs text-acier-300 sm:flex-row sm:items-center">
-          <p>© 2026 VOLTA × Génie Sélect — Engins et équipements vérifiés en Côte d’Ivoire</p>
+          <p>© 2026 VOLTA — Engins et équipements vérifiés en Côte d’Ivoire</p>
           <p>Aucune commission : la mise en relation est qualifiée, jamais facturée.</p>
         </div>
       </div>

@@ -38,6 +38,14 @@ export interface FieldDef {
   full?: boolean
   /** Types acceptés par un champ de fichier, au format de l'attribut HTML. */
   accept?: string
+  /** Nombre maximal de choix, pour un champ à pastilles. */
+  max?: number
+  /**
+   * Champ qui ne se montre que dans certains cas — « Autre » coché, par
+   * exemple. Toujours affiché quand la fonction est absente, et un champ
+   * masqué ne peut pas bloquer la validation de l'étape.
+   */
+  showIf?: (values: Record<string, string>) => boolean
 }
 
 export interface StepDef {
@@ -119,13 +127,18 @@ const URGENCY = opts('Immédiate', 'Sous 24 h', 'Sous 48 h', 'Cette semaine', 'P
 
 const TRADES = opts(
   'Mécanicien',
+  'Mécanicien auto',
   'Mécanicien diesel',
   'Hydraulicien',
   'Électricien',
   'Électromécanicien',
   'Technicien de maintenance',
-  'Opérateur d’engins',
+  'Opérateurs d’engins',
   'Soudeur',
+  // Une liste fermée écarte des métiers réels — tôlier, pneumaticien,
+  // grutier… — et force le candidat à se ranger dans une case qui n'est pas
+  // la sienne. « Autre » ouvre un champ libre plutôt que de perdre le profil.
+  'Autre',
 )
 
 const SKILLS = opts(
@@ -155,7 +168,7 @@ const AVAILABILITY = opts(
  */
 const CONTACT_STEP: StepDef = {
   title: 'Vos coordonnées',
-  intro: 'Pour que Génie Sélect puisse revenir vers vous avec une proposition.',
+  intro: 'Pour que VOLTA puisse revenir vers vous avec une proposition.',
   fields: [
     { name: 'contactName', label: 'Nom et prénom', kind: 'text', required: true },
     { name: 'contactCompany', label: 'Entreprise', kind: 'text' },
@@ -180,7 +193,7 @@ const RENT: Journey = {
   kind: 'RENTAL',
   title: 'Je veux louer un engin',
   subtitle:
-    'Décrivez votre besoin. Génie Sélect identifie l’équipement adapté et vous revient avec une proposition.',
+    'Décrivez votre besoin. VOLTA identifie l’équipement adapté et vous revient avec une proposition.',
   promise:
     'Notre équipe analyse votre besoin et reviendra vers vous avec une solution adaptée.',
   subject: (v) => `Location — ${v.equipmentType || 'engin'} à ${v.siteLocation || 'préciser'}`,
@@ -300,9 +313,9 @@ const BUY: Journey = {
   kind: 'PURCHASE',
   title: 'Je veux acheter un engin',
   subtitle:
-    'Votre demande est adressée à Génie Sélect, qui vérifie la disponibilité et prépare votre offre.',
+    'Votre demande est adressée à VOLTA, qui vérifie la disponibilité et prépare votre offre.',
   promise:
-    'Génie Sélect vérifie la disponibilité et l’état de l’équipement, puis vous adresse une offre.',
+    'VOLTA vérifie la disponibilité et l’état de l’équipement, puis vous adresse une offre.',
   subject: (v) => `Achat — ${v.equipmentType || 'équipement'} × ${v.quantity || '1'}`,
   recap: (v) => [
     `Je veux acheter ${said(v.equipmentType, 'un équipement').toLowerCase()}${
@@ -357,9 +370,9 @@ const TECHNICIAN: Journey = {
   kind: 'TECHNICIAN',
   title: 'Je recherche un technicien',
   subtitle:
-    'Nos profils sont étudiés, auditionnés et sélectionnés par Génie Sélect avant d’être proposés.',
+    'Nos profils sont étudiés, auditionnés et sélectionnés par VOLTA avant d’être proposés.',
   promise:
-    'Génie Sélect recherche dans son vivier le profil correspondant et vous adresse une proposition.',
+    'VOLTA recherche dans son vivier le profil correspondant et vous adresse une proposition.',
   subject: (v) => `Technicien ${v.trade || ''} — ${v.city || 'à préciser'}`.trim(),
   recap: (v) => [
     `Je cherche un ${said(v.trade, 'technicien').toLowerCase()}${
@@ -400,11 +413,11 @@ const TECHNICIAN: Journey = {
 const OFFER_EQUIPMENT: Journey = {
   intent: 'OFFER_EQUIPMENT',
   kind: 'EQUIPMENT_OFFER',
-  title: 'Je veux louer mon engin',
+  title: 'Je veux mettre mon engin en location',
   subtitle:
-    'Présentez votre équipement. Génie Sélect le vérifie, puis identifie les opportunités qui lui correspondent.',
+    'Présentez votre équipement. VOLTA le vérifie, puis identifie les opportunités qui lui correspondent.',
   promise:
-    'Votre fiche est étudiée par Génie Sélect. Une vérification sera planifiée avant toute publication.',
+    'Votre fiche est étudiée par VOLTA. Une vérification sera planifiée avant toute publication.',
   subject: (v) => `Engin proposé — ${v.brand || ''} ${v.model || ''}`.trim(),
   recap: (v) => [
     `Je propose à la location ${said(v.equipmentType, 'mon engin').toLowerCase()}${
@@ -521,7 +534,7 @@ const LIST_CATALOG: Journey = {
   title: 'Je veux présenter mes équipements',
   subtitle: 'Référencez vos équipements, produits et solutions sur Volta.',
   promise:
-    'Génie Sélect étudie votre catalogue et vous accompagne dans sa structuration avant publication.',
+    'VOLTA étudie votre catalogue et vous accompagne dans sa structuration avant publication.',
   subject: (v) => `Catalogue — ${v.legalName || 'entreprise'}`,
   recap: (v) => [
     `${said(v.legalName, 'Mon entreprise')} veut référencer son catalogue sur VOLTA.`,
@@ -585,7 +598,7 @@ const GOLD: Journey = {
   subtitle:
     'Valorisez votre entreprise, améliorez votre référencement et augmentez votre visibilité auprès des opportunités correspondant à vos capacités.',
   promise:
-    'Votre candidature entre en analyse documentaire. Génie Sélect vous transmettra ses recommandations avant l’audit.',
+    'Votre candidature entre en analyse documentaire. VOLTA vous transmettra ses recommandations avant l’audit.',
   subject: (v) => `Candidature GOLD — ${v.legalName || 'entreprise'}`,
   recap: (v) => [
     `${said(v.legalName, 'Mon entreprise')} candidate à la qualification GOLD.`,
@@ -635,12 +648,12 @@ const SUPPORT: Journey = {
   kind: 'SUPPORT',
   title: 'Je veux développer mes ventes',
   subtitle:
-    'Génie Sélect vous accompagne dans la structuration et la présentation de votre offre.',
+    'VOLTA vous accompagne dans la structuration et la présentation de votre offre.',
   promise:
-    'Un conseiller Génie Sélect étudie votre situation et vous propose un plan d’accompagnement.',
+    'Un conseiller VOLTA étudie votre situation et vous propose un plan d’accompagnement.',
   subject: (v) => `Accompagnement — ${v.legalName || 'entreprise'}`,
   recap: (v) => [
-    `${said(v.legalName, 'Mon entreprise')} cherche à développer son activité avec Génie Sélect.`,
+    `${said(v.legalName, 'Mon entreprise')} cherche à développer son activité avec VOLTA.`,
     v.sector ? `Nous sommes dans ${v.sector.toLowerCase()}${v.city ? `, à ${v.city}` : ''}.` : null,
     v.goals ? `Ce que nous visons : ${v.goals.split(';').join(', ').toLowerCase()}.` : null,
     v.context ? `Notre situation : ${v.context}` : null,
@@ -697,7 +710,27 @@ const JOIN_TEAM: Journey = {
     {
       title: 'Profil professionnel',
       fields: [
-        { name: 'trade', label: 'Métier', kind: 'select', options: TRADES, required: true },
+        // Deux métiers au plus, trois compétences au plus : beaucoup de
+        // profils de terrain en exercent réellement deux. Qui coche tout ne dit
+        // plus rien de lui, et l'équipe qui lit ne sait plus quoi retenir.
+        {
+          name: 'trade',
+          label: 'Métier',
+          kind: 'tags',
+          options: TRADES,
+          required: true,
+          max: 3,
+          full: true,
+        },
+        {
+          name: 'tradeOther',
+          label: 'Précisez votre métier',
+          kind: 'text',
+          required: true,
+          full: true,
+          placeholder: 'Tôlier, pneumaticien, grutier…',
+          showIf: (v) => (v.trade ?? '').split(';').includes('Autre'),
+        },
         { name: 'specialty', label: 'Spécialité', kind: 'text', required: true },
         {
           name: 'experience',
@@ -737,6 +770,7 @@ const JOIN_TEAM: Journey = {
           required: true,
           full: true,
           options: SKILLS,
+          max: 3,
         },
         {
           name: 'certifications',
@@ -751,16 +785,15 @@ const JOIN_TEAM: Journey = {
       title: 'Votre CV',
       echo: (v) => (v.skills ? v.skills.split(';').slice(0, 3).join(' · ') : null),
       intro:
-        'C’est la pièce sur laquelle Génie Sélect fonde la présélection. Une lettre courte aide à situer votre parcours.',
+        'Le CV aide VOLTA à situer votre parcours, mais il n’est pas obligatoire : beaucoup de bons profils de terrain n’en ont pas sous la main. Ce que vous avez décrit aux étapes précédentes suffit à être lu.',
       fields: [
         {
           name: 'cv',
-          label: 'Curriculum vitæ',
+          label: 'Curriculum vitæ (facultatif)',
           kind: 'file',
-          required: true,
           full: true,
           accept: '.pdf,.doc,.docx',
-          help: 'PDF de préférence. Conservé avec votre candidature.',
+          help: 'PDF de préférence. Conservé avec votre candidature. Vous pouvez postuler sans.',
         },
         {
           name: 'motivation',

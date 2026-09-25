@@ -81,6 +81,31 @@ public class PublicRequest {
     @Column(columnDefinition = "TEXT")
     public String notes = "";
 
+    /**
+     * Date de rencontre fixée par VOLTA, et ce qu'il faut en savoir.
+     *
+     * C'est la seule information que l'administration ajoute au dossier d'un
+     * candidat, et la seule qu'il attend. Elle est publiée telle quelle dans
+     * le suivi par référence : sans cela, VOLTA devrait rappeler chacun pour
+     * donner une date que le candidat ne pourrait pas relire.
+     */
+    public String meetingAt;
+    @Column(columnDefinition = "TEXT")
+    public String meetingNote;
+
+    /**
+     * Ce que devient le candidat après les rencontres.
+     *
+     * Le recrutement ne produit pas un seul type de profil : à l'issue des
+     * entretiens, le responsable académie oriente vers un stage, vers l'équipe
+     * technique, ou vers le réseau de consultants externes. Sans ce tri, tout
+     * candidat validé devenait technicien, y compris ceux qui n'en sont pas.
+     *
+     * TECHNICIAN, STAGE_CONSULTANT ou EXTERNAL_CONSULTANT. Seul TECHNICIAN
+     * ouvre un compte d'équipe technique à la validation.
+     */
+    public String orientation;
+
     public String createdAt;
     public String updatedAt;
 }

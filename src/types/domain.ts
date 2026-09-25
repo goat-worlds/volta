@@ -86,6 +86,35 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   CLOSED: 'Clôturée',
 }
 
+/**
+ * Une candidature ne se lit pas comme une demande de matériel.
+ *
+ * Le parcours est le même côté serveur — un seul enchaînement de statuts pour
+ * toutes les demandes publiques, et en créer un second pour le recrutement
+ * dédoublerait la logique. Mais « Devis en préparation » sur une candidature
+ * n'a aucun sens, ni pour l'équipe qui la traite ni pour la personne qui suit
+ * son dossier. Les mêmes étapes portent donc les mots du recrutement.
+ */
+export const APPLICATION_STATUS_LABELS: Record<RequestStatus, string> = {
+  RECEIVED: 'Candidature reçue',
+  QUALIFYING: 'En examen',
+  SEARCHING: 'Profil étudié',
+  QUOTE_DRAFT: 'Entretien à programmer',
+  QUOTE_SENT: 'Entretien programmé',
+  VALIDATED: 'Candidature acceptée',
+  MATCHED: 'Compte technicien créé',
+  MISSION: 'En mission',
+  DONE: 'Intégration terminée',
+  CLOSED: 'Dossier clos',
+}
+
+/** Libellé d'un statut, selon qu'il porte une candidature ou une demande. */
+export function requestStatusLabel(status: RequestStatus, intent?: string | null): string {
+  return intent === 'JOIN_TECHNICAL_TEAM'
+    ? APPLICATION_STATUS_LABELS[status] ?? status
+    : REQUEST_STATUS_LABELS[status] ?? status
+}
+
 /** Priorité de traitement (CDC §26). */
 export type Priority = 'URGENT' | 'HIGH' | 'NORMAL' | 'LOW'
 

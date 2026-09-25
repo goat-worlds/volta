@@ -71,22 +71,22 @@ export default function Register() {
     }
   }
 
-  const field = 'w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-amber-500 focus:outline-none'
-  const label = 'mb-1 block text-sm font-medium text-slate-700'
+  const field = 'w-full rounded-lg border border-papier-200 p-2.5 text-sm focus:border-amber-500 focus:outline-none'
+  const label = 'mb-1 block text-sm font-medium text-papier-700'
 
   return (
     <div className="mx-auto max-w-lg px-4 py-14">
       <Card className="p-8">
         <div className="mb-6 text-center">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-xl font-black text-slate-900">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-xl font-black text-acier-900">
             V
           </span>
-          <h1 className="mt-3 text-2xl font-bold text-slate-900">Créer un compte</h1>
-          <p className="mt-1 text-sm text-slate-500">Dites-nous ce que vous venez faire sur VOLTA.</p>
+          <h1 className="mt-3 text-2xl font-bold text-acier-900">Créer un compte</h1>
+          <p className="mt-1 text-sm text-papier-600">Dites-nous ce que vous venez faire sur VOLTA.</p>
         </div>
 
         <fieldset className="mb-6">
-          <legend className="mb-2 text-sm font-medium text-slate-700">Votre profil</legend>
+          <legend className="mb-2 text-sm font-medium text-papier-700">Votre profil</legend>
           <div className="grid gap-2">
             {ROLES.map((r) => {
               const selected = role === r.value
@@ -94,7 +94,7 @@ export default function Register() {
                 <label
                   key={r.value}
                   className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
-                    selected ? 'border-amber-400 bg-amber-50' : 'border-slate-200 hover:border-slate-300'
+                    selected ? 'border-amber-400 bg-amber-50' : 'border-papier-200 hover:border-papier-200'
                   }`}
                 >
                   <input
@@ -106,14 +106,14 @@ export default function Register() {
                   />
                   <span
                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                      selected ? 'bg-amber-400 text-slate-900' : 'bg-slate-100 text-slate-500'
+                      selected ? 'bg-amber-400 text-acier-900' : 'bg-papier-100 text-papier-600'
                     }`}
                   >
                     <r.icon size={16} />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-slate-900">{r.label}</span>
-                    <span className="block text-xs text-slate-500">{r.pitch}</span>
+                    <span className="block text-sm font-semibold text-acier-900">{r.label}</span>
+                    <span className="block text-xs text-papier-600">{r.pitch}</span>
                   </span>
                 </label>
               )
@@ -199,13 +199,13 @@ export default function Register() {
           <button
             type="submit"
             disabled={busy}
-            className="rounded-lg bg-amber-400 py-2.5 font-semibold text-slate-900 transition hover:bg-amber-500 disabled:opacity-60"
+            className="rounded-lg bg-amber-400 py-2.5 font-semibold text-acier-900 transition hover:bg-amber-500 disabled:opacity-60"
           >
             {busy ? 'Inscription…' : "S'inscrire"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-papier-600">
           Déjà un compte ?{' '}
           <Link to="/connexion" className="font-semibold text-amber-600 hover:underline">
             Se connecter

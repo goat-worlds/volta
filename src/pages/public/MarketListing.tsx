@@ -24,7 +24,11 @@ import { fmtPrice } from '../../components/ui'
 import { NotFound } from '../errors'
 
 /**
- * Fiche d'une annonce Volta Market et demande d'offre.
+ * Fiche d'une annonce Volta Market et commande.
+ *
+ * L'acheteur ne négocie pas ici : le prix est affiché, il commande, et VOLTA
+ * reçoit la commande puis le rappelle. Le vocabulaire de l'offre laissait
+ * croire à un marchandage qui n'existe pas dans le parcours.
  *
  * La fiche montre tout ce que le vendeur a déclaré et que l'équipe VOLTA a
  * examiné — jamais qui vend. Le formulaire est sur la même page, à droite :
@@ -133,7 +137,7 @@ export default function MarketListing() {
     return (
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
         <p className="font-semibold text-acier-900">La fiche n’a pas pu être chargée.</p>
-        <p className="mt-1 text-sm text-slate-500">{loadError}</p>
+        <p className="mt-1 text-sm text-papier-600">{loadError}</p>
         <Link to={backPath} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-btp-600">
           <ArrowLeft size={15} /> Retour au Market
         </Link>
@@ -145,8 +149,8 @@ export default function MarketListing() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-          <div className="aspect-[4/3] animate-pulse rounded-2xl bg-slate-100" />
-          <div className="h-96 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="aspect-[4/3] animate-pulse rounded-lg bg-papier-100" />
+          <div className="h-96 animate-pulse rounded-lg bg-papier-100" />
         </div>
       </div>
     )
@@ -158,7 +162,7 @@ export default function MarketListing() {
     <div className="mx-auto max-w-7xl px-4 py-8 md:py-12">
       <Link
         to={backPath}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-acier-900"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-papier-600 transition hover:text-acier-900"
       >
         <ArrowLeft size={15} />
         Volta Market
@@ -167,7 +171,7 @@ export default function MarketListing() {
       <div className="mt-5 grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         {/* Fiche */}
         <div>
-          <div className="overflow-hidden rounded-2xl border border-papier-200 bg-slate-100">
+          <div className="overflow-hidden rounded-lg border border-papier-200 bg-papier-100">
             <div className="relative aspect-[4/3]">
               <img loading="lazy" src={photos[photo]} alt={listing.title} className="h-full w-full object-cover" />
               <div className="absolute left-4 top-4 flex gap-2">
@@ -194,7 +198,7 @@ export default function MarketListing() {
                     onClick={() => setPhoto(i)}
                     aria-label={`Photo ${i + 1}`}
                     className={`h-16 w-20 shrink-0 overflow-hidden rounded-lg ring-2 transition ${
-                      i === photo ? 'ring-btp-500' : 'ring-transparent hover:ring-slate-300'
+                      i === photo ? 'ring-btp-500' : 'ring-transparent hover:ring-papier-300'
                     }`}
                   >
                     <img loading="lazy" src={src} alt="" className="h-full w-full object-cover" />
@@ -205,9 +209,9 @@ export default function MarketListing() {
           </div>
 
           <div className="mt-6">
-            <span className="font-mono text-xs font-bold text-slate-400">{listing.reference}</span>
+            <span className="font-mono text-xs font-bold text-papier-600">{listing.reference}</span>
             <h1 className="volta-display mt-1 text-4xl text-acier-900">{listing.title}</h1>
-            <p className="mt-1 text-sm font-medium uppercase tracking-wide text-slate-500">
+            <p className="mt-1 text-sm font-medium uppercase tracking-wide text-papier-600">
               {listing.brand} {listing.model}
             </p>
 
@@ -224,40 +228,40 @@ export default function MarketListing() {
 
             {listing.description && (
               <div className="mt-8">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500">Description</h2>
-                <p className="mt-3 whitespace-pre-line leading-relaxed text-slate-700">{listing.description}</p>
+                <h2 className="text-sm font-bold uppercase tracking-widest text-papier-600">Description</h2>
+                <p className="mt-3 whitespace-pre-line leading-relaxed text-papier-700">{listing.description}</p>
               </div>
             )}
 
             {listing.documents.length > 0 && (
               <div className="mt-8">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-papier-600">
                   Documents déclarés
                 </h2>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {listing.documents.map((d) => (
                     <li
                       key={d.name}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-papier-200 bg-white px-3 py-1.5 text-sm text-slate-700"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-papier-200 bg-white px-3 py-1.5 text-sm text-papier-700"
                     >
-                      <FileText size={14} className="text-slate-400" />
+                      <FileText size={14} className="text-papier-600" />
                       {d.name}
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 text-xs text-slate-500">
-                  Déclarés par le vendeur ; Génie Sélect les contrôle avant toute offre.
+                <p className="mt-2 text-xs text-papier-600">
+                  Déclarés par le vendeur ; VOLTA les contrôle avant la mise en vente.
                 </p>
               </div>
             )}
 
-            <div className="mt-8 grid gap-3 rounded-2xl bg-papier-100 p-5 sm:grid-cols-3">
+            <div className="mt-8 grid gap-3 rounded-lg bg-papier-100 p-5 sm:grid-cols-3">
               {[
                 { icon: ShieldCheck, text: 'Annonce examinée par l’équipe VOLTA' },
-                { icon: BadgeCheck, text: 'État et disponibilité vérifiés avant l’offre' },
-                { icon: Send, text: 'Un interlocuteur unique : Génie Sélect' },
+                { icon: BadgeCheck, text: 'État et disponibilité vérifiés avant la mise en vente' },
+                { icon: Send, text: 'Un interlocuteur unique : VOLTA' },
               ].map((g) => (
-                <div key={g.text} className="flex items-start gap-2.5 text-sm text-slate-700">
+                <div key={g.text} className="flex items-start gap-2.5 text-sm text-papier-700">
                   <g.icon size={18} className="mt-0.5 shrink-0 text-emerald-600" />
                   {g.text}
                 </div>
@@ -266,12 +270,12 @@ export default function MarketListing() {
           </div>
         </div>
 
-        {/* Demande d'offre */}
+        {/* Commande */}
         <aside className="lg:sticky lg:top-24">
-          <div className="rounded-2xl border border-papier-200 bg-white p-6 shadow-lg">
+          <div className="rounded-lg border border-papier-200 bg-white p-6 shadow-lg">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                <span className="text-xs font-bold uppercase tracking-widest text-papier-600">
                   Prix demandé
                 </span>
                 <div className="volta-display text-4xl text-acier-900">{fmtPrice(listing.askingPrice)}</div>
@@ -289,12 +293,12 @@ export default function MarketListing() {
                   <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
                     <Check size={22} />
                   </span>
-                  <h2 className="volta-display mt-3 text-2xl text-acier-900">Demande transmise.</h2>
-                  <p className="mt-1 text-sm text-slate-700">
-                    Génie Sélect vérifie la disponibilité et l’état, puis vous adresse une offre.
+                  <h2 className="volta-display mt-3 text-2xl text-acier-900">Commande transmise.</h2>
+                  <p className="mt-1 text-sm text-papier-700">
+                    VOLTA a reçu votre commande et organise la suite avec le vendeur vérifié.
                   </p>
                   <div className="mx-auto mt-4 inline-flex flex-col items-center rounded-lg border border-emerald-300 bg-white px-5 py-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                    <span className="text-[11px] font-semibold uppercase tracking-widest text-papier-600">
                       Votre référence
                     </span>
                     <span className="mt-0.5 font-mono text-lg font-bold text-acier-900">{done.reference}</span>
@@ -307,7 +311,7 @@ export default function MarketListing() {
                   to={`/suivi?ref=${done.reference}`}
                   className="mt-2 block rounded-lg bg-acier-900 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-acier-800"
                 >
-                  Suivre ma demande
+                  Suivre ma commande
                 </Link>
               </div>
             ) : (
@@ -318,7 +322,7 @@ export default function MarketListing() {
                 }}
                 className="mt-6 space-y-4"
               >
-                <h2 className="text-lg font-bold text-acier-900">Demander une offre</h2>
+                <h2 className="text-lg font-bold text-acier-900">Commander cet engin</h2>
                 <TextField name="contactName" label="Nom et prénom" required value={values.contactName} onChange={set('contactName')} error={errors.contactName} />
                 <TextField name="contactCompany" label="Entreprise" value={values.contactCompany} onChange={set('contactCompany')} />
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -343,10 +347,10 @@ export default function MarketListing() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-btp-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-btp-600 disabled:opacity-60"
                 >
                   <Send size={16} />
-                  {sending ? 'Envoi…' : 'Demander une offre'}
+                  {sending ? 'Envoi…' : 'Commander'}
                 </button>
-                <p className="text-center text-xs text-slate-500">
-                  Sans engagement. Génie Sélect vous répond avec une offre vérifiée.
+                <p className="text-center text-xs text-papier-600">
+                  VOLTA reçoit votre commande et pilote la mise en relation avec le vendeur.
                 </p>
               </form>
             )}
@@ -368,7 +372,7 @@ function Spec({
 }) {
   return (
     <div className="rounded-xl border border-papier-200 bg-white p-3">
-      <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+      <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-papier-600">
         <Icon size={13} />
         {label}
       </dt>

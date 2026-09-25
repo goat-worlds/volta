@@ -24,8 +24,10 @@ export interface SiteLink {
 }
 
 export const PRIMARY_LINKS: SiteLink[] = [
-  { to: '/market', label: 'Volta Market', description: 'Engins à vendre, vérifiés avant l’offre', icon: ShoppingCart },
+  // La location d'abord : c'est ce que la majorité des visiteurs vient
+  // chercher, et l'achat d'un engin se décide rarement du premier clic.
   { to: '/catalogue', label: 'Louer un engin', description: 'Le catalogue des engins inspectés', icon: Search },
+  { to: '/market', label: 'Volta Market', description: 'Engins à vendre, vérifiés avant la mise en vente', icon: ShoppingCart },
   { to: '/recrutement', label: 'Recrutement', description: 'Rejoindre l’équipe technique', icon: HardHat },
   { to: '/fournisseurs', label: 'Fournisseurs', description: 'Les entreprises référencées', icon: Building2 },
 ]
@@ -43,7 +45,7 @@ export const JOURNEY_COLUMNS: JourneyColumn[] = AUDIENCE_ORDER.map((audience) =>
 
 export const JOURNEYS_FEATURE = {
   eyebrow: 'Que souhaitez-vous faire ?',
-  title: 'Dites-nous votre besoin, Génie Sélect fait le reste.',
+  title: 'Dites-nous votre besoin, VOLTA fait le reste.',
   description:
     'Huit parcours, un seul principe : vous décrivez, l’équipe qualifie, vérifie et revient vers vous avec une proposition. Suivi par référence, sans compte.',
   ctaLabel: 'Voir tous les parcours',

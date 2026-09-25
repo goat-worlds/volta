@@ -29,6 +29,16 @@ public class PurchaseRequest {
     public String contactPhone;
     public String contactEmail;
     public String contactCity;
+    /**
+     * Où l'engin doit être livré, et où il servira ensuite.
+     *
+     * Deux informations distinctes, et le vendeur a besoin des deux : livrer à
+     * Abidjan un engin qui travaillera à Yamoussoukro n'engage ni le même
+     * transport ni le même délai. Les confondre dans « ville » faisait accepter
+     * des commandes qui ne pouvaient pas être honorées.
+     */
+    public String deliveryLocation;
+    public String usageLocation;
     public int quantity;
     @Column(columnDefinition = "TEXT")
     public String message;

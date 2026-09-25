@@ -6,7 +6,7 @@ import { trackPurchase } from '../../services/market'
 import RequestTimeline from '../../components/requests/RequestTimeline'
 import PurchaseTimeline from '../../components/market/PurchaseTimeline'
 import { PURCHASE_STAGE } from '../../lib/statuses'
-import { fmtPrice } from '../../components/ui'
+import { fmtPrice, CopyRef } from '../../components/ui'
 import type { PurchaseTracking } from '../../store/types'
 import { PRIORITY_LABELS, REQUEST_STATUS_LABELS } from '../../types/domain'
 
@@ -75,13 +75,13 @@ export default function RequestTracking() {
       <h1 className="volta-display text-4xl text-acier-900">Suivre ma demande</h1>
       <p className="mt-3 text-papier-700">
         Saisissez la référence qui vous a été communiquée — « VOL-REQ-2026-000491 » pour une
-        demande (avec son code de suivi), « VOL-ACH-2026-000012 » pour une offre Volta Market.
+        demande (avec son code de suivi), « VOL-ACH-2026-000012 » pour une commande Volta Market.
       </p>
 
       <form onSubmit={search} className="mt-6 space-y-2">
-        <div className="flex overflow-hidden rounded-xl border border-slate-300 bg-white">
+        <div className="flex overflow-hidden rounded-xl border border-papier-200 bg-white">
           <div className="flex flex-1 items-center px-4">
-            <Search className="h-5 w-5 shrink-0 text-slate-400" />
+            <Search className="h-5 w-5 shrink-0 text-papier-600" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -103,18 +103,18 @@ export default function RequestTracking() {
             onChange={(e) => setTokenInput(e.target.value)}
             placeholder="Code de suivi (uniquement pour une demande VOL-REQ)"
             aria-label="Code de suivi"
-            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-mono text-sm uppercase text-acier-900 focus:border-btp-500 focus:outline-none"
+            className="w-full rounded-lg border border-papier-200 bg-white px-4 py-2.5 font-mono text-sm uppercase text-acier-900 focus:border-btp-500 focus:outline-none"
           />
         )}
       </form>
 
       {searched && !request && !purchase && (
-        <div className="mt-8 flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <div className="mt-8 flex flex-col items-center rounded-lg border border-dashed border-papier-200 bg-white p-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-papier-100 text-papier-600">
             <SearchX size={22} />
           </span>
           <p className="mt-3 font-semibold text-acier-900">Aucune demande à cette référence.</p>
-          <p className="mt-1 max-w-sm text-sm text-slate-500">
+          <p className="mt-1 max-w-sm text-sm text-papier-600">
             Vérifiez la référence. Une demande de parcours (VOL-REQ) exige aussi son code de suivi,
             remis une seule fois au dépôt.
           </p>
@@ -123,37 +123,37 @@ export default function RequestTracking() {
 
       {purchase && (
         <div className="mt-8 space-y-6">
-          <div className="rounded-2xl border border-papier-200 bg-white p-6">
+          <div className="rounded-lg border border-papier-200 bg-white p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <span className="font-mono text-sm font-bold text-slate-500">{purchase.reference}</span>
+                <CopyRef value={purchase.reference} />
                 <h2 className="mt-1 text-xl font-bold text-acier-900">
-                  Offre d’achat — {purchase.listingTitle || 'annonce Volta Market'}
+                  Commande — {purchase.listingTitle || 'annonce Volta Market'}
                 </h2>
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold ${PURCHASE_STAGE[purchase.status]?.className ?? 'bg-slate-100'}`}>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${PURCHASE_STAGE[purchase.status]?.className ?? 'bg-papier-100'}`}>
                 {PURCHASE_STAGE[purchase.status]?.label ?? purchase.status}
               </span>
             </div>
-            <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-5 text-sm sm:grid-cols-3">
+            <dl className="mt-5 grid gap-4 border-t border-papier-100 pt-5 text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Déposée le</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-papier-600">Déposée le</dt>
                 <dd className="mt-1 text-acier-900">{new Date(purchase.createdAt).toLocaleDateString('fr-FR')}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Quantité</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-papier-600">Quantité</dt>
                 <dd className="mt-1 text-acier-900">{purchase.quantity}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Offre</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-papier-600">Montant</dt>
                 <dd className="mt-1 font-semibold text-acier-900">
                   {purchase.offerAmount != null ? fmtPrice(purchase.offerAmount) : 'En préparation'}
                 </dd>
               </div>
             </dl>
           </div>
-          <div className="rounded-2xl border border-papier-200 bg-white p-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">Avancement</h3>
+          <div className="rounded-lg border border-papier-200 bg-white p-6">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-papier-600">Avancement</h3>
             <div className="mt-5">
               <PurchaseTimeline status={purchase.status} />
             </div>
@@ -163,12 +163,10 @@ export default function RequestTracking() {
 
       {request && (
         <div className="mt-8 space-y-6">
-          <div className="rounded-2xl border border-papier-200 bg-white p-6">
+          <div className="rounded-lg border border-papier-200 bg-white p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <span className="font-mono text-sm font-bold text-slate-500">
-                  {request.reference}
-                </span>
+                <CopyRef value={request.reference} />
                 <h2 className="mt-1 text-xl font-bold text-acier-900">{request.subject}</h2>
               </div>
               <span className="rounded-full bg-btp-50 px-3 py-1 text-xs font-bold text-btp-700 ring-1 ring-btp-200">
@@ -176,9 +174,9 @@ export default function RequestTracking() {
               </span>
             </div>
 
-            <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-5 text-sm sm:grid-cols-3">
+            <dl className="mt-5 grid gap-4 border-t border-papier-100 pt-5 text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-papier-600">
                   Déposée le
                 </dt>
                 <dd className="mt-1 text-acier-900">
@@ -186,13 +184,13 @@ export default function RequestTracking() {
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-papier-600">
                   Localisation
                 </dt>
                 <dd className="mt-1 text-acier-900">{request.location || '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-papier-600">
                   Priorité
                 </dt>
                 <dd className="mt-1 text-acier-900">{PRIORITY_LABELS[request.priority]}</dd>
@@ -200,12 +198,29 @@ export default function RequestTracking() {
             </dl>
           </div>
 
-          <div className="rounded-2xl border border-papier-200 bg-white p-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+          {/* La rencontre fixée par VOLTA, en tête : c'est ce que la personne
+              vient chercher, plus encore que l'avancement. */}
+          {request.meetingAt && (
+            <div className="rounded-lg border-2 border-btp-500 bg-btp-50/50 p-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-btp-700">
+                VOLTA vous donne rendez-vous
+              </h3>
+              <p className="volta-display mt-2 text-2xl text-acier-900">{request.meetingAt}</p>
+              {request.meetingNote && (
+                <p className="mt-2 text-sm text-papier-700">{request.meetingNote}</p>
+              )}
+              <p className="mt-3 text-xs text-papier-600">
+                Présentez-vous avec votre référence {request.reference}.
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-lg border border-papier-200 bg-white p-6">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-papier-600">
               Avancement
             </h3>
             <div className="mt-5">
-              <RequestTimeline status={request.status} />
+              <RequestTimeline status={request.status} intent={request.intent} />
             </div>
           </div>
         </div>

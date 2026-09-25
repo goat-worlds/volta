@@ -1,0 +1,52 @@
+{
+  "id": "/",
+  "name": "VOLTA — Engins de chantier vérifiés",
+  "short_name": "VOLTA",
+  "description": "Louer, acheter et faire vérifier un engin de chantier en Côte d'Ivoire. Chaque machine est inspectée sur place par Génie Sélect avant d'être proposée.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b1f3a",
+  "theme_color": "#0b1f3a",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/volta-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/volta-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/volta-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Engins à louer",
+      "short_name": "Catalogue",
+      "url": "/catalogue"
+    },
+    {
+      "name": "Volta Market",
+      "short_name": "Market",
+      "url": "/market"
+    },
+    {
+      "name": "Suivre ma demande",
+      "short_name": "Suivi",
+      "url": "/suivi"
+    }
+  ]
+}

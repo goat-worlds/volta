@@ -48,7 +48,9 @@ public class MarketService {
 
     public record PurchaseInput(String contactName, String contactCompany, String contactPhone,
                                 String contactEmail, String contactCity, Integer quantity,
-                                String message) {
+                                String message,
+                                /** Où livrer, et où l'engin travaillera : deux lieux, souvent distincts. */
+                                String deliveryLocation, String usageLocation) {
     }
 
     public record StageInput(String stage, String notes, Long offerAmount) {
@@ -325,6 +327,8 @@ public class MarketService {
         r.contactPhone = in.contactPhone().trim();
         r.contactEmail = in.contactEmail().trim();
         r.contactCity = trimOrEmpty(in.contactCity());
+        r.deliveryLocation = trimOrEmpty(in.deliveryLocation());
+        r.usageLocation = trimOrEmpty(in.usageLocation());
         r.quantity = quantity;
         r.message = trimOrEmpty(in.message());
         r.status = MarketWorkflow.RECEIVED;
@@ -360,7 +364,11 @@ public class MarketService {
             return purchases.findAll();
         }
         if (currentUser.isSupplier()) {
+            // Comme pour la location : le vendeur ne découvre la commande que
+            // lorsque VOLTA la lui transmet. Avant, elle n'est qu'entre le
+            // client et l'administration.
             return purchases.findBySellerIdOrderByCreatedAtDesc(me.id).stream()
+                    .filter(r -> MarketWorkflow.transmittedToSeller(r.status))
                     .map(MarketService::withoutContact).toList();
         }
         if (currentUser.isClient()) {
@@ -473,6 +481,65 @@ public class MarketService {
         MarketWorkflow.checkCondition(l.condition);
     }
 
+    /** Au-delà, l'annonce quitte la vitrine : la promesse du catalogue n'est plus tenue. */
+    public static final int MAX_DELIVERY_FAILURES = 3;
+
+    public record DeliveryFailureInput(String reason) {
+    }
+
+    /**
+     * Le vendeur déclare qu'il ne peut pas honorer cette commande.
+     *
+     * La charte fournisseur engage à pouvoir livrer ce qui est publié. Le
+     * manquement est compté sur l'annonce, pas sur la commande : c'est
+     * l'annonce qui promet un engin disponible. Au troisième, elle est retirée
+     * de la vitrine — le statut passe en retiré, les données restent.
+     *
+     * La commande, elle, est close : le client ne peut pas rester en attente
+     * d'une livraison que personne ne fera.
+     */
+    public PurchaseRequest reportDeliveryFailure(String requestId, DeliveryFailureInput in) {
+        PurchaseRequest r = purchases.findById(requestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Demande introuvable : " + requestId));
+
+        UserAccount me = currentUser.require();
+        if (!currentUser.isAdmin() && !me.id.equals(r.sellerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Cette commande ne vous concerne pas");
+        }
+        if (!MarketWorkflow.transmittedToSeller(r.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette commande ne vous a pas encore été transmise");
+        }
+
+        SaleListing l = load(r.listingId);
+        l.deliveryFailureCount += 1;
+        String motif = in == null || blank(in.reason()) ? "" : " — " + in.reason().trim();
+
+        if (l.deliveryFailureCount >= MAX_DELIVERY_FAILURES
+                && MarketWorkflow.isPublished(l.status)) {
+            l.status = MarketWorkflow.WITHDRAWN;
+            l.reviewNote = "Retirée après " + l.deliveryFailureCount
+                    + " non-livraisons déclarées par le vendeur.";
+            notify(CurrentUser.ROLE_ADMIN, "Annonce " + l.reference + " retirée : "
+                    + l.deliveryFailureCount + " non-livraisons");
+            audit.record("LISTING_WITHDRAWN_DELIVERY_FAILURES", "LISTING", l.id, l.reference, l.title);
+        }
+        listings.save(l);
+
+        r.status = MarketWorkflow.CLOSED;
+        r.notes = (r.notes == null || r.notes.isBlank() ? "" : r.notes + "\n")
+                + "Non-livraison déclarée par le vendeur" + motif;
+        r.updatedAt = today();
+        r = purchases.save(r);
+
+        notify(CurrentUser.ROLE_ADMIN, "Non-livraison déclarée sur " + r.reference
+                + " (" + l.title + ") — incident " + l.deliveryFailureCount + "/" + MAX_DELIVERY_FAILURES);
+        audit.record("PURCHASE_DELIVERY_FAILURE", "PURCHASE", r.id, r.reference, l.title);
+        return r;
+    }
+
     private static PurchaseRequest withoutContact(PurchaseRequest r) {
         PurchaseRequest copy = new PurchaseRequest();
         copy.id = r.id;
@@ -489,7 +556,12 @@ public class MarketService {
         copy.contactPhone = "";
         copy.contactEmail = "";
         copy.contactCity = r.contactCity;
-        copy.message = "";
+        // Le vendeur doit pouvoir juger s'il peut livrer : le lieu de livraison,
+        // celui d'utilisation et les conditions du chantier ne sont pas des
+        // données personnelles, ils décrivent la mission.
+        copy.deliveryLocation = r.deliveryLocation;
+        copy.usageLocation = r.usageLocation;
+        copy.message = r.message;
         copy.notes = "";
         return copy;
     }

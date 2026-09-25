@@ -153,7 +153,26 @@ export default function AdminRequests() {
                       <WorkflowSteps status={r.status} />
                     </td>
                     <td className="px-4 py-3">{equipment.find((e) => e.id === r.equipmentId)?.name ?? '—'}</td>
-                    <td className="px-4 py-3">{users.find((u) => u.id === r.supplierId)?.company ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        // VOLTA est l'intermédiaire : c'est l'admin qui appelle le
+                        // fournisseur pour qualifier et confirmer. Son numéro doit
+                        // donc être sous les yeux, pas dans une autre page.
+                        const supplier = users.find((u) => u.id === r.supplierId)
+                        if (!supplier) return '—'
+                        return (
+                          <>
+                            <div>{supplier.company}</div>
+                            <div className="text-xs text-slate-400">{supplier.name}</div>
+                            {supplier.phone && (
+                              <a href={`tel:${supplier.phone.replace(/\s/g, '')}`} className="text-xs font-medium text-acier-700 hover:underline">
+                                {supplier.phone}
+                              </a>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </td>
                     <td className="px-4 py-3">
                       <div>{r.clientName}</div>
                       <div className="text-xs text-slate-400">{r.clientEmail}</div>

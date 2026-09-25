@@ -71,6 +71,12 @@ export interface Inspection {
   checklist: ChecklistItem[]
   photos: string[]
   anomalies: string[]
+  /** Papiers de douane televerses par le technicien. */
+  customsDocuments?: string[]
+  /** Moyens de deplacement de l equipe mecanique du fournisseur. */
+  teamMobility?: string | null
+  /** Delai reel de mise a disposition constate sur place. */
+  availabilityLeadTime?: string | null
 }
 
 export interface Report {
@@ -209,7 +215,7 @@ export interface Notification {
   read: boolean
 }
 
-export type QuoteRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
+export type QuoteRequestStatus = 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REJECTED'
 
 export interface QuoteRequest {
   id: string

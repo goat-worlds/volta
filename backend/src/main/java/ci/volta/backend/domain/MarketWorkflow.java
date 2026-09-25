@@ -62,6 +62,21 @@ public final class MarketWorkflow {
 
     public static final String RECEIVED = "RECEIVED";
     public static final String CLOSED = "CLOSED";
+    /** Étape à laquelle VOLTA interroge le vendeur : « peux-tu livrer ? ». */
+    public static final String AVAILABILITY_CHECK = "AVAILABILITY_CHECK";
+
+    /**
+     * La commande a-t-elle été transmise au vendeur ?
+     *
+     * VOLTA reçoit d'abord, qualifie, puis interroge le vendeur. Tant que
+     * l'administration n'a pas atteint la vérification de disponibilité, la
+     * commande reste entre le client et VOLTA — le vendeur ne la voit pas.
+     */
+    public static boolean transmittedToSeller(String stage) {
+        String current = normalize(stage, RECEIVED);
+        int index = REQUEST_FLOW.indexOf(current);
+        return index >= REQUEST_FLOW.indexOf(AVAILABILITY_CHECK);
+    }
 
     private MarketWorkflow() {
     }

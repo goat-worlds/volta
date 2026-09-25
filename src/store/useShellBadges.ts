@@ -52,7 +52,8 @@ export function useShellBadges(role: Role): Record<string, number> {
 
     if (role === 'ADMIN') {
       counts['/admin/inspections'] = equipment.filter((e) => e.status === 'SUBMITTED').length
-      counts['/admin/reports'] = equipment.filter((e) => e.status === 'PENDING_ADMIN_REVIEW').length
+      // La file de validation des devis : ce que VOLTA doit lire et transmettre.
+      counts['/admin/devis'] = myQuoteRequests.filter((r) => r.status === 'AWAITING_VALIDATION').length
       // Ce que l'administration doit faire avancer : qualifier une nouvelle
       // demande, confirmer une acceptation.
       counts['/admin/requests'] = rentalRequests.filter(
@@ -63,7 +64,12 @@ export function useShellBadges(role: Role): Record<string, number> {
     if (role === 'CLIENT') {
       // Seuls les devis appellent une décision du client ; ses demandes en
       // attente dépendent du fournisseur, les compter le presserait pour rien.
-      counts['/client/devis'] = myQuotes.filter((q) => q.status === 'SENT').length
+      const offers = myQuotes.filter((q) => q.status === 'SENT')
+      counts['/client/devis'] = offers.length
+      // Une demande compte dès qu'un fournisseur y a répondu : c'est le +1 qui
+      // dit au client qu'il y a du nouveau, sans qu'il ait à ouvrir la liste.
+      const answered = new Set(offers.map((q) => q.quoteRequestId))
+      counts['/client/demandes'] = myQuoteRequests.filter((r) => answered.has(r.id)).length
     }
 
     return counts

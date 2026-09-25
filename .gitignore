@@ -25,3 +25,8 @@ dist-ssr
 
 # Secrets locaux
 .env
+
+# Reglages locaux de l'outil : settings.local.json porte des autorisations
+# propres a la machine, identifiants de test compris.
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

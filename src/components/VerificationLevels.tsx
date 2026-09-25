@@ -1,5 +1,6 @@
 import { Check, Minus } from 'lucide-react'
 import type { Level } from '../store/types'
+import { Reveal, Section, SectionHeader } from './site/SiteKit'
 
 /**
  * Les trois niveaux de vérification.
@@ -12,6 +13,7 @@ import type { Level } from '../store/types'
  * Une table répond à cette question-là : une ligne par contrôle, une colonne
  * par niveau, et l'on voit d'un coup où s'arrête Basic et ce qu'ajoute Gold.
  * C'est aussi la forme la moins décorative de la page, donc la plus crédible.
+ * Elle garde son chapeau centré comme les autres sections, et rien de plus.
  */
 
 const LEVELS: { id: Level; label: string; note: string }[] = [
@@ -60,7 +62,7 @@ function Mark({ value }: { value: string | boolean }) {
   if (value === true) {
     return (
       <>
-        <Check size={17} className="mx-auto text-emerald-600" aria-hidden />
+        <Check size={17} className="mx-auto text-emerald-400" aria-hidden />
         <span className="sr-only">oui</span>
       </>
     )
@@ -68,50 +70,48 @@ function Mark({ value }: { value: string | boolean }) {
   if (value === false) {
     return (
       <>
-        <Minus size={17} className="mx-auto text-papier-300" aria-hidden />
+        <Minus size={17} className="mx-auto text-acier-500" aria-hidden />
         <span className="sr-only">non</span>
       </>
     )
   }
-  return <span className="text-sm font-semibold text-acier-800">{value}</span>
+  return <span className="text-sm font-semibold text-btp-300">{value}</span>
 }
 
 export default function VerificationLevels() {
   return (
-    <section id="niveaux" className="scroll-mt-16 bg-papier-100 py-16 md:py-24">
-      <div className="mx-auto max-w-5xl px-4">
-        <span className="volta-eyebrow text-btp-600">Ce que vaut chaque mention</span>
-        <h2 className="volta-display mt-4 max-w-2xl text-4xl text-acier-900 md:text-5xl">
-          Basic, Silver, Gold : qui a vu quoi.
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-papier-700">
-          Le niveau se lit sur chaque fiche, à louer comme à vendre. Il n’est pas acheté par le
-          propriétaire : il est décidé par l’administration après lecture du rapport.
-        </p>
+    <Section id="niveaux" tone="dark">
+      <SectionHeader
+        tone="dark"
+        label="Ce que vaut chaque mention"
+        title="Basic, Silver, Gold : qui a vu quoi."
+        text="Le niveau se lit sur chaque fiche, à louer comme à vendre. Il n’est pas acheté par le propriétaire : il est décidé par l’administration après lecture du rapport."
+      />
 
-        {/* La table déborde sur téléphone plutôt que d'écraser ses colonnes :
-            réduire la police jusqu'à faire tenir trois colonnes rendrait les
-            marques illisibles là où elles comptent le plus. */}
-        <div className="mt-10 overflow-x-auto">
+      {/* La table déborde sur téléphone plutôt que d'écraser ses colonnes :
+          réduire la police jusqu'à faire tenir trois colonnes rendrait les
+          marques illisibles là où elles comptent le plus. */}
+      <Reveal className="mx-auto mt-12 max-w-4xl">
+        <div className="overflow-x-auto">
           <table className="w-full min-w-[34rem] border-collapse text-left">
             <caption className="sr-only">
               Contrôles effectués pour chaque niveau de vérification VOLTA
             </caption>
             <thead>
-              <tr className="border-b-2 border-acier-900">
-                <th scope="col" className="py-3 pr-4 text-sm font-semibold text-papier-600">
+              <tr className="border-b-2 border-btp-500">
+                <th scope="col" className="py-3 pr-4 text-sm font-semibold text-acier-300">
                   Contrôle
                 </th>
                 {LEVELS.map((level) => (
                   <th key={level.id} scope="col" className="w-28 px-2 py-3 text-center align-bottom">
                     <span
                       className={`volta-display block text-xl ${
-                        level.id === 'GOLD' ? 'text-btp-600' : 'text-acier-900'
+                        level.id === 'GOLD' ? 'text-btp-400' : 'text-white'
                       }`}
                     >
                       {level.label}
                     </span>
-                    <span className="mt-0.5 block text-[11px] font-medium uppercase tracking-wider text-papier-600">
+                    <span className="mt-0.5 block text-[11px] font-medium uppercase tracking-wider text-acier-300">
                       {level.note}
                     </span>
                   </th>
@@ -120,16 +120,14 @@ export default function VerificationLevels() {
             </thead>
             <tbody>
               {CHECKS.map((check) => (
-                <tr key={check.label} className="border-b border-papier-200">
-                  <th scope="row" className="py-3.5 pr-4 text-sm font-normal text-acier-900">
+                <tr key={check.label} className="border-b border-white/10">
+                  <th scope="row" className="py-3.5 pr-4 text-sm font-normal text-acier-100">
                     {check.label}
                   </th>
                   {LEVELS.map((level) => (
                     <td
                       key={level.id}
-                      className={`px-2 py-3.5 text-center ${
-                        level.id === 'GOLD' ? 'bg-btp-50/60' : ''
-                      }`}
+                      className={`px-2 py-3.5 text-center ${level.id === 'GOLD' ? 'bg-white/5' : ''}`}
                     >
                       <Mark value={check.by[level.id]} />
                     </td>
@@ -140,11 +138,11 @@ export default function VerificationLevels() {
           </table>
         </div>
 
-        <p className="mt-5 text-sm text-papier-600">
+        <p className="mt-5 text-sm text-acier-300">
           Une machine peut monter de niveau : elle repasse au contrôle quand son détenteur a repris
           ce qui avait été relevé.
         </p>
-      </div>
-    </section>
+      </Reveal>
+    </Section>
   )
 }

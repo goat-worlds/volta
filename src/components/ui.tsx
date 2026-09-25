@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { AnomalyStatus, EquipmentStatus, Level, OpportunityStage, RentalStatus } from '../store/types'
-import { Inbox, X } from 'lucide-react'
+import { Check, Copy, Inbox, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import { roleTheme } from '../lib/roleTheme'
@@ -316,16 +316,87 @@ export function Modal({
 export const fmtPrice = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`
 
 /**
+ * Référence à copier d'un geste.
+ *
+ * Une référence se dicte au téléphone ou se colle dans un message à VOLTA ;
+ * la sélectionner à la souris dans une cellule de tableau est laborieux, et
+ * sur un téléphone quasi impossible. Le bouton met la valeur dans le
+ * presse-papiers et le dit pendant une seconde.
+ *
+ * Le presse-papiers peut être refusé (page non sécurisée, permission) : la
+ * référence reste affichée et sélectionnable, le bouton ne casse rien.
+ */
+export function CopyRef({ value, className = '' }: { value: string; className?: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Sans presse-papiers, la valeur est toujours lisible à côté du bouton.
+    }
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 ${className}`}>
+      <span className="select-all font-mono text-xs font-semibold text-acier-800">{value}</span>
+      <button
+        type="button"
+        onClick={() => void copy()}
+        aria-label={`Copier la référence ${value}`}
+        title={copied ? 'Copié' : 'Copier'}
+        className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium transition ${
+          copied
+            ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-acier-800'
+        }`}
+      >
+        {copied ? <Check size={11} /> : <Copy size={11} />}
+        {copied ? 'Copié' : 'Copier'}
+      </button>
+    </span>
+  )
+}
+
+/**
+ * Date lisible à partir d'une date seule (2026-09-19) ou d'un horodatage ISO
+ * complet. Les demandes de devis portent désormais l'horodatage, pour l'ordre
+ * d'arrivée ; à l'écran, le jour suffit.
+ */
+export const fmtDate = (value: string) => {
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString('fr-FR')
+}
+
+/**
  * Badge des statuts du workflow de devis.
  *
  * Distinct de StatusBadge, qui porte les statuts d'équipement : les deux
  * ensembles ne se recouvrent pas, et les confondre ferait afficher un libellé
  * d'équipement sur un devis.
  */
+/**
+ * Statut « intelligent » d'une demande de devis, vu du client.
+ *
+ * Le serveur garde PENDING de la transmission au fournisseur jusqu'à la
+ * décision du client — même une fois le devis arrivé. Le client lisait donc
+ * « Transmise au fournisseur » alors que la réponse l'attendait. Dès qu'un
+ * devis existe, l'étiquette le dit.
+ */
+export function displayQuoteRequestStatus(status: string, quotesReceived: number): string {
+  return status === 'PENDING' && quotesReceived > 0 ? 'OFFER_RECEIVED' : status
+}
+
 export function QuoteStatusBadge({ status }: { status: string }) {
   const styles: Record<string, { label: string; className: string }> = {
     // Demande de devis
-    PENDING: { label: 'En attente', className: 'bg-amber-50 text-amber-700 ring-amber-200' },
+    AWAITING_VALIDATION: { label: 'En attente de validation VOLTA', className: 'bg-orange-50 text-orange-700 ring-orange-200' },
+    PENDING: { label: 'Transmise au fournisseur', className: 'bg-amber-50 text-amber-700 ring-amber-200' },
+    // Statut d'affichage, pas de base : une demande transmise à laquelle le
+    // fournisseur a répondu. Voir displayQuoteRequestStatus().
+    OFFER_RECEIVED: { label: 'Offre reçue', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
     DECLINED: { label: 'Refusée', className: 'bg-slate-100 text-slate-600 ring-slate-200' },
     // Devis
     SENT: { label: 'Reçu', className: 'bg-blue-50 text-blue-700 ring-blue-200' },

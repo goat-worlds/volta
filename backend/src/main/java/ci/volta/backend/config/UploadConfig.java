@@ -19,9 +19,14 @@ public class UploadConfig implements WebMvcConfigurer {
     @Value("${app.upload-dir}")
     private String uploadDir;
 
+    @Value("${app.inspection-upload-dir}")
+    private String inspectionUploadDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/equipment/**")
                 .addResourceLocations("file:" + uploadDir + "/");
+        registry.addResourceHandler("/uploads/inspections/**")
+                .addResourceLocations("file:" + inspectionUploadDir + "/");
     }
 }

@@ -121,6 +121,16 @@ public class MarketController {
         return market.listRequests();
     }
 
+    /**
+     * Le vendeur déclare ne pas pouvoir livrer. Compté sur l'annonce ; à la
+     * troisième déclaration, l'annonce quitte la vitrine (charte fournisseur).
+     */
+    @PostMapping("/requests/{id}/delivery-failure")
+    public PurchaseRequest reportDeliveryFailure(@PathVariable String id,
+                                                 @RequestBody(required = false) MarketService.DeliveryFailureInput body) {
+        return market.reportDeliveryFailure(id, body);
+    }
+
     @PostMapping("/requests/{id}/stage")
     public PurchaseRequest moveStage(@PathVariable String id, @RequestBody MarketService.StageInput body) {
         return market.moveStage(id, body);

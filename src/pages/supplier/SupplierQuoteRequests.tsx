@@ -8,7 +8,7 @@ import {
   type Quote,
   type QuoteRequest,
 } from '../../store/quotesClient'
-import { Card, EmptyState, Modal, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, EmptyState, Modal, PageTitle, QuoteStatusBadge, fmtDate } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 
 /**
@@ -178,7 +178,7 @@ export default function SupplierQuoteRequests() {
                       {mine && <QuoteStatusBadge status={mine.status} />}
                     </div>
                     <div className="mt-1 text-xs text-slate-500">
-                      Reçue le {r.createdAt} · quantité {r.quantity}
+                      Reçue le {fmtDate(r.createdAt)} · quantité {r.quantity}
                     </div>
                   </div>
 

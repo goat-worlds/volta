@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { REQUEST_FLOW, REQUEST_STATUS_LABELS, type RequestStatus } from '../../types/domain'
+import { REQUEST_FLOW, requestStatusLabel, type RequestStatus } from '../../types/domain'
 
 /**
  * Frise de suivi d'une demande.
@@ -16,10 +16,13 @@ import { REQUEST_FLOW, REQUEST_STATUS_LABELS, type RequestStatus } from '../../t
 export default function RequestTimeline({
   status,
   compact = false,
+  intent,
 }: {
   status: RequestStatus
   /** Version en ligne pour les tableaux ; sinon, liste verticale détaillée. */
   compact?: boolean
+  /** Une candidature porte les mots du recrutement, pas ceux du devis. */
+  intent?: string | null
 }) {
   const current = REQUEST_FLOW.indexOf(status)
   // Une demande clôturée l'est quel qu'ait été son chemin : toutes les étapes
@@ -32,7 +35,7 @@ export default function RequestTimeline({
         {REQUEST_FLOW.map((step, index) => (
           <li
             key={step}
-            title={REQUEST_STATUS_LABELS[step]}
+            title={requestStatusLabel(step, intent)}
             aria-current={step === status ? 'step' : undefined}
             className={`h-1.5 w-6 rounded-full ${
               step === status ? 'bg-btp-500' : reached(index) ? 'bg-acier-700' : 'bg-slate-200'
@@ -40,7 +43,7 @@ export default function RequestTimeline({
           />
         ))}
         <li className="ml-2 text-xs font-semibold text-acier-800">
-          {REQUEST_STATUS_LABELS[status]}
+          {requestStatusLabel(status, intent)}
         </li>
       </ol>
     )
@@ -84,7 +87,7 @@ export default function RequestTimeline({
                     : 'text-slate-400'
               }`}
             >
-              {REQUEST_STATUS_LABELS[step]}
+              {requestStatusLabel(step, intent)}
             </span>
           </li>
         )

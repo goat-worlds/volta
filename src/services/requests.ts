@@ -66,6 +66,13 @@ export interface RequestTrackingInfo {
   priority: Priority
   createdAt: string
   updatedAt: string
+  /** Décide des mots du suivi : candidature ou demande de matériel. */
+  intent?: string | null
+  /** Rendez-vous fixé par VOLTA : c'est ce que le candidat vient lire. */
+  meetingAt?: string | null
+  meetingNote?: string | null
+  /** Orientation décidée après les rencontres, une fois prononcée. */
+  orientation?: Orientation | null
 }
 
 /** Suivi public : référence et secret remis au dépôt, l'avancement seulement. */
@@ -95,6 +102,11 @@ export interface AdminRequestView {
   notes: string
   createdAt: string
   updatedAt: string
+  /** Rencontre fixée par VOLTA, publiée telle quelle dans le suivi du candidat. */
+  meetingAt?: string | null
+  meetingNote?: string | null
+  /** Décision du responsable académie après les rencontres. */
+  orientation?: Orientation | null
 }
 
 export interface AttachmentMeta {
@@ -141,6 +153,39 @@ export interface AdvanceResult {
   request: AdminRequestView
   account: ProvisionedAccount | null
 }
+
+/**
+ * Ce que devient le candidat après les rencontres.
+ *
+ * Le recrutement ne produit pas qu'un seul profil : seul « technicien » ouvre
+ * un compte d'équipe technique à la validation, les deux autres orientations
+ * versent le candidat au réseau de consultants.
+ */
+export type Orientation = 'TECHNICIAN' | 'STAGE_CONSULTANT' | 'EXTERNAL_CONSULTANT'
+
+export const ORIENTATION_LABELS: Record<Orientation, string> = {
+  TECHNICIAN: 'Équipe technique',
+  STAGE_CONSULTANT: 'Consultant en stage',
+  EXTERNAL_CONSULTANT: 'Consultant externe',
+}
+
+/**
+ * VOLTA retient le dossier.
+ *
+ * Un seul geste pour la décision qui n'en est qu'une : « ce dossier est bon,
+ * on le traite ». Le serveur enchaîne les mêmes transitions que le suivi pas
+ * à pas, sans en sauter aucune.
+ */
+export const selectRequest = (id: string, note?: string) =>
+  apiPost<AdvanceResult>(`/admin/requests/${id}/select`, { note })
+
+/** Le responsable académie oriente ; une valeur vide efface la décision. */
+export const setOrientation = (id: string, orientation: Orientation | '', note: string) =>
+  apiPost<AdminRequestView>(`/admin/requests/${id}/orientation`, { orientation, note })
+
+/** VOLTA fixe la rencontre ; une date vide l'annule. */
+export const scheduleMeeting = (id: string, meetingAt: string, meetingNote: string) =>
+  apiPost<AdminRequestView>(`/admin/requests/${id}/meeting`, { meetingAt, meetingNote })
 
 export const advanceRequest = (id: string, status: RequestStatus, notes?: string) =>
   apiPost<AdvanceResult>(`/admin/requests/${id}/status`, { status, notes })

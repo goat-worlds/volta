@@ -188,33 +188,62 @@ export function CheckboxField({
  */
 export function TagsField({
   options,
+  max,
   ...props
-}: Omit<BaseProps, 'onChange'> & { options: FieldOption[]; onChange: (value: string) => void }) {
+}: Omit<BaseProps, 'onChange'> & {
+  options: FieldOption[]
+  onChange: (value: string) => void
+  /**
+   * Nombre maximal de choix.
+   *
+   * Un candidat qui coche tout ne dit plus rien de lui : se limiter oblige à
+   * nommer ce qu'on fait vraiment, et c'est ce que l'équipe lit. Au-delà, les
+   * choix restants sont désactivés plutôt que masqués — voir ce qu'on ne peut
+   * plus prendre explique la règle mieux qu'un message.
+   */
+  max?: number
+}) {
   const { name, label, required, help, error, value, onChange } = props
   const selected = value ? value.split(';') : []
+  const full = max !== undefined && selected.length >= max
 
   const toggle = (option: string) => {
-    const next = selected.includes(option)
-      ? selected.filter((v) => v !== option)
-      : [...selected, option]
+    const already = selected.includes(option)
+    if (!already && full) return
+    const next = already ? selected.filter((v) => v !== option) : [...selected, option]
     onChange(next.join(';'))
   }
 
+  const counter = max !== undefined ? `${selected.length}/${max}` : null
+
   return (
     <Label htmlFor={name} label={label} required={required} help={help} error={error}>
+      {counter && (
+        <div className="mb-2 text-xs font-medium text-slate-500">
+          {selected.length === 0
+            ? `Choisissez-en ${max} au maximum.`
+            : full
+              ? `${counter} — maximum atteint. Retirez-en un pour en changer.`
+              : `${counter} sélectionné${selected.length > 1 ? 's' : ''}.`}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
           const active = selected.includes(option.value)
+          const blocked = !active && full
           return (
             <button
               key={option.value}
               type="button"
               aria-pressed={active}
+              disabled={blocked}
               onClick={() => toggle(option.value)}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
                 active
                   ? 'bg-acier-900 text-white'
-                  : 'border border-slate-300 bg-white text-slate-600 hover:border-btp-400 hover:text-acier-900'
+                  : blocked
+                    ? 'cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-300'
+                    : 'border border-slate-300 bg-white text-slate-600 hover:border-btp-400 hover:text-acier-900'
               }`}
             >
               {option.label}

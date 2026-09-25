@@ -57,6 +57,18 @@ public class SaleListing {
     /** Motif du dernier rejet, pour que le vendeur sache quoi corriger. */
     @Column(columnDefinition = "TEXT")
     public String reviewNote;
+    /**
+     * Commandes que le vendeur n'a pas pu honorer sur cette annonce.
+     *
+     * La charte fournisseur engage à pouvoir livrer ce qui est publié. Un
+     * manquement isolé arrive ; répété, il fait perdre au catalogue sa
+     * promesse. Au troisième, l'annonce est retirée de la vitrine — retirée,
+     * pas supprimée : l'historique et la décision restent consultables.
+     *
+     * Le type est primitif avec un défaut à zéro : les annonces déjà en base
+     * n'ont pas la colonne, et une valeur nulle ferait échouer la lecture.
+     */
+    public int deliveryFailureCount;
     public String createdAt;
     public String updatedAt;
     public String publishedAt;

@@ -33,7 +33,7 @@ export interface Intent {
   id: IntentId
   /** Formulé à la première personne : c'est l'utilisateur qui parle. */
   title: string
-  /** Ce que Génie Sélect fait de la demande — la promesse, pas la mécanique. */
+  /** Ce que VOLTA fait de la demande — la promesse, pas la mécanique. */
   description: string
   /** Libellé du bouton : un verbe, jamais « en savoir plus ». */
   cta: string
@@ -44,12 +44,17 @@ export interface Intent {
 }
 
 export const INTENTS: Intent[] = [
+  // Louer et acheter mènent au catalogue, pas à un formulaire : celui qui
+  // cherche un engin veut d'abord voir ce qui existe. La demande vient
+  // ensuite, depuis la fiche de l'engin choisi. Le formulaire libre
+  // (/demande/location) reste servi pour qui n'a rien trouvé, mais n'est plus
+  // la porte d'entrée.
   {
     id: 'RENT_EQUIPMENT',
     title: 'Je veux louer un engin',
-    description: 'Trouvez l’équipement adapté à votre chantier.',
-    cta: 'Trouver un engin',
-    to: '/demande/location',
+    description: 'Parcourez les engins inspectés, disponibles à la location.',
+    cta: 'Voir les engins à louer',
+    to: '/catalogue',
     icon: Truck,
     audience: 'CLIENT',
     kind: 'RENTAL',
@@ -58,8 +63,8 @@ export const INTENTS: Intent[] = [
     id: 'BUY_EQUIPMENT',
     title: 'Je veux acheter un engin',
     description:
-      'Découvrez les équipements disponibles sur Volta Market et demandez votre devis.',
-    cta: 'Voir Volta Market',
+      'Parcourez les engins à vendre sur Volta Market, vérifiés avant l’offre.',
+    cta: 'Voir les engins à vendre',
     to: '/market',
     icon: ShoppingCart,
     audience: 'CLIENT',
@@ -69,7 +74,7 @@ export const INTENTS: Intent[] = [
     id: 'FIND_TECHNICIAN',
     title: 'Je recherche un technicien',
     description:
-      'Notre équipe technique est constituée de profils étudiés, auditionnés et sélectionnés par Génie Sélect.',
+      'Notre équipe technique est constituée de profils étudiés, auditionnés et sélectionnés par VOLTA.',
     cta: 'Rechercher un technicien',
     to: '/demande/technicien',
     icon: Wrench,
@@ -78,10 +83,12 @@ export const INTENTS: Intent[] = [
   },
   {
     id: 'OFFER_EQUIPMENT',
-    title: 'Je veux louer mon engin',
+    // « Louer mon engin » se lit dans les deux sens : le propriétaire croyait
+    // qu'il allait en louer un. « Mettre en location » ne laisse aucun doute.
+    title: 'Je veux mettre mon engin en location',
     description:
-      'Présentez votre équipement et laissez Génie Sélect identifier les opportunités correspondant à votre matériel.',
-    cta: 'Proposer mon engin',
+      'Présentez votre équipement et laissez VOLTA identifier les opportunités correspondant à votre matériel.',
+    cta: 'Mettre mon engin en location',
     to: '/proposer-un-engin',
     icon: Package,
     audience: 'OWNER',
@@ -112,7 +119,7 @@ export const INTENTS: Intent[] = [
     id: 'GROW_SALES',
     title: 'Je veux développer mes ventes',
     description:
-      'Génie Sélect vous accompagne dans la structuration et la présentation de votre offre.',
+      'VOLTA vous accompagne dans la structuration et la présentation de votre offre.',
     cta: 'Développer mes ventes',
     to: '/accompagnement',
     icon: TrendingUp,

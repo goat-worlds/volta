@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Copy, Download, Inbox, KeyRound, Loader2, Paperclip } from 'lucide-react'
+import { CheckCircle2, Copy, Download, Inbox, KeyRound, Loader2, Paperclip } from 'lucide-react'
 import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, EmptyState, Modal, PageTitle, StatCard } from '../../components/ui'
@@ -8,7 +8,7 @@ import { journeyFor } from '../../lib/journeys'
 import {
   PRIORITY_LABELS,
   REQUEST_FLOW,
-  REQUEST_STATUS_LABELS,
+  requestStatusLabel,
   type RequestKind,
   type RequestStatus,
 } from '../../types/domain'
@@ -17,6 +17,11 @@ import {
   canTransition,
   downloadAttachment,
   getRequestDetail,
+  scheduleMeeting,
+  selectRequest,
+  setOrientation,
+  ORIENTATION_LABELS,
+  type Orientation,
   type AdminRequestView,
   type AttachmentMeta,
   type ProvisionedAccount,
@@ -166,7 +171,7 @@ export default function AdminSubmissions() {
                   </td>
                   <td className="px-4 py-3 text-xs">{PRIORITY_LABELS[r.priority]}</td>
                   <td className="px-4 py-3">
-                    <RequestTimeline status={r.status} compact />
+                    <RequestTimeline status={r.status} compact intent={r.intent} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button size="sm" onClick={() => setOpenId(r.id)}>
@@ -185,10 +190,161 @@ export default function AdminSubmissions() {
         onClose={() => setOpenId(null)}
         onAdvanced={(updated) => {
           onAdvanced(updated)
-          toast.success('Demande mise à jour', `${updated.reference} est maintenant « ${REQUEST_STATUS_LABELS[updated.status]} ».`)
+          toast.success('Demande mise à jour', `${updated.reference} est maintenant « ${requestStatusLabel(updated.status, updated.intent)} ».`)
         }}
         onError={(err) => toast.fromError(err)}
       />
+    </div>
+  )
+}
+
+/**
+ * Rencontre fixée par VOLTA.
+ *
+ * C'est la seule information que l'administration ajoute au dossier, et la
+ * seule que le candidat attend : elle part directement dans son suivi par
+ * référence, sans qu'on ait à le rappeler pour la lui dicter. Vider la date
+ * annule le rendez-vous — une rencontre déplacée ne doit pas laisser
+ * l'ancienne visible.
+ */
+function MeetingBox({
+  request,
+  onSaved,
+  onError,
+}: {
+  request: AdminRequestView
+  onSaved: (updated: AdminRequestView) => void
+  onError: (err: unknown) => void
+}) {
+  const [at, setAt] = useState(request.meetingAt ?? '')
+  const [note, setNote] = useState(request.meetingNote ?? '')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    setAt(request.meetingAt ?? '')
+    setNote(request.meetingNote ?? '')
+  }, [request.id, request.meetingAt, request.meetingNote])
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      onSaved(await scheduleMeeting(request.id, at, note))
+    } catch (err) {
+      onError(err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const field = 'w-full rounded-lg border border-slate-300 p-2 text-sm'
+
+  return (
+    <div className="rounded-xl border border-btp-200 bg-btp-50/40 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-btp-700">
+        Rencontre — visible par le candidat depuis « Suivre ma demande »
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,14rem)_1fr_auto] sm:items-end">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-500">Date et heure</label>
+          <input className={field} placeholder="25 septembre 2026, 10 h" value={at} onChange={(e) => setAt(e.target.value)} />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-500">Lieu et consignes</label>
+          <input className={field} placeholder="Bureau VOLTA, Cocody. Pièce d'identité." value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+        <Button onClick={() => void save()} disabled={saving}>
+          {saving ? 'Enregistrement…' : request.meetingAt ? 'Mettre à jour' : 'Fixer la rencontre'}
+        </Button>
+      </div>
+      {request.meetingAt && (
+        <p className="mt-2 text-xs text-slate-500">
+          Le candidat lit « {request.meetingAt} » avec sa référence. Videz la date pour annuler.
+        </p>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Orientation du candidat, après les rencontres.
+ *
+ * C'est la décision du responsable académie, et elle a une conséquence
+ * mécanique : seule « Équipe technique » ouvre un compte technicien au moment
+ * de la validation. Les deux autres orientations versent le candidat au réseau
+ * de consultants, sans accès à l'espace technique — auparavant, tout candidat
+ * validé devenait technicien, quel qu'ait été le verdict de l'entretien.
+ */
+function OrientationBox({
+  request,
+  onSaved,
+  onError,
+}: {
+  request: AdminRequestView
+  onSaved: (updated: AdminRequestView) => void
+  onError: (err: unknown) => void
+}) {
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const choose = async (orientation: Orientation | '') => {
+    setBusy(orientation || 'clear')
+    try {
+      onSaved(await setOrientation(request.id, orientation, note))
+      setNote('')
+    } catch (err) {
+      onError(err)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const current = request.orientation ?? null
+
+  return (
+    <div className="rounded-xl border border-acier-200 bg-acier-50/60 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-acier-700">
+        Orientation après les rencontres — responsable académie
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(Object.keys(ORIENTATION_LABELS) as Orientation[]).map((key) => (
+          <button
+            key={key}
+            type="button"
+            disabled={busy !== null}
+            onClick={() => void choose(key)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition disabled:opacity-50 ${
+              current === key
+                ? 'bg-acier-900 text-white'
+                : 'border border-slate-300 bg-white text-slate-600 hover:border-acier-500 hover:text-acier-900'
+            }`}
+          >
+            {ORIENTATION_LABELS[key]}
+          </button>
+        ))}
+        {current && (
+          <button
+            type="button"
+            disabled={busy !== null}
+            onClick={() => void choose('')}
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-red-600 disabled:opacity-50"
+          >
+            Effacer
+          </button>
+        )}
+      </div>
+      <input
+        className="mt-3 w-full rounded-lg border border-slate-300 p-2 text-sm"
+        placeholder="Note d’entretien (facultative), consignée dans l’historique du dossier"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+      />
+      <p className="mt-2 text-xs text-slate-500">
+        {current === 'TECHNICIAN'
+          ? 'À la validation, un compte Équipe technique sera créé pour ce candidat.'
+          : current
+            ? 'Aucun compte technicien ne sera créé : ce candidat rejoint le réseau de consultants.'
+            : 'Sans orientation, la validation crée un compte Équipe technique par défaut.'}
+      </p>
     </div>
   )
 }
@@ -231,6 +387,19 @@ function RequestDetailModal({
     (status) => status !== request.status && canTransition(request.status, status),
   )
   const entries = payloadEntries(request)
+
+  /** Le dossier est bon : il atteint l'étape où le travail commence, en un geste. */
+  const retain = async () => {
+    setBusy(true)
+    try {
+      const result = await selectRequest(request.id, 'Dossier retenu par VOLTA.')
+      onAdvanced(result.request)
+    } catch (err) {
+      onError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const confirm = async () => {
     if (!target) return
@@ -279,10 +448,15 @@ function RequestDetailModal({
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Avancement</div>
             <div className="mt-2">
-              <RequestTimeline status={request.status} />
+              <RequestTimeline status={request.status} intent={request.intent} />
             </div>
           </div>
         </div>
+
+        <MeetingBox request={request} onSaved={onAdvanced} onError={onError} />
+        {request.intent === 'JOIN_TECHNICAL_TEAM' && (
+          <OrientationBox request={request} onSaved={onAdvanced} onError={onError} />
+        )}
 
         {entries.length > 0 && (
           <div>
@@ -376,7 +550,31 @@ function RequestDetailModal({
         ) : (
           <div className="border-t border-slate-100 pt-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Faire avancer le dossier</div>
-            <div className="mt-2 flex flex-wrap gap-2">
+
+            {/* Lire un dossier et le juger bon est un seul geste. Le faire en
+                trois clics fait traiter moins de dossiers, pas mieux : ce
+                raccourci enchaîne les mêmes étapes, sans en sauter aucune. */}
+            {REQUEST_FLOW.indexOf(request.status) < REQUEST_FLOW.indexOf('SEARCHING') && (
+              <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-emerald-900">
+                    Ce dossier est bon ? Retenez-le, il passe directement à «{' '}
+                    {requestStatusLabel('SEARCHING', request?.intent)} ».
+                  </p>
+                  <Button
+                    tone="success"
+                    size="sm"
+                    disabled={busy}
+                    onClick={() => void retain()}
+                  >
+                    <CheckCircle2 size={14} />
+                    {busy ? 'En cours…' : 'Retenir ce dossier'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {allowedTargets.map((status) => (
                 <Button
                   key={status}
@@ -384,7 +582,7 @@ function RequestDetailModal({
                   tone={status === 'CLOSED' ? 'danger' : 'primary'}
                   onClick={() => setTarget(status)}
                 >
-                  {REQUEST_STATUS_LABELS[status]}
+                  {requestStatusLabel(status, request?.intent)}
                 </Button>
               ))}
             </div>
@@ -392,7 +590,7 @@ function RequestDetailModal({
             {target && (
               <div className="mt-3 space-y-2 rounded-lg border border-slate-200 p-3">
                 <p className="text-sm text-slate-600">
-                  Passage à « {REQUEST_STATUS_LABELS[target]} ».
+                  Passage à « {requestStatusLabel(target, request?.intent)} ».
                   {target === 'CLOSED' && ' Cette action est définitive.'}
                   {target === 'VALIDATED' && request.intent === 'JOIN_TECHNICAL_TEAM' && (
                     <span className="mt-1 block font-medium text-btp-700">

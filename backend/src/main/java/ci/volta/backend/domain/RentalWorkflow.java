@@ -21,6 +21,23 @@ import java.util.Set;
  */
 public final class RentalWorkflow {
 
+    /**
+     * Le fournisseur peut-il joindre le client directement ?
+     *
+     * Seulement une fois qu'il a accepté la demande, et pour la suite du
+     * parcours. Avant, il décide sur la mission — engin, dates, lieu — et
+     * VOLTA reste l'intermédiaire ; un refus ne lui laisse aucune coordonnée.
+     */
+    public static boolean supplierMayContactClient(String status) {
+        if (status == null) {
+            return false;
+        }
+        return switch (status.trim().toUpperCase()) {
+            case ACCEPTED, CONFIRMED, IN_PROGRESS, COMPLETED -> true;
+            default -> false;
+        };
+    }
+
     public static final String PENDING = "PENDING";
     public static final String QUALIFIED = "QUALIFIED";
     public static final String ACCEPTED = "ACCEPTED";

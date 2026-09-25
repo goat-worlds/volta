@@ -78,7 +78,7 @@ export const OPPORTUNITY_STAGE: Record<OpportunityStage, StatusStyle> = {
   CONTACTED: { label: 'Contactée', className: 'bg-acier-100 text-acier-800' },
   QUALIFIED: { label: 'Qualifiée', className: 'bg-blue-100 text-blue-800' },
   PROPOSAL: { label: 'Proposition', className: 'bg-indigo-100 text-indigo-800' },
-  NEGOTIATION: { label: 'Négociation', className: 'bg-btp-100 text-btp-800' },
+  NEGOTIATION: { label: 'Conditions à préciser', className: 'bg-btp-100 text-btp-800' },
   WON: { label: 'Gagnée', className: 'bg-emerald-100 text-emerald-800', terminal: true },
   LOST: { label: 'Perdue', className: 'bg-red-100 text-red-800', terminal: true },
 }
@@ -153,12 +153,15 @@ export const PURCHASE_FLOW: PurchaseStage[] = [
 ]
 
 export const PURCHASE_STAGE: Record<PurchaseStage, StatusStyle> = {
-  RECEIVED: { label: 'Demande reçue', className: 'bg-slate-100 text-slate-700' },
+  // Volta Market est un achat, pas un marchandage : l'acheteur commande au
+  // prix affiché et VOLTA confirme. Les étapes restent celles du serveur ;
+  // seuls les mots vus par l'acheteur changent.
+  RECEIVED: { label: 'Commande reçue', className: 'bg-slate-100 text-slate-700' },
   QUALIFYING: { label: 'Qualification', className: 'bg-acier-100 text-acier-800' },
   AVAILABILITY_CHECK: { label: 'Vérification disponibilité', className: 'bg-blue-100 text-blue-800' },
   COMMERCIAL_REVIEW: { label: 'Analyse commerciale', className: 'bg-indigo-100 text-indigo-800' },
-  OFFER: { label: 'Offre transmise', className: 'bg-btp-100 text-btp-800' },
-  NEGOTIATION: { label: 'Négociation', className: 'bg-btp-100 text-btp-800' },
+  OFFER: { label: 'Commande confirmée', className: 'bg-btp-100 text-btp-800' },
+  NEGOTIATION: { label: 'Conditions à préciser', className: 'bg-btp-100 text-btp-800' },
   VALIDATED: { label: 'Validée', className: 'bg-emerald-100 text-emerald-800' },
   SOLD: { label: 'Vente conclue', className: 'bg-emerald-100 text-emerald-800' },
   DELIVERED: { label: 'Livrée', className: 'bg-emerald-100 text-emerald-800' },

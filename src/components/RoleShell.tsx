@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Bell, ExternalLink, Lock, LogOut, Menu, Radio, WifiOff, X } from 'lucide-react'
+import { Bell, ExternalLink, LogOut, Menu, Radio, WifiOff, X } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
 import { useShellBadges } from '../store/useShellBadges'
 import { roleTheme } from '../lib/roleTheme'
@@ -64,27 +64,14 @@ export default function RoleShell({ role }: { role: Role }) {
           <>
             <l.icon size={16} className="shrink-0" />
             <span className="flex-1 truncate">{l.label}</span>
-            {l.feature ? (
-              // Module sans serveur : la mention le dit avant le clic.
+            {badge > 0 && (
               <span
-                title="Backend requis"
-                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'
+                className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
+                  isActive ? theme.badgeOnActive : theme.badgeIdle
                 }`}
               >
-                <Lock size={9} />
-                Bientôt
+                {badge > 99 ? '99+' : badge}
               </span>
-            ) : (
-              badge > 0 && (
-                <span
-                  className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
-                    isActive ? theme.badgeOnActive : theme.badgeIdle
-                  }`}
-                >
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              )
             )}
           </>
         )}

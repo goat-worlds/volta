@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -400,6 +401,7 @@ public class VoltaService {
         if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
             return rentalRequestRepository.findAll().stream()
                     .filter(r -> me.id.equals(r.supplierId))
+                    .map(VoltaService::hideClientContactUntilAccepted)
                     .toList();
         }
         if (CurrentUser.ROLE_CLIENT.equals(role)) {
@@ -413,6 +415,46 @@ public class VoltaService {
                     .toList();
         }
         return List.of();
+    }
+
+    /**
+     * Copie d'une réservation sans les coordonnées du client, tant que le
+     * fournisseur ne s'est pas engagé.
+     *
+     * Le fournisseur recevait le téléphone et l'email dès la première demande :
+     * il pouvait appeler et traiter hors plateforme sans jamais accepter, et
+     * VOLTA n'apparaissait plus que comme un annuaire. Il décide désormais sur
+     * ce qui concerne la mission — engin, dates, lieu, opérateur, transport —
+     * et obtient de quoi joindre le client une fois qu'il a accepté.
+     *
+     * Une copie, jamais l'entité : effacer les champs sur un objet géré par JPA
+     * les effacerait en base au prochain flush.
+     */
+    private static RentalRequest hideClientContactUntilAccepted(RentalRequest source) {
+        if (RentalWorkflow.supplierMayContactClient(source.status)) {
+            return source;
+        }
+        RentalRequest masked = new RentalRequest();
+        masked.id = source.id;
+        masked.reference = source.reference;
+        masked.equipmentId = source.equipmentId;
+        masked.supplierId = source.supplierId;
+        masked.startDate = source.startDate;
+        masked.endDate = source.endDate;
+        masked.location = source.location;
+        masked.withOperator = source.withOperator;
+        masked.transport = source.transport;
+        masked.comment = source.comment;
+        masked.clientName = source.clientName;
+        // Retenus jusqu'à l'acceptation.
+        masked.clientPhone = null;
+        masked.clientEmail = null;
+        masked.status = source.status;
+        masked.createdAt = source.createdAt;
+        masked.clientId = source.clientId;
+        masked.adminNote = source.adminNote;
+        masked.updatedAt = source.updatedAt;
+        return masked;
     }
 
     @Transactional(readOnly = true)
@@ -437,12 +479,53 @@ public class VoltaService {
             return quoteRequestRepository.findAll();
         }
         if (CurrentUser.ROLE_SUPPLIER.equals(role)) {
-            return quoteRequestRepository.findBySupplierId(userId);
+            return onlyValidatedForSupplier(quoteRequestRepository.findBySupplierId(userId));
         }
         if (CurrentUser.ROLE_CLIENT.equals(role)) {
             return quoteRequestRepository.findByClientId(userId);
         }
         return List.of();
+    }
+
+    /**
+     * Ce qu'un fournisseur a le droit de voir : les demandes que VOLTA lui a
+     * transmises. Une demande en attente de validation, ou refusée avant
+     * transmission, n'existe pas pour lui — ni dans sa liste, ni au détail.
+     */
+    private static List<QuoteRequest> onlyValidatedForSupplier(List<QuoteRequest> requests) {
+        return requests.stream()
+                .filter(r -> QuoteWorkflow.visibleToSupplier(r.status))
+                .map(VoltaService::hideQuoteClientContact)
+                .toList();
+    }
+
+    /**
+     * Copie d'une demande de devis sans le téléphone ni l'email du client.
+     *
+     * Le fournisseur chiffre une prestation : il lui faut l'engin, la période,
+     * la quantité et le besoin exprimé, pas de quoi appeler directement. VOLTA
+     * garde la main sur la mise en relation jusqu'à ce que le client accepte
+     * le devis — la réservation qui en naît lui ouvre alors les coordonnées.
+     *
+     * Une copie, jamais l'entité : effacer les champs sur un objet géré par JPA
+     * les effacerait en base au prochain flush.
+     */
+    private static QuoteRequest hideQuoteClientContact(QuoteRequest source) {
+        QuoteRequest masked = new QuoteRequest();
+        masked.id = source.id;
+        masked.equipmentId = source.equipmentId;
+        masked.clientId = source.clientId;
+        masked.supplierId = source.supplierId;
+        masked.status = source.status;
+        masked.message = source.message;
+        masked.quantity = source.quantity;
+        masked.startDate = source.startDate;
+        masked.endDate = source.endDate;
+        masked.clientName = source.clientName;
+        masked.clientPhone = null;
+        masked.clientEmail = null;
+        masked.createdAt = source.createdAt;
+        return masked;
     }
 
     @Transactional(readOnly = true)
@@ -592,6 +675,36 @@ public class VoltaService {
         }
 
         inspection.checklist = checklist;
+        return inspectionRepository.save(inspection);
+    }
+
+    /**
+     * Constats de terrain qui ne tiennent pas dans la checklist.
+     *
+     * L'écran du technicien fabriquait ces valeurs — une photo tirée de la
+     * photothèque, une pression hydraulique inventée, une anomalie numérotée :
+     * un rapport d'inspection qui invente ses preuves ne vaut rien, et VOLTA
+     * publie sur la foi de ces rapports. Tout est désormais saisi ou téléversé
+     * par la personne qui se tient devant la machine.
+     */
+    public Inspection updateFindings(String inspectionId, List<String> photos,
+                                     List<String> customsDocuments, List<String> anomalies,
+                                     String teamMobility, String availabilityLeadTime) {
+        Inspection inspection = getInspection(inspectionId);
+        currentUser.requireOwnership(inspection.technicalTeamId, "cette inspection");
+
+        if ("DONE".equals(inspection.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette inspection est close : son rapport a déjà été transmis");
+        }
+
+        // Une liste absente laisse la valeur en place : l'écran enregistre au
+        // fil de la saisie et n'envoie que ce qui vient de changer.
+        if (photos != null) inspection.photos = photos;
+        if (customsDocuments != null) inspection.customsDocuments = customsDocuments;
+        if (anomalies != null) inspection.anomalies = anomalies;
+        if (teamMobility != null) inspection.teamMobility = teamMobility;
+        if (availabilityLeadTime != null) inspection.availabilityLeadTime = availabilityLeadTime;
         return inspectionRepository.save(inspection);
     }
 
@@ -853,7 +966,9 @@ public class VoltaService {
         req.equipmentId = equipmentId;
         req.clientId = effectiveClientId;
         req.supplierId = eq.supplierId;
-        req.status = "PENDING";
+        // La demande naît chez VOLTA, pas chez le fournisseur : elle attend
+        // qu'un administrateur la lise et la transmette (approveQuoteRequest).
+        req.status = QuoteWorkflow.REQUEST_AWAITING_VALIDATION;
         req.message = message;
         req.quantity = quantity;
         req.startDate = startDate;
@@ -861,9 +976,12 @@ public class VoltaService {
         req.clientName = clientName;
         req.clientPhone = clientPhone;
         req.clientEmail = clientEmail;
-        req.createdAt = today();
+        // Horodatage complet, et non la seule date : la file de validation est
+        // traitée dans l'ordre d'arrivée, et deux demandes du même jour doivent
+        // se départager. La colonne est un texte, aucun changement de schéma.
+        req.createdAt = Instant.now().toString();
         req = quoteRequestRepository.save(req);
-        notify("SUPPLIER", "Nouvelle demande de devis pour " + eq.name);
+        notify("ADMIN", "Demande de devis à valider : " + eq.name + " — " + (clientName == null ? "" : clientName));
         webhookService.dispatch("QUOTE_REQUEST_CREATED", Map.of(
                 "requestId", req.id,
                 "equipmentId", eq.id,
@@ -889,6 +1007,63 @@ public class VoltaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Accès refusé : cette demande ne vous concerne pas");
         }
+        // Le fournisseur (et lui seul : ni l'admin, ni le client) ne voit pas
+        // une demande que VOLTA ne lui a pas encore transmise. 404 plutôt que
+        // 403 : dire « elle existe mais pas pour vous » révélerait déjà qu'un
+        // client s'intéresse à son engin.
+        if (!currentUser.isAdmin() && !currentUser.owns(qreq.clientId)
+                && !QuoteWorkflow.visibleToSupplier(qreq.status)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId);
+        }
+        // Le détail passe par le même filtre que la liste : sans cela, le
+        // fournisseur récupérait le téléphone en ouvrant la demande une par une.
+        if (!currentUser.isAdmin() && !currentUser.owns(qreq.clientId)) {
+            return hideQuoteClientContact(qreq);
+        }
+        return qreq;
+    }
+
+    /**
+     * VOLTA transmet la demande au fournisseur.
+     *
+     * C'est le geste central du circuit : l'administrateur a lu le client, son
+     * numéro et l'engin demandé, et décide que le fournisseur peut répondre.
+     * Avant, la demande n'existait pas pour lui.
+     */
+    public QuoteRequest approveQuoteRequest(String quoteRequestId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+        QuoteWorkflow.checkRequestTransition(qreq.status, QuoteWorkflow.REQUEST_PENDING);
+        qreq.status = QuoteWorkflow.REQUEST_PENDING;
+        qreq = quoteRequestRepository.save(qreq);
+
+        Equipment eq = getEquipment(qreq.equipmentId);
+        notify("SUPPLIER", "Nouvelle demande de devis pour " + eq.name + ", transmise par VOLTA");
+        notify("CLIENT", "Votre demande de devis pour " + eq.name + " a été validée par VOLTA et transmise au fournisseur");
+        webhookService.dispatch("QUOTE_REQUEST_APPROVED", Map.of(
+                "requestId", qreq.id,
+                "equipmentId", eq.id,
+                "equipmentName", eq.name));
+        return qreq;
+    }
+
+    /**
+     * VOLTA écarte la demande avant transmission : doublon, coordonnées
+     * invalides, besoin hors périmètre. Le fournisseur ne l'aura jamais vue ;
+     * le client, lui, est prévenu avec le motif.
+     */
+    public QuoteRequest rejectQuoteRequest(String quoteRequestId, String reason) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+        QuoteWorkflow.checkRequestTransition(qreq.status, QuoteWorkflow.REQUEST_REJECTED);
+        qreq.status = QuoteWorkflow.REQUEST_REJECTED;
+        qreq = quoteRequestRepository.save(qreq);
+
+        Equipment eq = getEquipment(qreq.equipmentId);
+        String motif = reason == null || reason.isBlank() ? "" : " Motif : " + reason.trim();
+        notify("CLIENT", "Votre demande de devis pour " + eq.name + " n'a pas pu être retenue par VOLTA." + motif);
         return qreq;
     }
 
@@ -923,7 +1098,10 @@ public class VoltaService {
     /** Demandes adressées à un fournisseur, réservées à ce fournisseur. */
     public List<QuoteRequest> listQuoteRequestsBySupplier(String supplierId) {
         currentUser.requireOwnership(supplierId, "cette liste de demandes");
-        return quoteRequestRepository.findBySupplierId(supplierId);
+        List<QuoteRequest> all = quoteRequestRepository.findBySupplierId(supplierId);
+        // L'administrateur consulte la liste d'un fournisseur en entier ; le
+        // fournisseur, lui, n'y voit que ce que VOLTA lui a transmis.
+        return currentUser.isAdmin() ? all : onlyValidatedForSupplier(all);
     }
 
     /**

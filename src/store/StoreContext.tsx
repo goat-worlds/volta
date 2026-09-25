@@ -78,6 +78,7 @@ interface Store {
   startInspection: (inspectionId: string) => Promise<void>
   updateChecklist: (inspectionId: string, checklist: ChecklistItem[]) => Promise<void>
   submitReport: (inspectionId: string, summary: string, checklist: ChecklistItem[]) => Promise<void>
+  updateFindings: (inspectionId: string, findings: InspectionFindings) => Promise<void>
   rejectEquipment: (equipmentId: string) => Promise<void>
   referenceEquipment: (equipmentId: string, level: Level) => Promise<void>
   publishEquipment: (equipmentId: string) => Promise<void>
@@ -101,6 +102,20 @@ interface Store {
   getQuote: (quoteId: string) => Promise<Quote>
   acceptQuote: (quoteId: string) => Promise<Quote>
   rejectQuote: (quoteId: string) => Promise<Quote>
+}
+
+/**
+ * Constats de terrain d'une inspection, enregistrés au fil de la saisie.
+ *
+ * Champs facultatifs : l'écran n'envoie que ce qui vient de changer, et le
+ * serveur laisse le reste en place.
+ */
+export interface InspectionFindings {
+  photos?: string[]
+  customsDocuments?: string[]
+  anomalies?: string[]
+  teamMobility?: string
+  availabilityLeadTime?: string
 }
 
 export interface UserInput {
@@ -272,6 +287,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     const load = async () => {
+      // L'administration voit tout, en deux appels : c'est ce qui alimente la
+      // file de validation et son compteur dans la barre latérale. Avant,
+      // le rôle n'avait aucun chemin ici et la console ignorait les devis.
+      if (currentUser.role === 'ADMIN') {
+        const [requests, quotes] = await Promise.all([
+          apiGet<QuoteRequest[]>('/quote-requests').catch(() => [] as QuoteRequest[]),
+          apiGet<Quote[]>('/quotes').catch(() => [] as Quote[]),
+        ])
+        if (cancelled) return
+        setMyQuoteRequests((prev) => keepIfSame(prev, requests ?? []))
+        setMyQuotes((prev) => keepIfSame(prev, quotes ?? []))
+        return
+      }
+
       const path =
         currentUser.role === 'SUPPLIER'
           ? `/quote-requests/supplier/${currentUser.id}`
@@ -567,6 +596,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       async updateChecklist(inspectionId, checklist) {
         await apiPut(`/inspections/${inspectionId}/checklist`, checklist)
+        await reload()
+      },
+
+      async updateFindings(inspectionId, findings) {
+        await apiPut(`/inspections/${inspectionId}/findings`, findings)
         await reload()
       },
 

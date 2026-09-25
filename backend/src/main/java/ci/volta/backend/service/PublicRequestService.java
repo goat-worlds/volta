@@ -63,7 +63,13 @@ public class PublicRequestService {
     /** Ce que le déposant retrouve avec sa référence et son secret : l'avancement, rien de plus. */
     public record PublicRequestTracking(String reference, String subject, String location,
                                         String status, String priority, String createdAt,
-                                        String updatedAt) {
+                                        String updatedAt,
+                                        /** Le suivi d'une candidature s'écrit avec les mots du recrutement. */
+                                        String intent,
+                                        /** Rendez-vous fixé par VOLTA : c'est ce que le candidat vient lire. */
+                                        String meetingAt, String meetingNote,
+                                        /** Orientation décidée après les rencontres. */
+                                        String orientation) {
     }
 
     public record AttachmentMeta(String id, String fieldName, String originalName,
@@ -85,13 +91,116 @@ public class PublicRequestService {
     public record AdminView(String id, String reference, String kind, String intent, String subject,
                             ContactInput contact, String location, String status, String priority,
                             String ownerId, Map<String, String> payload, String notes,
-                            String createdUserId, String createdAt, String updatedAt) {
+                            String createdUserId, String createdAt, String updatedAt,
+                            String meetingAt, String meetingNote, String orientation) {
         static AdminView of(PublicRequest r) {
             return new AdminView(r.id, r.reference, r.kind, r.intent, r.subject,
                     new ContactInput(r.contactName, r.contactCompany, r.contactPhone, r.contactEmail, r.contactCity),
                     r.location, r.status, r.priority, r.ownerId, r.payload, r.notes,
-                    r.createdUserId, r.createdAt, r.updatedAt);
+                    r.createdUserId, r.createdAt, r.updatedAt, r.meetingAt, r.meetingNote, r.orientation);
         }
+    }
+
+    /** Orientations possibles à l'issue des rencontres. */
+    public static final String ORIENTATION_TECHNICIAN = "TECHNICIAN";
+    public static final String ORIENTATION_STAGE_CONSULTANT = "STAGE_CONSULTANT";
+    public static final String ORIENTATION_EXTERNAL_CONSULTANT = "EXTERNAL_CONSULTANT";
+
+    private static final Set<String> ORIENTATIONS = Set.of(
+            ORIENTATION_TECHNICIAN, ORIENTATION_STAGE_CONSULTANT, ORIENTATION_EXTERNAL_CONSULTANT);
+
+    /**
+     * Une orientation absente vaut « technicien ».
+     *
+     * Les candidatures déposées avant ce tri n'en portent pas, et les priver du
+     * compte qu'elles attendaient serait leur retirer un droit acquis.
+     */
+    private static boolean opensTechnicalAccount(String orientation) {
+        return blank(orientation) || ORIENTATION_TECHNICIAN.equals(orientation);
+    }
+
+    /**
+     * Le responsable académie oriente le candidat après les rencontres.
+     *
+     * C'est la décision qui clôt le recrutement : équipe technique, stage, ou
+     * réseau de consultants externes. Elle conditionne l'ouverture du compte
+     * technicien à la validation, et s'enregistre dans l'historique du dossier.
+     */
+    public AdminView setOrientation(String requestId, String orientation, String note) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        PublicRequest r = load(requestId);
+
+        String target = orientation == null || orientation.isBlank()
+                ? null
+                : orientation.trim().toUpperCase();
+        if (target != null && !ORIENTATIONS.contains(target)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Orientation inconnue : " + target);
+        }
+
+        r.orientation = target;
+        if (!blank(note)) {
+            r.notes = (blank(r.notes) ? "" : r.notes + "\n")
+                    + "[" + today() + " · ORIENTATION] " + note.trim();
+        }
+        r.updatedAt = Instant.now().toString();
+        r = requests.save(r);
+        audit.record("REQUEST_ORIENTATION", "REQUEST", r.id, r.reference,
+                target == null ? "orientation effacée" : target);
+        return AdminView.of(r);
+    }
+
+    /**
+     * VOLTA retient le dossier.
+     *
+     * Le parcours impose une étape à la fois, et c'est ce qui garantit qu'un
+     * dossier ne saute pas une vérification. Mais lire une demande et décider
+     * qu'elle est bonne est un seul geste : l'imposer en trois clics fait
+     * traiter moins de dossiers, pas mieux. Cette méthode enchaîne les mêmes
+     * transitions, une par une et dans le même ordre, jusqu'à l'étape où le
+     * dossier est retenu — le contrôle de workflow reste celui de `advance`.
+     *
+     * Un dossier déjà plus avancé n'est pas ramené en arrière.
+     */
+    public AdvanceResult select(String requestId, String note) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        PublicRequest r = load(requestId);
+
+        int target = RequestWorkflow.FLOW.indexOf(RequestWorkflow.SEARCHING);
+        int current = RequestWorkflow.FLOW.indexOf(r.status);
+        if (current >= target) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ce dossier est déjà retenu ou plus avancé (" + r.status + ")");
+        }
+
+        AdvanceResult result = null;
+        for (int step = current + 1; step <= target; step += 1) {
+            // La note n'accompagne que le dernier pas : répétée à chaque
+            // étape, elle remplirait l'historique de la même phrase.
+            result = advance(requestId, RequestWorkflow.FLOW.get(step), step == target ? note : null);
+        }
+        return result;
+    }
+
+    /**
+     * VOLTA fixe la rencontre.
+     *
+     * Une date vide efface le rendez-vous : une rencontre annulée doit pouvoir
+     * disparaître du suivi, sinon le candidat se présente.
+     */
+    public AdminView scheduleMeeting(String requestId, String meetingAt, String meetingNote) {
+        PublicRequest r = requests.findById(requestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Demande introuvable : " + requestId));
+        r.meetingAt = meetingAt == null || meetingAt.isBlank() ? null : meetingAt.trim();
+        r.meetingNote = meetingNote == null || meetingNote.isBlank() ? null : meetingNote.trim();
+        r.updatedAt = today();
+        r = requests.save(r);
+
+        if (r.meetingAt != null) {
+            notify("ADMIN", "Rencontre fixée au " + r.meetingAt + " pour " + r.reference);
+        }
+        return AdminView.of(r);
     }
 
     /** Fiche complète d'une demande, pour l'administration : la demande et ses pièces jointes. */
@@ -259,7 +368,7 @@ public class PublicRequestService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Aucune demande à cette référence."));
         return new PublicRequestTracking(r.reference, r.subject, r.location, r.status, r.priority,
-                r.createdAt, r.updatedAt);
+                r.createdAt, r.updatedAt, r.intent, r.meetingAt, r.meetingNote, r.orientation);
     }
 
     // ------------------------------------------------------------------
@@ -294,9 +403,13 @@ public class PublicRequestService {
                     + "[" + today() + " · " + target + "] " + notes.trim();
         }
 
+        // Le compte d'équipe technique ne s'ouvre qu'aux candidats orientés
+        // vers ce métier. Un consultant, en stage ou externe, est validé sans
+        // recevoir un accès de technicien : jusqu'ici tout candidat validé en
+        // devenait un, quelle que soit la décision prise en entretien.
         ProvisionedAccount account = null;
         if (RequestWorkflow.VALIDATED.equals(target) && INTENT_JOIN_TECHNICAL_TEAM.equals(r.intent)
-                && blank(r.createdUserId)) {
+                && blank(r.createdUserId) && opensTechnicalAccount(r.orientation)) {
             account = provisionTechnicalAccount(r);
         }
 

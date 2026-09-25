@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" -X POST http://localhost:8081/api/contact-requests -H \"Content-Type: application/json\" -H \"Origin: http://localhost:5174\" -d '{\"kind\":\"DEMO\",\"fullName\":\"Test Demo\",\"email\":\"test.demo@example.com\",\"company\":\"ACME\",\"sector\":\"TECHNOLOGIE\",\"companySize\":\"11 a 50\",\"message\":\"Date souhaitee : 2026-09-15 - Matin\",\"sourcePage\":\"/demo\"}')"
+    ]
+  }
+}

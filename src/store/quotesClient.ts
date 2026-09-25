@@ -15,7 +15,7 @@ import { apiGet, apiPost } from './api'
 export type QuoteStatus = 'SENT' | 'ACCEPTED' | 'REJECTED'
 
 /** PENDING tant qu'aucun devis n'est retenu. */
-export type QuoteRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
+export type QuoteRequestStatus = 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REJECTED'
 
 export interface QuoteRequest {
   id: string
@@ -87,6 +87,19 @@ export const quoteRequestsClient = {
    */
   create: (payload: CreateQuoteRequestPayload) =>
     apiPost<QuoteRequest>('/quote-requests', payload),
+
+  /** Toutes les demandes, tous clients et fournisseurs confondus : administration seule. */
+  listAll: () => apiGet<QuoteRequest[]>('/quote-requests'),
+
+  /**
+   * VOLTA transmet la demande au fournisseur, qui la découvre à cet instant.
+   * Avant ce geste elle n'existe que pour l'administration et le client.
+   */
+  approve: (id: string) => apiPost<QuoteRequest>(`/quote-requests/${id}/approve`),
+
+  /** VOLTA écarte la demande avant transmission ; le client reçoit le motif. */
+  reject: (id: string, reason: string) =>
+    apiPost<QuoteRequest>(`/quote-requests/${id}/reject`, { reason }),
 }
 
 export const quotesClient = {
@@ -100,6 +113,9 @@ export const quotesClient = {
   /** Devis émis par un fournisseur. */
   listBySupplier: (supplierId: string) =>
     apiGet<Quote[]>(`/quotes/supplier/${supplierId}`),
+
+  /** Tous les devis, pour le suivi par l'administration. */
+  listAll: () => apiGet<Quote[]>('/quotes'),
 
   getById: (id: string) => apiGet<Quote>(`/quotes/${id}`),
 

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { Package, Plus, ArrowRight } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { quoteRequestsClient, quotesClient, type QuoteRequest } from '../../store/quotesClient'
-import { Card, EmptyState, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Card, CopyRef, EmptyState, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus } from '../../components/ui'
+import { quoteRequestRef } from '../../lib/references'
 
 /**
  * Liste des demandes de devis du client.
@@ -19,7 +20,7 @@ export default function ClientQuoteRequests() {
   const [quoteCounts, setQuoteCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | 'PENDING' | 'ACCEPTED' | 'DECLINED'>('all')
+  const [filter, setFilter] = useState<'all' | 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' | 'DECLINED'>('all')
 
   useEffect(() => {
     if (!currentUser) return
@@ -62,7 +63,8 @@ export default function ClientQuoteRequests() {
 
   const tabs: { key: typeof filter; label: string }[] = [
     { key: 'all', label: 'Toutes' },
-    { key: 'PENDING', label: 'En attente' },
+    { key: 'AWAITING_VALIDATION', label: 'Chez VOLTA' },
+    { key: 'PENDING', label: 'Transmises' },
     { key: 'ACCEPTED', label: 'Acceptées' },
     { key: 'DECLINED', label: 'Refusées' },
   ]
@@ -140,6 +142,7 @@ export default function ClientQuoteRequests() {
             <table className="w-full text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
+                  <th className="px-5 py-3 font-medium">Référence</th>
                   <th className="px-5 py-3 font-medium">Équipement</th>
                   <th className="px-5 py-3 font-medium">Période</th>
                   <th className="px-5 py-3 font-medium">Quantité</th>
@@ -151,11 +154,12 @@ export default function ClientQuoteRequests() {
               <tbody className="divide-y divide-slate-100">
                 {visible.map((r) => (
                   <tr key={r.id} className="transition hover:bg-slate-50">
+                    <td className="px-5 py-3"><CopyRef value={quoteRequestRef(r.id)} /></td>
                     <td className="px-5 py-3 font-medium text-slate-900">{equipmentName(r.equipmentId)}</td>
                     <td className="px-5 py-3 text-slate-600">{r.startDate} → {r.endDate}</td>
                     <td className="px-5 py-3 text-slate-600">{r.quantity}</td>
                     <td className="px-5 py-3 text-slate-600">{quoteCounts[r.id] ?? 0}</td>
-                    <td className="px-5 py-3"><QuoteStatusBadge status={r.status} /></td>
+                    <td className="px-5 py-3"><QuoteStatusBadge status={displayQuoteRequestStatus(r.status, quoteCounts[r.id] ?? 0)} /></td>
                     <td className="px-5 py-3 text-right">
                       <Link
                         to={`/client/demandes/${r.id}`}
@@ -176,7 +180,7 @@ export default function ClientQuoteRequests() {
                 <Link to={`/client/demandes/${r.id}`} className="block p-4 transition hover:bg-slate-50">
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-medium text-slate-900">{equipmentName(r.equipmentId)}</p>
-                    <QuoteStatusBadge status={r.status} />
+                    <QuoteStatusBadge status={displayQuoteRequestStatus(r.status, quoteCounts[r.id] ?? 0)} />
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
                     {r.startDate} → {r.endDate} · {r.quantity} unité{r.quantity > 1 ? 's' : ''}

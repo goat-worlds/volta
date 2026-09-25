@@ -209,6 +209,18 @@ public class ApiController {
         return service.updateChecklist(id, checklist);
     }
 
+    public record FindingsBody(List<String> photos, List<String> customsDocuments,
+                               List<String> anomalies, String teamMobility,
+                               String availabilityLeadTime) {
+    }
+
+    /** Photos, papiers de douane, anomalies, mobilité de l'équipe et délai de mise à disposition. */
+    @PutMapping("/inspections/{id}/findings")
+    public Inspection updateFindings(@PathVariable String id, @RequestBody FindingsBody body) {
+        return service.updateFindings(id, body.photos(), body.customsDocuments(), body.anomalies(),
+                body.teamMobility(), body.availabilityLeadTime());
+    }
+
     @PostMapping("/inspections/{id}/report")
     @ResponseStatus(HttpStatus.CREATED)
     public Report submitReport(@PathVariable String id, @RequestBody ReportRequest body) {
@@ -286,6 +298,24 @@ public class ApiController {
     @GetMapping("/quote-requests/{id}")
     public QuoteRequest quoteRequest(@PathVariable String id) {
         return service.getQuoteRequest(id);
+    }
+
+    public record RejectQuoteRequestBody(String reason) {
+    }
+
+    /**
+     * Validation par VOLTA : la demande devient visible au fournisseur, qui
+     * peut alors y répondre. Jusque-là elle n'existait que pour l'administration
+     * et le client. Réservé au rôle ADMIN (SecurityConfig).
+     */
+    @PostMapping("/quote-requests/{id}/approve")
+    public QuoteRequest approveQuoteRequest(@PathVariable String id) {
+        return service.approveQuoteRequest(id);
+    }
+
+    @PostMapping("/quote-requests/{id}/reject")
+    public QuoteRequest rejectQuoteRequest(@PathVariable String id, @RequestBody(required = false) RejectQuoteRequestBody body) {
+        return service.rejectQuoteRequest(id, body == null ? null : body.reason());
     }
 
     /** Devis reçus pour une demande : c'est la vue de comparaison du client. */

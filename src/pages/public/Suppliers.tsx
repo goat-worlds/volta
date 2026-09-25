@@ -27,14 +27,14 @@ export default function Suppliers() {
                       Fournisseur vérifié
                     </span>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-papier-600">
                     <span className="inline-flex items-center gap-1">
-                      <MapPin size={12} className="text-slate-400" />
+                      <MapPin size={12} className="text-papier-600" />
                       {s.city}
                     </span>
                     <span>{count} engin(s) publié(s)</span>
                     <span className="inline-flex items-center gap-1">
-                      <Phone size={12} className="text-slate-400" />
+                      <Phone size={12} className="text-papier-600" />
                       {s.phone}
                     </span>
                   </div>

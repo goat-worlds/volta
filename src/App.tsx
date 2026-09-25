@@ -56,6 +56,7 @@ const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminCommercial = lazy(() => import('./pages/admin/AdminCommercial'))
 const AdminAudit = lazy(() => import('./pages/admin/AdminAudit'))
 const AdminMarket = lazy(() => import('./pages/admin/AdminMarket'))
+const AdminQuotes = lazy(() => import('./pages/admin/AdminQuotes'))
 
 const TechnicalDashboard = lazy(() => import('./pages/technical/TechnicalDashboard'))
 const TechnicalMissions = lazy(() => import('./pages/technical/TechnicalMissions'))
@@ -63,7 +64,6 @@ const TechnicalInspection = lazy(() => import('./pages/technical/TechnicalInspec
 
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'))
 const AnomaliesPage = lazy(() => import('./pages/AnomaliesPage'))
-const FeatureUnavailable = lazy(() => import('./pages/FeatureUnavailable'))
 const NotFoundLazy = lazy(() => import('./pages/errors').then((m) => ({ default: m.NotFound })))
 
 /** Le temps d'un chargement de page différée : discret, jamais un écran vide brut. */
@@ -139,10 +139,6 @@ export default function App() {
                 <Route path="/client/market/demande" element={<JourneyPage intent="BUY_EQUIPMENT" />} />
                 <Route path="/client/market/:id" element={<MarketListing />} />
                 <Route path="/client/acheter" element={<Navigate to="/client/market" replace />} />
-                {/* Modules annoncés, sans serveur : l'écran le dit, il ne simule pas. */}
-                <Route path="/client/missions" element={<FeatureUnavailable feature="MISSIONS" />} />
-                <Route path="/client/techniciens" element={<FeatureUnavailable feature="TECHNICIANS" />} />
-                <Route path="/client/entreprise" element={<FeatureUnavailable feature="COMPANIES" />} />
                 <Route path="/client/*" element={<NotFoundLazy />} />
               </Route>
               <Route element={<SupplierLayout />}>
@@ -170,12 +166,10 @@ export default function App() {
                 <Route path="/admin/anomalies" element={<AnomaliesPage />} />
                 <Route path="/admin/commercial" element={<AdminCommercial />} />
                 <Route path="/admin/market" element={<AdminMarket />} />
+                <Route path="/admin/devis" element={<AdminQuotes />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/audit" element={<AdminAudit />} />
                 <Route path="/admin/notifications" element={<NotificationsPage />} />
-                <Route path="/admin/missions" element={<FeatureUnavailable feature="MISSIONS" />} />
-                <Route path="/admin/techniciens" element={<FeatureUnavailable feature="TECHNICIANS" />} />
-                <Route path="/admin/entreprises" element={<FeatureUnavailable feature="COMPANIES" />} />
                 <Route path="/admin/*" element={<NotFoundLazy />} />
               </Route>
               <Route element={<TechnicalLayout />}>
@@ -184,7 +178,6 @@ export default function App() {
                 <Route path="/technical/inspection/:id" element={<TechnicalInspection />} />
                 <Route path="/technical/anomalies" element={<AnomaliesPage />} />
                 <Route path="/technical/notifications" element={<NotificationsPage />} />
-                <Route path="/technical/interventions" element={<FeatureUnavailable feature="MISSIONS" />} />
                 <Route path="/technical/*" element={<NotFoundLazy />} />
               </Route>
             </Routes>

@@ -58,7 +58,7 @@ function renderField(
     case 'checkbox':
       return <CheckboxField name={field.name} label={field.label} help={field.help} value={value} onChange={onChange} />
     case 'tags':
-      return <TagsField {...common} options={field.options ?? []} />
+      return <TagsField {...common} options={field.options ?? []} max={field.max} />
     case 'file':
       return <FileField {...common} accept={field.accept} />
     default:
@@ -127,10 +127,13 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
     })
   }
 
+  /** Les champs réellement à l'écran : un champ conditionnel masqué n'existe pas. */
+  const visibleFields = step.fields.filter((f) => !f.showIf || f.showIf(values))
+
   /** Vérifie l'étape courante et renvoie vrai si elle peut être quittée. */
   const validateStep = (): boolean => {
     const found: Record<string, string> = {}
-    for (const field of step.fields) {
+    for (const field of visibleFields) {
       if (field.required && !(values[field.name] ?? '').trim()) {
         found[field.name] = missingMessage(field)
       }
@@ -210,7 +213,17 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
             <span className="text-xs font-semibold uppercase tracking-widest text-papier-600">
               Votre référence
             </span>
-            <div className="volta-display mt-1 text-2xl text-acier-900">{submitted.reference}</div>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+              <span className="volta-display text-2xl text-acier-900">{submitted.reference}</span>
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard?.writeText(submitted.reference)}
+                className="inline-flex items-center gap-1 rounded-md border border-papier-300 bg-white px-2 py-1 text-xs font-semibold text-acier-800 transition hover:bg-papier-50"
+              >
+                <Copy size={12} />
+                Copier
+              </button>
+            </div>
           </div>
 
           <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs text-amber-900">
@@ -238,7 +251,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
           <h2 className="volta-display text-lg text-acier-900">Prochaines étapes</h2>
           <ol className="mt-4 space-y-3 text-sm">
             {[
-              'Génie Sélect lit votre demande et vérifie ce qu’il faut vérifier.',
+              'VOLTA lit votre demande et vérifie ce qu’il faut vérifier.',
               values.contactPhone
                 ? `Un conseiller vous rappelle au ${values.contactPhone} pour préciser le besoin.`
                 : 'Un conseiller vous rappelle pour préciser le besoin.',
@@ -279,7 +292,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
         <div className="mt-6 rounded-2xl border border-papier-200 bg-white p-6 shadow-sm">
           <h2 className="volta-display text-lg text-acier-900">Avancement du dossier</h2>
           <div className="mt-5">
-            <RequestTimeline status={submitted.status} />
+            <RequestTimeline status={submitted.status} intent={journey.intent} />
           </div>
         </div>
 
@@ -376,7 +389,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
         )}
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          {step.fields.map((field) => (
+          {visibleFields.map((field) => (
             <div key={field.name} className={field.full ? 'sm:col-span-2' : ''}>
               {renderField(field, values[field.name] ?? '', errors[field.name], (value) =>
                 set(field.name, value),
@@ -449,7 +462,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
       </div>
 
       <p className="mt-5 text-sm text-papier-600">
-        Votre demande arrive chez Génie Sélect, qui la lit et la qualifie avant toute mise en
+        Votre demande arrive chez VOLTA, qui la lit et la qualifie avant toute mise en
         relation. Personne d’autre n’y a accès.
       </p>
     </div>

@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, Search, X } fro
 import { useStore } from '../store/StoreContext'
 import { HOME_BY_ROLE, ROLE_LABEL } from '../lib/navigation'
 import { JOURNEYS_FEATURE, JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
+import InstallAppButton from './site/InstallAppButton'
 
 /**
  * En-tête public.
@@ -84,7 +85,7 @@ export default function Header() {
           <span className="leading-none">
             <span className="block text-lg font-black tracking-tight text-white">VOLTA</span>
             <span className="block text-[10px] font-semibold uppercase tracking-widest text-acier-300">
-              × Génie Sélect
+              <span className="lowercase">by</span> Génie Sélect Digital
             </span>
           </span>
         </Link>
@@ -286,6 +287,9 @@ export default function Header() {
                   </Link>
                 </>
               )}
+
+              {/* Le geste se fait sur téléphone : c'est là qu'on le propose. */}
+              <InstallAppButton tone="dark" className="mt-2 w-full" />
             </div>
           </div>
         </nav>

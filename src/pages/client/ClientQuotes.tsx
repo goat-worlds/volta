@@ -8,7 +8,7 @@ import {
   estimateTotal, formatFcfa, quoteRequestsClient, quotesClient,
   type Quote, type QuoteRequest,
 } from '../../store/quotesClient'
-import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge } from '../../components/ui'
+import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, CopyRef } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
 import { quoteRef, quoteRequestRef } from '../../lib/references'
@@ -193,9 +193,7 @@ export default function ClientQuotes() {
               <Card key={quote.id} className="overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-5 py-2.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded bg-acier-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-white">
-                      {quoteRef(quote.id, quote.createdAt)}
-                    </span>
+                    <CopyRef value={quoteRef(quote.id, quote.createdAt)} />
                     <span className="text-xs text-slate-500">
                       pour la demande{' '}
                       <Link

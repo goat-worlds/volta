@@ -27,9 +27,9 @@ export default function ListingCard({
   return (
     <Link
       to={listingPath(listing.id, pathname)}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-btp-400 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btp-400 focus-visible:ring-offset-2"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-papier-200 bg-white shadow-xs transition hover:-translate-y-0.5 hover:border-btp-400 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btp-400 focus-visible:ring-offset-2"
     >
-      <div className={`relative overflow-hidden bg-slate-200 ${compact ? 'h-40' : 'h-52'}`}>
+      <div className={`relative overflow-hidden bg-papier-200 ${compact ? 'h-40' : 'h-52'}`}>
         <img loading="lazy"
           src={photo}
           alt={listing.title}
@@ -64,26 +64,26 @@ export default function ListingCard({
         <h3 className="font-bold leading-snug text-acier-900 group-hover:text-btp-700">
           {listing.title}
         </h3>
-        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-papier-600">
           {listing.brand} {listing.model}
           {listing.year ? ` · ${listing.year}` : ''}
         </p>
 
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-papier-600">
           <span className="inline-flex items-center gap-1">
-            <MapPin size={14} className="text-slate-400" />
+            <MapPin size={14} className="text-papier-600" />
             {listing.location}
           </span>
           {listing.hours != null && listing.hours > 0 && (
             <span className="inline-flex items-center gap-1">
-              <Clock size={14} className="text-slate-400" />
+              <Clock size={14} className="text-papier-600" />
               {listing.hours.toLocaleString('fr-FR')} h
             </span>
           )}
         </div>
 
         <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-btp-600 transition group-hover:gap-2.5">
-          Demander une offre
+          Commander
           <ArrowRight size={15} />
         </span>
       </div>

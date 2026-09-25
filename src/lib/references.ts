@@ -54,7 +54,7 @@ export function reference(kind: ReferenceKind, id: string): string {
   return `${PREFIXES[kind]}-${digits(id, 5)}`
 }
 
-/** Demande adressée à Génie Sélect : « VOL-REQ-00491 ». */
+/** Demande adressée à VOLTA : « VOL-REQ-00491 ». */
 export function requestRef(id: string): string {
   return reference('request', id)
 }

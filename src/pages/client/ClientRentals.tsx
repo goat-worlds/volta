@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { CalendarCheck } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
-import { Card, EmptyState, PageTitle, RentalStatusBadge } from '../../components/ui'
+import { Card, EmptyState, PageTitle, RentalStatusBadge, CopyRef } from '../../components/ui'
 import { RENTAL_STATUS } from '../../lib/statuses'
 
 /**
@@ -97,7 +97,7 @@ export default function ClientRentals() {
               <tbody className="divide-y divide-slate-100">
                 {visible.map((r) => (
                   <tr key={r.id} className="transition hover:bg-slate-50">
-                    <td className="px-5 py-3 font-mono text-xs text-slate-600">{r.reference}</td>
+                    <td className="px-5 py-3"><CopyRef value={r.reference} /></td>
                     <td className="px-5 py-3 font-medium text-slate-900">{equipmentName(r.equipmentId)}</td>
                     <td className="px-5 py-3 text-slate-600">{r.startDate} → {r.endDate}</td>
                     <td className="px-5 py-3 text-slate-600">{r.location || '—'}</td>
@@ -114,7 +114,7 @@ export default function ClientRentals() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium text-slate-900">{equipmentName(r.equipmentId)}</p>
-                    <p className="mt-0.5 font-mono text-xs text-slate-500">{r.reference}</p>
+                    <div className="mt-0.5"><CopyRef value={r.reference} /></div>
                   </div>
                   <RentalStatusBadge status={r.status} />
                 </div>

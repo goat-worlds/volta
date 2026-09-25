@@ -29,7 +29,7 @@ export default function PurchaseTimeline({
             title={PURCHASE_STAGE[step].label}
             aria-current={step === status ? 'step' : undefined}
             className={`h-1.5 w-5 rounded-full ${
-              step === status ? 'bg-btp-500' : reached(index) ? 'bg-acier-700' : 'bg-slate-200'
+              step === status ? 'bg-btp-500' : reached(index) ? 'bg-acier-700' : 'bg-papier-200'
             }`}
           />
         ))}
@@ -53,16 +53,16 @@ export default function PurchaseTimeline({
                     ? 'bg-btp-500 text-white ring-4 ring-btp-100'
                     : done
                       ? 'bg-acier-900 text-white'
-                      : 'bg-slate-200 text-slate-500'
+                      : 'bg-papier-200 text-papier-600'
                 }`}
               >
                 {done ? <Check size={14} /> : index + 1}
               </span>
-              {!last && <span className={`w-px flex-1 ${done ? 'bg-acier-900' : 'bg-slate-200'}`} aria-hidden />}
+              {!last && <span className={`w-px flex-1 ${done ? 'bg-acier-900' : 'bg-papier-200'}`} aria-hidden />}
             </div>
             <span
               className={`pb-5 pt-1 text-sm ${
-                active ? 'font-bold text-acier-900' : done ? 'font-medium text-slate-700' : 'text-slate-400'
+                active ? 'font-bold text-acier-900' : done ? 'font-medium text-papier-700' : 'text-papier-600'
               }`}
             >
               {PURCHASE_STAGE[step].label}

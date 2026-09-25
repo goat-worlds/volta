@@ -69,6 +69,45 @@ public class PublicRequestController {
     public record StatusInput(String status, String notes) {
     }
 
+    public record MeetingInput(String meetingAt, String meetingNote) {
+    }
+
+    public record OrientationInput(String orientation, String note) {
+    }
+
+    public record SelectInput(String note) {
+    }
+
+    /**
+     * VOLTA retient le dossier : un geste, et il atteint l'étape où le travail
+     * commence vraiment. Les mêmes transitions que « statut », enchaînées.
+     */
+    @PostMapping("/admin/requests/{id}/select")
+    public PublicRequestService.AdvanceResult select(@PathVariable String id,
+                                                      @RequestBody(required = false) SelectInput body) {
+        return service.select(id, body == null ? null : body.note());
+    }
+
+    /**
+     * Décision du responsable académie après les rencontres : équipe
+     * technique, stage, ou réseau de consultants externes.
+     */
+    @PostMapping("/admin/requests/{id}/orientation")
+    public PublicRequestService.AdminView setOrientation(@PathVariable String id,
+                                                         @RequestBody OrientationInput body) {
+        return service.setOrientation(id, body.orientation(), body.note());
+    }
+
+    /**
+     * VOLTA fixe la rencontre. Le candidat la lit ensuite avec sa référence,
+     * sur la page de suivi : c'est la seule information qu'il attend.
+     */
+    @PostMapping("/admin/requests/{id}/meeting")
+    public PublicRequestService.AdminView scheduleMeeting(@PathVariable String id,
+                                                          @RequestBody MeetingInput body) {
+        return service.scheduleMeeting(id, body.meetingAt(), body.meetingNote());
+    }
+
     @PostMapping("/admin/requests/{id}/status")
     public PublicRequestService.AdvanceResult advance(@PathVariable String id, @RequestBody StatusInput body) {
         return service.advance(id, body == null ? null : body.status(), body == null ? null : body.notes());

@@ -66,6 +66,11 @@ public class SecurityConfig {
                 // Photos d'engins : servies à quiconque consulte le catalogue,
                 // au même titre que les fiches produit elles-mêmes.
                 .requestMatchers(HttpMethod.GET, "/uploads/equipment/**").permitAll()
+                // Les pièces d'inspection ne sont pas publiques : elles portent
+                // les papiers de douane du fournisseur. Réservées à ceux qui
+                // travaillent le dossier.
+                .requestMatchers(HttpMethod.GET, "/uploads/inspections/**").hasAnyRole("TECHNICAL", "ADMIN", "SUPPLIER")
+                .requestMatchers(HttpMethod.POST, "/api/inspections/files").hasAnyRole("TECHNICAL", "ADMIN")
                 // Volta Market : la vitrine se consulte et une offre se demande
                 // sans compte. « mine » est exclu de la règle publique par sa
                 // propre ligne, plus bas.
@@ -110,7 +115,11 @@ public class SecurityConfig {
                                  "/api/equipment/*/request-correction",
                                  "/api/equipment/*/reference").hasRole("ADMIN")
 
-                // --- Demandes de devis : émises par le client ---
+                // --- Demandes de devis : émises par le client, validées par VOLTA ---
+                // Le fournisseur ne voit une demande qu'une fois transmise par
+                // l'administration : ces deux gestes lui sont donc fermés.
+                .requestMatchers("/api/quote-requests/*/approve",
+                                 "/api/quote-requests/*/reject").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/quote-requests").hasAnyRole("CLIENT", "ADMIN")
 
                 // --- Devis : rédigés par le fournisseur, tranchés par le client ---
@@ -139,6 +148,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/market/listings/*").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers("/api/market/listings/*/submit",
                                  "/api/market/listings/*/withdraw").hasAnyRole("SUPPLIER", "ADMIN")
+                // Déclarer une non-livraison revient au vendeur concerné ;
+                // l'administration peut le faire à sa place après un appel.
+                .requestMatchers("/api/market/requests/*/delivery-failure").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers("/api/market/listings/*/publish",
                                  "/api/market/listings/*/reject",
                                  "/api/market/listings/*/feature",
