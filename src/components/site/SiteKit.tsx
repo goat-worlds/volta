@@ -212,7 +212,7 @@ export function Card({
   return (
     <article
       id={id}
-      className={`flex h-full scroll-mt-24 flex-col rounded-lg border ${t.border} ${t.card} p-6 ${className}`}
+      className={`group/card flex h-full scroll-mt-24 flex-col rounded-lg border ${t.border} ${t.card} p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_1px_1px_rgba(15,23,42,0.03)] transition-[border-color,box-shadow,transform] duration-200 hover:border-btp-400/60 hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.14),0_2px_6px_rgba(15,23,42,0.05)] motion-safe:hover:-translate-y-[3px] ${className}`}
     >
       {children}
     </article>
@@ -226,8 +226,8 @@ export function CardIcon({
   icon: LucideIcon | ComponentType<{ size?: number; className?: string }>
 }) {
   return (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btp-500/10">
-      <Icon size={20} className="text-btp-500" />
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-btp-400 via-btp-500 to-btp-600 shadow-[0_8px_24px_-8px_rgba(249,138,7,0.55)] transition-transform duration-200 motion-safe:group-hover/card:scale-105">
+      <Icon size={20} className="text-white" />
     </span>
   )
 }

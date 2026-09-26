@@ -1,4 +1,4 @@
-import { Building2, HardHat, Search, ShoppingCart, type LucideIcon } from 'lucide-react'
+import { HardHat, Search, ShoppingCart, type LucideIcon } from 'lucide-react'
 import { AUDIENCE_LABELS, AUDIENCE_ORDER, intentsFor, type Intent } from './intents'
 
 /**
@@ -29,7 +29,6 @@ export const PRIMARY_LINKS: SiteLink[] = [
   { to: '/catalogue', label: 'Louer un engin', description: 'Le catalogue des engins inspectés', icon: Search },
   { to: '/market', label: 'Volta Market', description: 'Engins à vendre, vérifiés avant la mise en vente', icon: ShoppingCart },
   { to: '/recrutement', label: 'Recrutement', description: 'Rejoindre l’équipe technique', icon: HardHat },
-  { to: '/fournisseurs', label: 'Fournisseurs', description: 'Les entreprises référencées', icon: Building2 },
 ]
 
 export interface JourneyColumn {

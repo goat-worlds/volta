@@ -21,7 +21,6 @@ import ScrollManager from './components/ScrollManager'
  */
 const Catalogue = lazy(() => import('./pages/public/Catalogue'))
 const EquipmentDetail = lazy(() => import('./pages/public/EquipmentDetail'))
-const Suppliers = lazy(() => import('./pages/public/Suppliers'))
 const Login = lazy(() => import('./pages/public/Login'))
 const Register = lazy(() => import('./pages/public/Register'))
 const RequestTracking = lazy(() => import('./pages/public/RequestTracking'))
@@ -89,7 +88,6 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/catalogue" element={<Catalogue />} />
                 <Route path="/equipment/:id" element={<EquipmentDetail />} />
-                <Route path="/fournisseurs" element={<Suppliers />} />
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
 
