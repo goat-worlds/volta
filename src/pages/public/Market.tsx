@@ -354,7 +354,7 @@ export default function Market() {
             <p className="mt-1 max-w-sm text-sm text-papier-600">{errorMessage(error)}</p>
           </div>
         ) : loading ? (
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-80 animate-pulse rounded-lg bg-papier-100" />
             ))}
@@ -379,9 +379,11 @@ export default function Market() {
             </Link>
           </div>
         ) : (
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-5">
             {filtered.map((l, i) => (
-              <Reveal key={l.id} delay={(i % 4) * 0.06}>
+              // Deux par ligne : le decalage d'apparition suit la ligne,
+              // sinon la seconde carte attend sans raison visible.
+              <Reveal key={l.id} delay={(i % 2) * 0.06}>
                 <ListingCard listing={l} />
               </Reveal>
             ))}

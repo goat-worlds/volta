@@ -5,6 +5,7 @@ import { useStore } from '../store/StoreContext'
 import { HOME_BY_ROLE, ROLE_LABEL } from '../lib/navigation'
 import { JOURNEYS_FEATURE, JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
 import InstallAppButton from './site/InstallAppButton'
+import Logo from './Logo'
 
 /**
  * En-tête public.
@@ -78,16 +79,8 @@ export default function Header() {
       <div className="btp-hazard-stripe h-1 w-full" aria-hidden />
 
       <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-4 px-4">
-        <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Accueil VOLTA">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-500 text-lg font-black text-acier-900">
-            V
-          </span>
-          <span className="leading-none">
-            <span className="block text-lg font-black tracking-tight text-white">VOLTA</span>
-            <span className="block text-[10px] font-semibold uppercase tracking-widest text-acier-300">
-              <span className="lowercase">by</span> Génie Sélect Digital
-            </span>
-          </span>
+        <Link to="/" aria-label="Accueil VOLTA">
+          <Logo />
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Navigation principale">

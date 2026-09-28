@@ -37,9 +37,11 @@ export default function MarketShowcase() {
         text="Annonces examinées par l’équipe VOLTA. Vous demandez une offre, VOLTA vérifie l’état et la disponibilité, puis vous répond — sans commission. Une mise en avant se décide en interne, elle ne s’achète pas."
       />
 
-      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-5">
         {shown.map((l, i) => (
-          <Reveal key={l.id} delay={(i % 4) * 0.06}>
+          // Deux par ligne : le decalage suit la ligne, sinon la seconde
+          // carte attend sans raison visible.
+          <Reveal key={l.id} delay={(i % 2) * 0.06}>
             <ListingCard listing={l} compact />
           </Reveal>
         ))}

@@ -161,7 +161,7 @@ export default function Catalogue() {
                 subtitle="Essayez d'élargir vos critères de recherche."
               />
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5">
                 {filtered.map((e, i) => {
                   const cat = categories.find((c) => c.id === e.categoryId)
                   const supplier = users.find((u) => u.id === e.supplierId)

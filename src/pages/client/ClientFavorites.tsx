@@ -45,7 +45,7 @@ export default function ClientFavorites() {
           }
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5">
           {saved.map((e) => (
             <EquipmentCard
               key={e.id}

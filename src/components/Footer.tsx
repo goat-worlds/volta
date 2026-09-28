@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
 import InstallAppButton from './site/InstallAppButton'
+import Logo from './Logo'
 
 /**
  * Pied de page.
@@ -23,16 +24,8 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
-            <Link to="/" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-500 text-lg font-black text-acier-900">
-                V
-              </span>
-              <span className="leading-none">
-                <span className="block text-lg font-black tracking-tight">VOLTA</span>
-                <span className="block text-[10px] font-semibold uppercase tracking-widest text-acier-300">
-              <span className="lowercase">by</span> Génie Sélect Digital
-            </span>
-              </span>
+            <Link to="/">
+              <Logo />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-acier-200">
               Location, vente, expertise technique et recrutement d’engins et d’équipements de

@@ -7,6 +7,7 @@ import { roleTheme } from '../lib/roleTheme'
 import { linksFor, navigationFor, ROLE_LABEL, SPACE_LABEL, type NavItem } from '../lib/navigation'
 import type { Role } from '../store/types'
 import { ApiUnavailable, RouteBoundary } from '../pages/errors'
+import Logo from './Logo'
 
 /**
  * Coque commune aux quatre espaces connectés.
@@ -98,16 +99,10 @@ export default function RoleShell({ role }: { role: Role }) {
 
   const sidebarInner = (
     <>
-      <Link to="/" className="mb-6 flex items-center gap-2.5 px-2">
-        {/* Le logo garde l'ambre de la marque dans les quatre espaces : c'est
-            le repère commun, l'accent ne sert qu'à situer l'espace. */}
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-400 text-lg font-black text-acier-900">
-          V
-        </span>
-        <span>
-          <span className="block font-bold leading-tight text-white">VOLTA</span>
-          <span className="block text-xs leading-tight text-slate-400">{space}</span>
-        </span>
+      {/* Le meme logo dans les quatre espaces : il est le repere commun,
+          l'accent de couleur ne sert qu'a situer l'espace. */}
+      <Link to="/" className="mb-6 block px-2">
+        <Logo subtitle={space} />
       </Link>
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">{nav}</div>
       <div className="mt-4 space-y-1 border-t border-slate-800 pt-4">
