@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Search, Send } from 'lucide-react'
+import { ArrowRight, Check, Search, Send } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 /**
@@ -193,6 +193,80 @@ export function SectionHeader({
       <h2 className={`volta-display mt-4 text-4xl sm:text-5xl ${t.title}`}>{title}</h2>
       {text && <p className={`mt-4 text-lg leading-relaxed ${t.body}`}>{text}</p>}
     </Reveal>
+  )
+}
+
+/**
+ * Couverture de section : le propos à gauche, une photo à droite.
+ *
+ * Les sections s'ouvraient toutes sur un chapeau centré. Sur une page qui en
+ * enchaîne huit, rien ne distinguait plus l'une de l'autre, et un site de
+ * matériel de chantier ne montrait aucun matériel avant la grille des
+ * vignettes. La photo situe la section avant qu'on l'ait lue.
+ *
+ * Réservée aux sections qui ouvrent un sujet. L'appliquer partout la
+ * banaliserait, et le chapeau centré retrouverait le même défaut.
+ *
+ * `reverse` renvoie la photo à gauche : sur deux sections voisines, le même
+ * côté deux fois de suite donne un escalier.
+ */
+export function SectionCover({
+  label,
+  title,
+  text,
+  image,
+  imageAlt,
+  tone = "light",
+  reverse = false,
+  reperes,
+  children,
+}: {
+  label: ReactNode
+  title: ReactNode
+  text?: ReactNode
+  image: string
+  /** Décrit la photo pour qui ne la voit pas. Jamais vide : elle porte du sens. */
+  imageAlt: string
+  tone?: Tone
+  reverse?: boolean
+  /** Trois repères au plus. Au-delà, ils cessent d’être des repères. */
+  reperes?: readonly string[]
+  /** Les actions, sous le texte. */
+  children?: ReactNode
+}) {
+  const t = TEXT[tone]
+  return (
+    <div className={`grid items-center gap-10 lg:gap-14 ${reverse ? "lg:grid-cols-[1.05fr_1fr]" : "lg:grid-cols-[1fr_1.05fr]"}`}>
+      <Reveal className={reverse ? "lg:order-2" : undefined}>
+        <Eyebrow tone={tone}>{label}</Eyebrow>
+        <h2 className={`volta-display mt-4 text-4xl sm:text-5xl ${t.title}`}>{title}</h2>
+        {text && <p className={`mt-4 text-lg leading-relaxed ${t.body}`}>{text}</p>}
+        {reperes && (
+          <ul className={`mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm ${t.body}`}>
+            {reperes.map((r) => (
+              <li key={r} className="flex items-center gap-2">
+                <Check size={15} className="shrink-0 text-btp-500" aria-hidden />
+                {r}
+              </li>
+            ))}
+          </ul>
+        )}
+        {children}
+      </Reveal>
+
+      <Reveal delay={0.08} className={reverse ? "lg:order-1" : undefined}>
+        {/* Proportion fixe : la hauteur ne depend pas du fichier, et la
+            section ne sursaute pas quand la photo arrive. */}
+        <div className="aspect-[4/3] overflow-hidden rounded-xl border border-papier-200 bg-papier-100 shadow-sm sm:aspect-[16/10]">
+          <img
+            src={image}
+            alt={imageAlt}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      </Reveal>
+    </div>
   )
 }
 

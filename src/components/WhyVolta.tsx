@@ -8,7 +8,7 @@ import {
   Reveal,
   Section,
   SectionActions,
-  SectionHeader,
+  SectionCover,
 } from './site/SiteKit'
 
 /**
@@ -57,29 +57,20 @@ const GUARANTEES: { icon: LucideIcon; term: string; text: string }[] = [
 export default function WhyVolta() {
   return (
     <Section id="garanties" tone="muted">
-      <SectionHeader
+      <SectionCover
         tone="muted"
         label="Avant la mise en ligne"
         title="Quelqu’un se déplace et monte sur la machine."
         text="Aucun engin n’entre au catalogue sur parole. Un vérificateur mandaté par Génie Sélect se rend là où la machine travaille, la fait démarrer, déroule dix-huit points de contrôle — moteur, transmission, hydraulique, freinage, sécurité, structure — photographie les organes sensibles et note ce qui cloche."
-      />
-
-      <Reveal className="mx-auto mt-6 max-w-2xl text-center">
-        <p className="leading-relaxed text-papier-600">
+        image="/engins/grue-mobile.jpeg"
+        imageAlt="Grue mobile déployée sur un chantier de construction, une grue à tour et un bâtiment en gros œuvre derrière"
+        reperes={FACTS}
+      >
+        <p className="mt-6 leading-relaxed text-papier-600">
           Son rapport est lu avant toute publication. Si la machine n’est pas en état, elle ne sort
           pas : le propriétaire reçoit la liste de ce qu’il doit reprendre, et la fiche attend.
         </p>
-        <ul className="mt-5 flex flex-wrap justify-center gap-1.5">
-          {FACTS.map((f) => (
-            <li
-              key={f}
-              className="rounded-full border border-papier-200 bg-white px-3 py-1 text-xs font-semibold text-acier-900"
-            >
-              {f}
-            </li>
-          ))}
-        </ul>
-      </Reveal>
+      </SectionCover>
 
       <CardGrid>
         {GUARANTEES.map((g, i) => (

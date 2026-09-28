@@ -8,14 +8,7 @@ import EquipmentCard from '../../components/EquipmentCard'
 import HowItWorks from '../../components/HowItWorks'
 import WhyVolta from '../../components/WhyVolta'
 import VerificationLevels from '../../components/VerificationLevels'
-import {
-  CtaBanner,
-  MoreLink,
-  Reveal,
-  Section,
-  SectionActions,
-  SectionHeader,
-} from '../../components/site/SiteKit'
+import { CtaBanner, MoreLink, Reveal, Section, SectionActions, SectionCover } from '../../components/site/SiteKit'
 
 /**
  * Accueil.
@@ -59,11 +52,14 @@ export default function Home() {
 
       {published.length > 0 && (
         <Section id="location" tone="muted">
-          <SectionHeader
+          <SectionCover
             tone="muted"
             label="À louer"
             title="Des engins inspectés, disponibles."
-            text="Chaque engin du catalogue a été contrôlé sur place avant publication."
+            text="Chaque engin du catalogue a été contrôlé sur place avant publication : état déclaré, heures au compteur, documents vérifiés."
+            image="/engins/camion-kamaz.jpeg"
+            imageAlt="Camion benne KAMAZ orange chargé de sable, sur une aire de chantier"
+            reperes={['Contrôle sur place', 'Documents vérifiés', 'Disponibilité confirmée']}
           />
 
           {categories.length > 0 && (
@@ -108,13 +104,16 @@ export default function Home() {
         </Section>
       )}
 
+      {/* Le recrutement avant le detail du fonctionnement : « Deposer mon
+          CV » etait a la septieme section, apres tout le commerce. Le
+          mecanicien qui vient pour ca n'a plus a traverser la page. */}
+      <RecruitmentBand />
+
       <HowItWorks />
 
       <WhyVolta />
 
       <VerificationLevels />
-
-      <RecruitmentBand />
 
       <CtaBanner />
     </>
