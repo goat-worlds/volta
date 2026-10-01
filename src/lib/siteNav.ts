@@ -1,4 +1,4 @@
-import { HardHat, Search, ShoppingCart, type LucideIcon } from 'lucide-react'
+import { HardHat, Handshake, Search, ShoppingCart, type LucideIcon } from 'lucide-react'
 import { AUDIENCE_LABELS, AUDIENCE_ORDER, intentsFor, type Intent } from './intents'
 
 /**
@@ -23,12 +23,23 @@ export interface SiteLink {
   icon?: LucideIcon
 }
 
+/**
+ * Le numéro de la maison, écrit une seule fois.
+ *
+ * Il figurait dans le pied de page et dans le formulaire de parcours, à
+ * deux endroits sans lien : le jour où il change, l'un des deux reste en
+ * arrière et renvoie les appels dans le vide.
+ */
+export const TELEPHONE = { affiche: '07 48 63 48 53', lien: 'tel:+2250748634853' }
+
 export const PRIMARY_LINKS: SiteLink[] = [
-  // La location d'abord : c'est ce que la majorité des visiteurs vient
-  // chercher, et l'achat d'un engin se décide rarement du premier clic.
+  // L'ordre est celui de la maquette : Volta Market avant le catalogue.
+  { to: '/market', label: 'VOLTA Market', description: 'Engins à vendre, vérifiés avant la mise en vente', icon: ShoppingCart },
   { to: '/catalogue', label: 'Louer un engin', description: 'Le catalogue des engins inspectés', icon: Search },
-  { to: '/market', label: 'Volta Market', description: 'Engins à vendre, vérifiés avant la mise en vente', icon: ShoppingCart },
   { to: '/recrutement', label: 'Recrutement', description: 'Rejoindre l’équipe technique', icon: HardHat },
+  // Le proprietaire et l'entreprise n'avaient pas de page a ouvrir : leurs
+  // quatre parcours vivaient derriere le menu, meles a ceux du client.
+  { to: '/collaborons', label: 'Collaborons', description: 'Proposer son parc, referencer son catalogue, developper ses ventes', icon: Handshake },
 ]
 
 export interface JourneyColumn {

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useStore } from '../../store/StoreContext'
-import Hero from '../../components/Hero'
+import GenieSelectCover from '../../components/genieselect/GenieSelectCover'
+import ExpertisesGrid from '../../components/genieselect/ExpertisesGrid'
 import IntentGrid from '../../components/home/IntentGrid'
 import MarketShowcase from '../../components/home/MarketShowcase'
 import RecruitmentBand from '../../components/home/RecruitmentBand'
@@ -44,7 +45,12 @@ export default function Home() {
 
   return (
     <>
-      <Hero />
+      {/* Le groupe d'abord : VOLTA se presentait comme une plateforme de
+          location, sans dire de qui elle est la vitrine. Le visiteur
+          apprend en arrivant qu'il a six portes, pas une. */}
+      <GenieSelectCover />
+
+      <ExpertisesGrid />
 
       <IntentGrid />
 

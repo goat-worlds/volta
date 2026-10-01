@@ -23,6 +23,7 @@ const Catalogue = lazy(() => import('./pages/public/Catalogue'))
 const EquipmentDetail = lazy(() => import('./pages/public/EquipmentDetail'))
 const Login = lazy(() => import('./pages/public/Login'))
 const Register = lazy(() => import('./pages/public/Register'))
+const Collaborons = lazy(() => import('./pages/public/Collaborons'))
 const RequestTracking = lazy(() => import('./pages/public/RequestTracking'))
 const Market = lazy(() => import('./pages/public/Market'))
 const MarketListing = lazy(() => import('./pages/public/MarketListing'))
@@ -107,6 +108,7 @@ export default function App() {
                 <Route path="/accompagnement" element={<JourneyPage intent="GROW_SALES" />} />
                 {/* Recrutement : la page dit les métiers et le processus avant
                     d'ouvrir le dépôt de CV. L'ancienne adresse reste servie. */}
+                <Route path="/collaborons" element={<Collaborons />} />
                 <Route path="/recrutement" element={<Recruitment />} />
                 <Route path="/recrutement/candidature" element={<JourneyPage intent="JOIN_TECHNICAL_TEAM" />} />
                 <Route path="/equipe-technique" element={<Navigate to="/recrutement" replace />} />

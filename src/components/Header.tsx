@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, Search, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, Phone, Search, X } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
 import { HOME_BY_ROLE, ROLE_LABEL } from '../lib/navigation'
-import { JOURNEYS_FEATURE, JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
+import {
+  JOURNEYS_FEATURE,
+  JOURNEY_COLUMNS,
+  PRIMARY_LINKS,
+  SECONDARY_LINKS,
+  TELEPHONE,
+} from '../lib/siteNav'
+import { EXPERTISES } from '../lib/genieSelect'
 import InstallAppButton from './site/InstallAppButton'
 import Logo from './Logo'
 
@@ -20,11 +27,17 @@ import Logo from './Logo'
  * délai (le pointeur traverse un vide entre le bouton et le panneau), à la
  * touche Échap, et à chaque navigation.
  */
+/** Les deux panneaux depliables de la barre. */
+type Panneau = 'groupe' | 'parcours'
+
 export default function Header() {
   const { currentUser, logout } = useStore()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [panelOpen, setPanelOpen] = useState(false)
+  // Deux panneaux se deplient sous la barre : le groupe et les parcours.
+  // Un booleen ne peut en nommer qu'un, et les deux se seraient ouverts
+  // ensemble en se recouvrant.
+  const [panneau, setPanneau] = useState<Panneau | null>(null)
   const closeTimer = useRef<number | null>(null)
 
   const cancelClose = () => {
@@ -35,32 +48,32 @@ export default function Header() {
   }
   const scheduleClose = () => {
     cancelClose()
-    closeTimer.current = window.setTimeout(() => setPanelOpen(false), 200)
+    closeTimer.current = window.setTimeout(() => setPanneau(null), 200)
   }
-  const openPanel = () => {
+  const openPanel = (p: Panneau) => {
     cancelClose()
-    setPanelOpen(true)
+    setPanneau(p)
   }
 
   // Un menu resté ouvert masquerait la page vers laquelle on vient d'aller.
   useEffect(() => {
     setMenuOpen(false)
-    setPanelOpen(false)
+    setPanneau(null)
   }, [location.pathname, location.hash])
 
   useEffect(() => cancelClose, [])
 
   useEffect(() => {
-    if (!panelOpen && !menuOpen) return
+    if (!panneau && !menuOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setPanelOpen(false)
+        setPanneau(null)
         setMenuOpen(false)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [panelOpen, menuOpen])
+  }, [panneau, menuOpen])
 
   const space = currentUser ? HOME_BY_ROLE[currentUser.role] : null
   const journeysActive = location.pathname.startsWith('/demande') || location.pathname === '/gold'
@@ -84,16 +97,31 @@ export default function Header() {
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Navigation principale">
-          <div className="relative" onMouseEnter={openPanel}>
+          {/* Le groupe en premier : VOLTA est sa vitrine, et le visiteur
+              doit pouvoir atteindre les six expertises depuis n'importe
+              quelle page. */}
+          <div className="relative" onMouseEnter={() => openPanel("groupe")}>
             <button
               type="button"
-              aria-expanded={panelOpen}
+              aria-expanded={panneau === "groupe"}
               aria-haspopup="true"
-              onClick={() => setPanelOpen((o) => !o)}
-              className={`flex items-center gap-1 ${linkClass(panelOpen || journeysActive)}`}
+              onClick={() => setPanneau((p) => (p === "groupe" ? null : "groupe"))}
+              className={`flex items-center gap-1 ${linkClass(panneau === "groupe")}`}
+            >
+              Génie Sélect
+              <ChevronDown size={14} className={`transition-transform ${panneau === "groupe" ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+          <div className="relative" onMouseEnter={() => openPanel("parcours")}>
+            <button
+              type="button"
+              aria-expanded={panneau === "parcours"}
+              aria-haspopup="true"
+              onClick={() => setPanneau((p) => (p === "parcours" ? null : "parcours"))}
+              className={`flex items-center gap-1 ${linkClass(panneau === "parcours" || journeysActive)}`}
             >
               Parcours
-              <ChevronDown size={14} className={`transition-transform ${panelOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`transition-transform ${panneau === "parcours" ? "rotate-180" : ""}`} />
             </button>
           </div>
           {PRIMARY_LINKS.map((l) => (
@@ -104,6 +132,22 @@ export default function Header() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
+          {/* Le numero en clair dans la barre : sur un chantier, on
+              appelle avant de remplir un formulaire. Il est lu depuis
+              siteNav, comme celui du pied de page. */}
+          <a
+            href={TELEPHONE.lien}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3.5 py-2 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-white/5"
+          >
+            <Phone size={15} className="text-btp-400" aria-hidden />
+            {TELEPHONE.affiche}
+          </a>
+          <Link
+            to="/demande/location"
+            className="inline-flex items-center gap-2 rounded-lg bg-btp-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-btp-600"
+          >
+            Parlez-nous de votre chantier
+          </Link>
           {SECONDARY_LINKS.map((l) => (
             <NavLink
               key={l.to}
@@ -165,11 +209,54 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Panneau « Parcours », pleine largeur sous la barre. */}
-      {panelOpen && (
+      {/* Panneau « Génie Sélect » : les six expertises, dans leur ordre. */}
+      {panneau === "groupe" && (
         <div
           className="absolute inset-x-0 top-full z-40 hidden border-t border-white/10 bg-acier-900/98 shadow-2xl backdrop-blur lg:block"
-          onMouseEnter={openPanel}
+          onMouseEnter={() => openPanel("groupe")}
+        >
+          <div className="mx-auto max-w-7xl px-4 py-8">
+            <div className="flex items-end justify-between gap-6">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-btp-400">
+                  Nos domaines d’activité
+                </p>
+                <h3 className="mt-2 text-lg font-bold text-white">Un groupe, six expertises.</h3>
+              </div>
+              <Link
+                to="/collaborons"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-btp-400"
+              >
+                Collaborons avec Génie Sélect
+                <ArrowRight size={15} />
+              </Link>
+            </div>
+            <ul className="mt-6 grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-3">
+              {EXPERTISES.map((e) => (
+                <li key={e.id}>
+                  <Link to={e.to} className="group flex gap-3 rounded-lg p-2 transition hover:bg-white/5">
+                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-btp-500/15 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
+                      <e.icon size={16} />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-white">{e.nom}</span>
+                      <span className="mt-0.5 block text-xs leading-snug text-acier-300">
+                        {e.accroche}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Panneau « Parcours », pleine largeur sous la barre. */}
+      {panneau === "parcours" && (
+        <div
+          className="absolute inset-x-0 top-full z-40 hidden border-t border-white/10 bg-acier-900/98 shadow-2xl backdrop-blur lg:block"
+          onMouseEnter={() => openPanel("parcours")}
         >
           <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_2.6fr]">
             <div className="rounded-xl border border-white/10 bg-acier-800/60 p-6">

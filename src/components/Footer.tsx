@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Mail, MapPin, Phone } from 'lucide-react'
-import { JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS } from '../lib/siteNav'
+import { JOURNEY_COLUMNS, PRIMARY_LINKS, SECONDARY_LINKS, TELEPHONE } from '../lib/siteNav'
 import InstallAppButton from './site/InstallAppButton'
 import Logo from './Logo'
 
@@ -39,7 +39,9 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Phone size={14} className="text-btp-400" />
-                <a href="tel:+2250748634853" className="hover:text-white">+225 07 48 63 48 53</a>
+                <a href={TELEPHONE.lien} className="hover:text-white">
+                  +225 {TELEPHONE.affiche}
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin size={14} className="text-btp-400" />
