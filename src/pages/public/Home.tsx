@@ -50,8 +50,8 @@ export default function Home() {
           apprend en arrivant qu'il a six portes, pas une. */}
       <GenieSelectCover />
 
-      <ExpertisesGrid />
-
+      {/* L'entrée prioritaire : le visiteur choisit immédiatement son besoin
+          parmi les huit fonctionnalités, avant de découvrir le groupe. */}
       <IntentGrid />
 
       <MarketShowcase />
@@ -114,6 +114,10 @@ export default function Home() {
           CV » etait a la septieme section, apres tout le commerce. Le
           mecanicien qui vient pour ca n'a plus a traverser la page. */}
       <RecruitmentBand />
+
+      {/* Génie Sélect vient après l'appel à candidature : la vitrine du
+          groupe approfondit la visite sans repousser les huit parcours. */}
+      <ExpertisesGrid />
 
       <HowItWorks />
 

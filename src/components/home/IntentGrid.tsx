@@ -39,7 +39,7 @@ export default function IntentGrid() {
             Parcours VOLTA
           </span>
           <h2 className="volta-display mt-3 text-4xl text-acier-900 sm:text-5xl">
-            Que souhaitez-vous faire ?
+            Que recherchez-vous ?
           </h2>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-papier-600">
             Choisissez votre besoin et accédez au bon parcours. Pas besoin de créer un compte.

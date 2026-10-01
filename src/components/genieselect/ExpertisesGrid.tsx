@@ -102,7 +102,7 @@ function CarteExpertise({ e }: { e: Expertise }) {
 
         <Link
           to={e.to}
-          className={`mt-5 inline-flex items-center justify-between gap-2 rounded-lg px-4 py-3 text-sm font-bold text-white transition ${c.bouton} after:absolute after:inset-0 after:content-[''] focus-visible:outline-none`}
+          className={`mt-auto inline-flex items-center justify-between gap-2 rounded-lg px-4 py-3 pt-3 text-sm font-bold text-white transition ${c.bouton} after:absolute after:inset-0 after:content-[''] focus-visible:outline-none`}
         >
           Découvrir {e.nom}
           <ArrowRight size={16} />
