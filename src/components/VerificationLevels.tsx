@@ -1,147 +1,85 @@
-import { Check, Minus } from 'lucide-react'
+import { ArrowRight, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { Level } from '../store/types'
 import { Reveal, Section, SectionHeader } from './site/SiteKit'
 
 /**
- * Les trois niveaux de vérification.
+ * La qualification, en trois mentions.
  *
- * Présentés en trois cartes, ils se lisaient comme une grille tarifaire — avec
- * un « recommandé » au milieu, comme on vend un abonnement. Or ce n'est pas une
- * offre à choisir : c'est le classement qu'une machine reçoit après contrôle,
- * et le client veut savoir ce que chaque niveau lui garantit exactement.
+ * <h2>Ce qui a été retiré</h2>
  *
- * Une table répond à cette question-là : une ligne par contrôle, une colonne
- * par niveau, et l'on voit d'un coup où s'arrête Basic et ce qu'ajoute Gold.
- * C'est aussi la forme la moins décorative de la page, donc la plus crédible.
- * Elle garde son chapeau centré comme les autres sections, et rien de plus.
+ * Cette section a été une table de huit lignes sur trois colonnes : visite sur
+ * site, nombre de points déroulés, machine démarrée, photos des organes,
+ * anomalies suivies — avec, pour chaque niveau, la marque exacte de ce qui est
+ * fait ou non. C'était notre barème de notation, publié.
+ *
+ * Deux raisons de ne plus l'afficher. Elle disait à un concurrent où s'arrête
+ * chacun de nos contrôles, donc comment nous imiter à moindres frais. Et elle
+ * demandait au client de lire huit critères techniques pour comprendre une
+ * information qui tient en une ligne : plus la mention est haute, plus le
+ * contrôle a été poussé.
+ *
+ * Reste donc ce qui lui sert : les trois mentions, ce qu'elles signifient, et
+ * l'endroit où il la verra — sur la fiche de chaque machine. Le barème continue
+ * d'exister là où il est utile, dans l'espace d'administration, pour ceux qui
+ * attribuent les niveaux.
  */
 
 const LEVELS: { id: Level; label: string; note: string }[] = [
   { id: 'BASIC', label: 'Basic', note: 'Dossier contrôlé' },
-  { id: 'SILVER', label: 'Silver', note: 'Passage sur site' },
+  { id: 'SILVER', label: 'Silver', note: 'Contrôle sur site' },
   { id: 'GOLD', label: 'Gold', note: 'Contrôle complet' },
 ]
-
-/** Une ligne de la table : le contrôle, et jusqu'où il est mené par niveau. */
-const CHECKS: { label: string; by: Record<Level, string | boolean> }[] = [
-  {
-    label: 'Identité du détenteur vérifiée',
-    by: { BASIC: true, SILVER: true, GOLD: true },
-  },
-  {
-    label: 'Documents de la machine contrôlés',
-    by: { BASIC: true, SILVER: true, GOLD: true },
-  },
-  {
-    label: 'Visite sur le lieu de stationnement',
-    by: { BASIC: false, SILVER: true, GOLD: true },
-  },
-  {
-    label: 'Points de contrôle déroulés',
-    by: { BASIC: false, SILVER: 'Partiels', GOLD: 'Les 18' },
-  },
-  {
-    label: 'Machine démarrée et manœuvrée',
-    by: { BASIC: false, SILVER: false, GOLD: true },
-  },
-  {
-    label: 'Photos des organes sensibles au dossier',
-    by: { BASIC: false, SILVER: 'Sur demande', GOLD: true },
-  },
-  {
-    label: 'Anomalies relevées et suivies jusqu’à correction',
-    by: { BASIC: false, SILVER: false, GOLD: true },
-  },
-  {
-    label: 'Traitement prioritaire des demandes',
-    by: { BASIC: false, SILVER: false, GOLD: true },
-  },
-]
-
-function Mark({ value }: { value: string | boolean }) {
-  if (value === true) {
-    return (
-      <>
-        <Check size={17} className="mx-auto text-emerald-400" aria-hidden />
-        <span className="sr-only">oui</span>
-      </>
-    )
-  }
-  if (value === false) {
-    return (
-      <>
-        <Minus size={17} className="mx-auto text-acier-500" aria-hidden />
-        <span className="sr-only">non</span>
-      </>
-    )
-  }
-  return <span className="text-sm font-semibold text-btp-300">{value}</span>
-}
 
 export default function VerificationLevels() {
   return (
     <Section id="niveaux" tone="dark">
       <SectionHeader
         tone="dark"
-        label="Ce que vaut chaque mention"
-        title="Basic, Silver, Gold : qui a vu quoi."
-        text="Le niveau se lit sur chaque fiche, à louer comme à vendre. Il n’est pas acheté par le propriétaire : il est décidé par l’administration après lecture du rapport."
+        label="Qualification VOLTA"
+        title="Un niveau adapté au contrôle réalisé."
+        text="Chaque équipement porte sa mention, à louer comme à vendre. Elle est attribuée par VOLTA, jamais par le détenteur de la machine."
       />
 
-      {/* La table déborde sur téléphone plutôt que d'écraser ses colonnes :
-          réduire la police jusqu'à faire tenir trois colonnes rendrait les
-          marques illisibles là où elles comptent le plus. */}
       <Reveal className="mx-auto mt-12 max-w-4xl">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[34rem] border-collapse text-left">
-            <caption className="sr-only">
-              Contrôles effectués pour chaque niveau de vérification VOLTA
-            </caption>
-            <thead>
-              <tr className="border-b-2 border-btp-500">
-                <th scope="col" className="py-3 pr-4 text-sm font-semibold text-acier-300">
-                  Contrôle
-                </th>
-                {LEVELS.map((level) => (
-                  <th key={level.id} scope="col" className="w-28 px-2 py-3 text-center align-bottom">
-                    <span
-                      className={`volta-display block text-xl ${
-                        level.id === 'GOLD' ? 'text-btp-400' : 'text-white'
-                      }`}
-                    >
-                      {level.label}
-                    </span>
-                    <span className="mt-0.5 block text-[11px] font-medium uppercase tracking-wider text-acier-300">
-                      {level.note}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {CHECKS.map((check) => (
-                <tr key={check.label} className="border-b border-white/10">
-                  <th scope="row" className="py-3.5 pr-4 text-sm font-normal text-acier-100">
-                    {check.label}
-                  </th>
-                  {LEVELS.map((level) => (
-                    <td
-                      key={level.id}
-                      className={`px-2 py-3.5 text-center ${level.id === 'GOLD' ? 'bg-white/5' : ''}`}
-                    >
-                      <Mark value={check.by[level.id]} />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="grid gap-4 sm:grid-cols-3">
+          {LEVELS.map((level) => (
+            <li
+              key={level.id}
+              className={`rounded-xl border px-5 py-6 text-center ${
+                level.id === 'GOLD'
+                  ? 'border-btp-500/60 bg-white/[0.07]'
+                  : 'border-white/15 bg-white/[0.03]'
+              }`}
+            >
+              <ShieldCheck
+                size={22}
+                aria-hidden
+                strokeWidth={1.75}
+                className={`mx-auto ${level.id === 'GOLD' ? 'text-btp-400' : 'text-acier-300'}`}
+              />
+              <span
+                className={`volta-display mt-3 block text-2xl ${
+                  level.id === 'GOLD' ? 'text-btp-400' : 'text-white'
+                }`}
+              >
+                {level.label}
+              </span>
+              <span className="mt-1 block text-sm text-acier-300">{level.note}</span>
+            </li>
+          ))}
+        </ul>
 
-        <p className="mt-5 text-sm text-acier-300">
-          Une machine peut monter de niveau : elle repasse au contrôle quand son détenteur a repris
-          ce qui avait été relevé.
-        </p>
+        <div className="mt-8 text-center">
+          <p className="text-acier-200">Découvrez le niveau associé à chaque équipement.</p>
+          <Link
+            to="/catalogue"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-btp-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-btp-600"
+          >
+            Voir les équipements
+            <ArrowRight size={15} aria-hidden />
+          </Link>
+        </div>
       </Reveal>
     </Section>
   )

@@ -24,7 +24,7 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
-            <Link to="/">
+            <Link to="/" className="inline-block">
               <Logo />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-acier-200">

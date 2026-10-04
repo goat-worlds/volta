@@ -120,18 +120,12 @@ export default function Market() {
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [category, setCategory] = useState(params.get('categorie') ?? '')
   const [condition, setCondition] = useState('')
-  const [location, setLocation] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [sort, setSort] = useState<Sort>('featured')
 
   const listings = data ?? []
   const inClientSpace = pathname.startsWith('/client')
   const requestPath = inClientSpace ? '/client/market/demande' : '/market/demande'
-
-  const locations = useMemo(
-    () => [...new Set(listings.map((l) => l.location))].sort(),
-    [listings],
-  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -144,7 +138,6 @@ export default function Market() {
           l.description.toLowerCase().includes(q)) &&
         (!category || l.categoryId === category) &&
         (!condition || l.condition === condition) &&
-        (!location || l.location === location) &&
         (!maxPrice || l.askingPrice <= Number(maxPrice)),
     )
     const byRecent = (a: PublicListing, b: PublicListing) =>
@@ -159,9 +152,9 @@ export default function Market() {
       default:
         return rows.sort((a, b) => Number(b.featured) - Number(a.featured) || byRecent(a, b))
     }
-  }, [listings, query, category, condition, location, maxPrice, sort])
+  }, [listings, query, category, condition, maxPrice, sort])
 
-  const hasFilter = Boolean(query || category || condition || location || maxPrice)
+  const hasFilter = Boolean(query || category || condition || maxPrice)
   const cheapest = listings.length ? Math.min(...listings.map((l) => l.askingPrice)) : null
   const newCount = listings.filter((l) => l.condition === 'NEUF').length
 
@@ -286,14 +279,6 @@ export default function Market() {
             <option value="NEUF">Neuf</option>
             <option value="OCCASION">Occasion</option>
           </select>
-          <select value={location} onChange={(e) => setLocation(e.target.value)} className={FILTER}>
-            <option value="">Toutes localisations</option>
-            {locations.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </select>
           <input
             type="number"
             value={maxPrice}
@@ -335,7 +320,6 @@ export default function Market() {
                 setQuery('')
                 setCategory('')
                 setCondition('')
-                setLocation('')
                 setMaxPrice('')
               }}
               className="text-sm font-semibold text-btp-600 hover:text-btp-700"

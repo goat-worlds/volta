@@ -116,7 +116,7 @@ export default function SupplierEquipment() {
                       <LevelBadge level={e.level} />
                     </div>
                     <div className="mt-1 text-xs text-slate-500">
-                      {e.brand} {e.model} · {e.year} · {fmtPrice(e.pricePerDay)} / jour
+                      {e.brand} {e.model} · {e.year} · {fmtPrice(e.pricePerDay)} / heure
                     </div>
                     <div className="mt-2 flex items-center gap-3">
                       <div className="w-full max-w-xs">

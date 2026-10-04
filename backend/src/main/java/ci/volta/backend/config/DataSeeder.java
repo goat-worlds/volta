@@ -1,5 +1,6 @@
 package ci.volta.backend.config;
 
+import ci.volta.backend.domain.PhoneKey;
 import ci.volta.backend.model.Category;
 import ci.volta.backend.model.ChecklistItem;
 import ci.volta.backend.model.DocumentInfo;
@@ -102,6 +103,27 @@ public class DataSeeder {
         }
     }
 
+    /**
+     * Remplit la clé téléphone des comptes créés avant son existence.
+     *
+     * La colonne est ajoutée vide par Hibernate sur une base déjà peuplée : sans
+     * ce rattrapage, aucun compte existant ne pourrait se connecter par son
+     * numéro, et le défaut ne se verrait qu'au premier client qui essaie. Comme
+     * la normalisation des rôles hérités, c'est une migration de données — elle
+     * tourne à chaque démarrage et ne touche que ce qui manque.
+     */
+    private static void backfillPhoneKeys(UserRepository users) {
+        List<UserAccount> aCompleter = users.findAll().stream()
+                .filter(u -> u.phoneKey == null || u.phoneKey.isBlank())
+                .filter(u -> PhoneKey.of(u.phone) != null)
+                .peek(u -> u.phoneKey = PhoneKey.of(u.phone))
+                .toList();
+        if (!aCompleter.isEmpty()) {
+            users.saveAll(aCompleter);
+            log.info("Clé téléphone renseignée pour {} compte(s).", aCompleter.size());
+        }
+    }
+
     private static Category category(String id, String name, String icon) {
         Category c = new Category();
         c.id = id;
@@ -201,6 +223,7 @@ public class DataSeeder {
             // La migration des rôles hérités porte sur des données réelles :
             // elle s'exécute avant la garde, et donc partout.
             normalizeLegacyRoles(users);
+            backfillPhoneKeys(users);
 
             // Taxonomie et premier administrateur ne sont pas du jeu d'essai :
             // ils précèdent la garde et valent aussi en production.

@@ -101,7 +101,7 @@ export default function SupplierQuotes() {
                   <th className="px-4 py-3">Engin</th>
                   <th className="px-4 py-3">Client</th>
                   <th className="px-4 py-3">Période</th>
-                  <th className="px-4 py-3">Prix / jour</th>
+                  <th className="px-4 py-3">Prix / heure</th>
                   <th className="px-4 py-3">Valable jusqu'au</th>
                   <th className="px-4 py-3">Statut</th>
                 </tr>

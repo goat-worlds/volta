@@ -95,7 +95,7 @@ export default function EquipmentDetail() {
           <div className="mt-1 text-sm text-papier-600">
             {cat?.name} · {eq.brand} {eq.model}
           </div>
-          <div className="mt-3 text-2xl font-bold text-blue-700">{fmtPrice(eq.pricePerDay)} / jour</div>
+          <div className="mt-3 text-2xl font-bold text-blue-700">{fmtPrice(eq.pricePerDay)} / heure</div>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
             <Card className="flex items-center gap-2 p-3">
               <MapPin size={15} className="shrink-0 text-papier-600" />

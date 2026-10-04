@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { MapPin } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { EmptyState, LevelBadge, fmtPrice } from '../../components/ui'
 import { PageHero, Reveal, Section } from '../../components/site/SiteKit'
@@ -24,14 +24,12 @@ export default function Catalogue() {
   const [params] = useSearchParams()
   const [category, setCategory] = useState(params.get('categorie') ?? '')
   const [query, setQuery] = useState(params.get('q') ?? '')
-  const [location, setLocation] = useState('')
   const [level, setLevel] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [availableOnly, setAvailableOnly] = useState(false)
   const [operatorOnly, setOperatorOnly] = useState(false)
 
   const published = equipment.filter((e) => e.status === 'PUBLISHED')
-  const locations = [...new Set(published.map((e) => e.location))]
 
   const q = query.trim().toLowerCase()
   const filtered = published.filter(
@@ -42,7 +40,6 @@ export default function Catalogue() {
         e.model.toLowerCase().includes(q) ||
         e.description.toLowerCase().includes(q)) &&
       (!category || e.categoryId === category) &&
-      (!location || e.location === location) &&
       (!level || e.level === level) &&
       (!maxPrice || e.pricePerDay <= Number(maxPrice)) &&
       (!availableOnly || e.available) &&
@@ -52,9 +49,10 @@ export default function Catalogue() {
   return (
     <>
       <PageHero
+        compact
         label="À louer"
-        title="Des engins inspectés, disponibles."
-        subtitle={`${filtered.length} engin${filtered.length > 1 ? 's' : ''} vérifié${filtered.length > 1 ? 's' : ''} et publié${filtered.length > 1 ? 's' : ''}. Chaque machine a été contrôlée sur place avant d’entrer au catalogue.`}
+        title="Des équipements disponibles."
+        subtitle={`${filtered.length} équipement${filtered.length > 1 ? 's' : ''} en ligne.`}
       />
 
       <Section tone="light" className="pt-12">
@@ -90,23 +88,6 @@ export default function Catalogue() {
               ))}
             </select>
 
-            <label className={LABEL} htmlFor="cat-loc">
-              Localisation
-            </label>
-            <select
-              id="cat-loc"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className={`${FIELD} mb-4`}
-            >
-              <option value="">Toutes</option>
-              {locations.map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
-              ))}
-            </select>
-
             <label className={LABEL} htmlFor="cat-level">
               Niveau de vérification
             </label>
@@ -123,7 +104,7 @@ export default function Catalogue() {
             </select>
 
             <label className={LABEL} htmlFor="cat-price">
-              Prix max / jour (FCFA)
+              Prix max / heure (FCFA)
             </label>
             <input
               id="cat-price"
@@ -191,7 +172,7 @@ export default function Catalogue() {
                           </div>
                           <div className="mt-2 flex items-center justify-between">
                             <span className="font-bold text-btp-600">
-                              {fmtPrice(e.pricePerDay)} / jour
+                              {fmtPrice(e.pricePerDay)} / heure
                             </span>
                             <span
                               className={`text-xs font-medium ${e.available ? 'text-emerald-600' : 'text-red-500'}`}
@@ -211,6 +192,34 @@ export default function Catalogue() {
             )}
           </div>
         </div>
+      </Section>
+
+      {/* Le mot de confiance, après le matériel. Il ouvrait la page en pleine
+          hauteur : on arrivait sur un catalogue et le premier écran d'un
+          téléphone ne montrait pas un seul engin. Celui qui descend jusqu'ici a
+          vu le parc — c'est le moment où savoir qui le qualifie l'intéresse. */}
+      <Section tone="muted">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <h2 className="volta-display text-3xl text-acier-900 sm:text-4xl">
+            Des équipements qualifiés.
+          </h2>
+          <p className="mt-4 text-lg leading-relaxed text-papier-700">
+            VOLTA s’appuie sur des contrôles techniques et documentaires avant de présenter un
+            équipement. La mention portée par chaque fiche — Basic, Silver ou Gold — indique
+            jusqu’où ce contrôle a été mené.
+          </p>
+          <p className="mt-4 text-papier-700">
+            Vous ne trouvez pas ce qu’il vous faut ? Décrivez votre besoin, nous le cherchons pour
+            vous.
+          </p>
+          <Link
+            to="/demande/location"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-btp-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-btp-600"
+          >
+            Décrire mon besoin
+            <ArrowRight size={15} aria-hidden />
+          </Link>
+        </Reveal>
       </Section>
     </>
   )

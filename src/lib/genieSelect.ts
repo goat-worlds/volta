@@ -176,8 +176,11 @@ export const EXPERTISES: readonly Expertise[] = [
     couleur: ACIER,
     points: ['Bungalows et sanitaires', 'Bureaux et salles de réunion', 'Solutions sur mesure'],
     to: '/demande/location',
-    // Seul pôle sans photo : rien dans le fonds ne montre une base vie.
-    // Un immeuble de bureaux ou une pelle y dirait le contraire du texte.
+    // Le fonds n'a pas de base vie en photo. Un chantier en gros œuvre — grue à
+    // tour, bâtiment en élévation — dit le métier faute de dire le produit :
+    // c'est là que les bungalows s'installent. Mieux vaut cela que l'aplat de
+    // couleur, qui laissait ce pôle muet au milieu de cinq cartes illustrées.
+    image: '/engins/grue-mobile.jpeg',
   },
   {
     id: '03',

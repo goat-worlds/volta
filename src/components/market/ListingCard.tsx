@@ -10,7 +10,7 @@ import { fmtPrice } from '../ui'
  *
  * Elle vend : le prix est la première chose lue après la photo, l'état (neuf /
  * occasion) et la mise en avant se voient avant le titre. La carte de location
- * dit « FCFA/jour » ; celle-ci dit un prix ferme ou « à négocier », et rien
+ * dit « FCFA/heure » ; celle-ci dit un prix ferme ou « à négocier », et rien
  * d'autre — l'offre réelle est faite par Génie Sélect après vérification.
  */
 export default function ListingCard({

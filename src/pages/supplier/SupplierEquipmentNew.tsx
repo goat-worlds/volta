@@ -152,7 +152,7 @@ export default function SupplierEquipmentNew() {
                 <input type="number" className={input} value={form.hours} onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })} />
               </div>
               <div>
-                <label className={label}>Prix indicatif / jour (FCFA)</label>
+                <label className={label}>Prix indicatif / heure (FCFA)</label>
                 <input type="number" className={input} value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: Number(e.target.value) })} />
               </div>
               <div>
@@ -315,7 +315,7 @@ export default function SupplierEquipmentNew() {
               <div><span className="text-slate-500">Marque / modèle :</span> {form.brand} {form.model}</div>
               <div><span className="text-slate-500">Année :</span> {form.year}</div>
               <div><span className="text-slate-500">Heures :</span> {form.hours}</div>
-              <div><span className="text-slate-500">Prix / jour :</span> {form.pricePerDay.toLocaleString('fr-FR')} FCFA</div>
+              <div><span className="text-slate-500">Prix / heure :</span> {form.pricePerDay.toLocaleString('fr-FR')} FCFA</div>
               <div><span className="text-slate-500">Photos :</span> {photos.length}</div>
               <div><span className="text-slate-500">Documents :</span> {documents.length}</div>
             </div>

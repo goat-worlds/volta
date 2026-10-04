@@ -29,9 +29,21 @@ import { Reveal } from '../site/SiteKit'
 export default function GenieSelectCover({
   /** L'accroche manuscrite, à droite. Encombrante là où la place manque. */
   note = true,
+  /**
+   * Niveau du titre.
+   *
+   * Cette couverture ouvre « Collaborons », où elle porte donc le titre de la
+   * page. Sur l'accueil elle passe après les huit parcours : le titre principal
+   * est alors le leur, et deux <h1> sur une même page n'en laissent aucun
+   * gouverner.
+   */
+  heading = 'h1',
 }: {
   note?: boolean
+  heading?: 'h1' | 'h2'
 }) {
+  const Titre = heading
+
   return (
     <section className="relative isolate overflow-hidden bg-acier-50">
       <img
@@ -58,11 +70,11 @@ export default function GenieSelectCover({
               Génie Sélect
             </span>
 
-            <h1 className="volta-display mt-4 text-4xl leading-[1.08] text-acier-900 sm:text-5xl lg:text-[3.4rem]">
+            <Titre className="volta-display mt-4 text-4xl leading-[1.08] text-acier-900 sm:text-5xl lg:text-[3.4rem]">
               Un groupe. 6 expertises.
               <br />
               Une seule plateforme pour <span className="text-btp-600">vos projets.</span>
-            </h1>
+            </Titre>
 
             <p className="mt-6 max-w-xl text-lg font-semibold text-acier-900">
               VOLTA est la plateforme digitale de Génie Sélect.

@@ -57,15 +57,33 @@ export default function Register() {
   // cette raison sociale qu'affichent le catalogue et les rapports.
   const needsCompany = role !== 'CLIENT'
 
+  /**
+   * Ce qu'on demande au client, et rien de plus.
+   *
+   * Il vient dire un besoin de chantier, pas ouvrir un dossier : son nom et son
+   * numéro suffisent, et c'est le numéro qui l'identifiera à la reconnexion.
+   * L'adresse et la ville restent exigées du fournisseur et de l'équipe
+   * technique, qui reçoivent des notifications écrites et signent des rapports.
+   */
+  const estClient = role === 'CLIENT'
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setError(null)
     try {
-      const user = await register({ name, email, phone, password, role, company, city })
+      const user = await register(
+        estClient
+          ? { name, phone, password, role }
+          : { name, email, phone, password, role, company, city },
+      )
       navigate(HOME_BY_ROLE[user.role] ?? '/')
     } catch {
-      setError("Inscription impossible. Vérifiez vos informations — l'email est peut-être déjà utilisé.")
+      setError(
+        estClient
+          ? 'Inscription impossible. Ce numéro est peut-être déjà enregistré.'
+          : "Inscription impossible. Vérifiez vos informations — l'email est peut-être déjà utilisé.",
+      )
     } finally {
       setBusy(false)
     }
@@ -148,37 +166,48 @@ export default function Register() {
             </div>
           )}
 
-          <div>
-            <label className={label}>Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@exemple.ci"
-              className={field}
-            />
-          </div>
+          {!estClient && (
+            <div>
+              <label className={label}>Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="vous@exemple.ci"
+                className={field}
+              />
+            </div>
+          )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={estClient ? '' : 'grid gap-4 sm:grid-cols-2'}>
             <div>
               <label className={label}>Téléphone</label>
               <input
+                type="tel"
+                required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+225 07 00 00 00"
+                placeholder="05 00 00 00 00"
                 className={field}
               />
+              {estClient && (
+                <p className="mt-1 text-xs text-papier-600">
+                  C’est avec ce numéro que vous vous connecterez.
+                </p>
+              )}
             </div>
-            <div>
-              <label className={label}>Ville</label>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Abidjan"
-                className={field}
-              />
-            </div>
+            {!estClient && (
+              <div>
+                <label className={label}>Ville</label>
+                <input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Abidjan"
+                  className={field}
+                />
+              </div>
+            )}
           </div>
 
           <div>

@@ -40,6 +40,16 @@ export interface Equipment {
   year: number
   hours: number
   location: string
+  /**
+   * Tarif indicatif, en FCFA **par heure**.
+   *
+   * Le nom dit « jour » : il date de la premiere version, ou la location se
+   * comptait en journees. Le metier compte en heures, et tous les ecrans
+   * affichent desormais « / heure ». Le champ n'a pas ete renomme parce qu'il
+   * traverse l'entite Java, la colonne en base et le contrat de l'API — un
+   * renommage se fait d'un bout a l'autre ou pas du tout, sous peine de laisser
+   * deux noms pour une meme valeur.
+   */
   pricePerDay: number
   available: boolean
   withOperator: boolean

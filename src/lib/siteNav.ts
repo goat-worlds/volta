@@ -30,7 +30,7 @@ export interface SiteLink {
  * deux endroits sans lien : le jour où il change, l'un des deux reste en
  * arrière et renvoie les appels dans le vide.
  */
-export const TELEPHONE = { affiche: '07 48 63 48 53', lien: 'tel:+2250748634853' }
+export const TELEPHONE = { affiche: '05 00 99 13 13', lien: 'tel:+2250500991313' }
 
 export const PRIMARY_LINKS: SiteLink[] = [
   // L'ordre est celui de la maquette : Volta Market avant le catalogue.

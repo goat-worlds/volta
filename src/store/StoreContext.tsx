@@ -130,7 +130,15 @@ export interface UserInput {
 
 export interface RegisterInput {
   name: string
-  email: string
+  /**
+   * Facultatif pour un client, exigé des fournisseurs et des équipes techniques.
+   *
+   * Un client s'inscrit avec son numéro : c'est par là qu'on le rappelle, et
+   * lui demander une adresse pour un besoin de chantier ajoute un obstacle là
+   * où il n'attend qu'un devis. Le serveur applique la même règle — le front ne
+   * fait pas seul cette économie.
+   */
+  email?: string
   phone: string
   password: string
   role: Role

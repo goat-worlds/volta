@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ComponentType, ReactNode } from 'react'
+import type { ComponentType, ReactNode, Ref } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Search, Send } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -147,16 +147,43 @@ export function Section({
   id,
   tone = 'light',
   className = '',
+  ref,
+  padding = 'default',
   children,
 }: {
   id?: string
   tone?: Tone
   className?: string
+  /**
+   * La couverture d'accueil a besoin de mesurer sa propre hauteur pour amener
+   * le visiteur à la section suivante au clic sur « Découvrir ». React 19 passe
+   * `ref` comme une prop ordinaire : pas de `forwardRef` à introduire.
+   */
+  ref?: Ref<HTMLElement>
+  /**
+   * Rythme vertical. « none » le rend à l'appelant.
+   *
+   * Une classe passée par `className` ne peut pas l'emporter sur `py-20` : à
+   * spécificité égale, c'est l'ordre dans la feuille générée qui tranche, pas
+   * l'ordre dans l'attribut. Il faudrait un `!important` — dont la syntaxe a
+   * changé entre Tailwind 3 et 4, et qui ferait dépendre la hauteur d'une
+   * couverture d'un détail de version. Une porte explicite coûte moins cher.
+   */
+  padding?: 'default' | 'none'
   children: ReactNode
 }) {
   return (
-    <section id={id} className={`${SURFACE[tone]} scroll-mt-16 px-4 py-20 sm:px-6 ${className}`}>
-      <div className="mx-auto max-w-7xl">{children}</div>
+    <section
+      id={id}
+      ref={ref}
+      className={`${SURFACE[tone]} scroll-mt-16 px-4 sm:px-6 ${
+        padding === 'none' ? '' : 'py-20'
+      } ${className}`}
+    >
+      {/* `w-full` est sans effet dans le flux normal, où ce bloc occupe déjà
+          toute la largeur. Il compte quand la section devient un conteneur
+          flex — ce que fait la couverture pour centrer son contenu. */}
+      <div className="mx-auto w-full max-w-7xl">{children}</div>
     </section>
   )
 }
@@ -420,18 +447,43 @@ export function PageHero({
   title,
   subtitle,
   children,
+  compact = false,
 }: {
   label: ReactNode
   title: ReactNode
-  subtitle: string
+  subtitle?: string
   children?: ReactNode
+  /**
+   * Version basse, pour les pages de catalogue.
+   *
+   * En pleine hauteur, ce bandeau occupe tout le premier écran d'un téléphone :
+   * on arrive sur une page de matériel et l'on ne voit aucun matériel. Le
+   * visiteur d'un catalogue vient voir des engins — le titre doit tenir en haut
+   * sans repousser la grille sous la ligne de flottaison.
+   */
+  compact?: boolean
 }) {
+  if (compact) {
+    return (
+      <section className="bg-papier-50 px-4 pb-8 pt-10 sm:px-6">
+        <Reveal className="mx-auto max-w-7xl">
+          <Eyebrow>{label}</Eyebrow>
+          <h1 className="volta-display mt-2 text-3xl text-acier-900 sm:text-4xl">{title}</h1>
+          {subtitle && <p className="mt-2 text-base text-papier-700">{subtitle}</p>}
+          {children}
+        </Reveal>
+      </section>
+    )
+  }
+
   return (
     <section className="bg-papier-50 px-4 pb-16 pt-20 text-center sm:px-6">
       <Reveal className="mx-auto max-w-3xl">
         <Eyebrow>{label}</Eyebrow>
         <h1 className="volta-display mt-4 text-5xl text-acier-900 sm:text-6xl">{title}</h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-papier-700">{subtitle}</p>
+        {subtitle && (
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-papier-700">{subtitle}</p>
+        )}
         {children}
       </Reveal>
     </section>

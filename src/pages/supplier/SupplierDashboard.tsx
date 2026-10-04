@@ -98,7 +98,7 @@ export default function SupplierDashboard() {
               <div key={e.id} className="flex items-center justify-between py-2.5">
                 <div>
                   <div className="text-sm font-medium">{e.name}</div>
-                  <div className="text-xs text-slate-500">{fmtPrice(e.pricePerDay)} / jour</div>
+                  <div className="text-xs text-slate-500">{fmtPrice(e.pricePerDay)} / heure</div>
                 </div>
                 <StatusBadge status={e.status} />
               </div>

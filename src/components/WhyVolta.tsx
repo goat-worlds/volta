@@ -1,4 +1,4 @@
-import { Award, Building2, Coins, FolderOpen, Scale } from 'lucide-react'
+import { Award, Building2, Coins, MapPin, Scale, Layers } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Card,
@@ -12,45 +12,59 @@ import {
 } from './site/SiteKit'
 
 /**
- * Ce que VOLTA vérifie à votre place.
+ * Pourquoi choisir VOLTA.
  *
- * La section a porté tour à tour trois chiffres encadrés, six cartes à icône,
- * puis un récit en pleine largeur flanqué d'un « 18 » de sept unités de corps
- * en bordure ambre et d'une liste de définitions sur deux colonnes. Le propos
- * était juste ; la forme changeait trois fois en un seul écran.
+ * <h2>Ce que cette section ne dit plus</h2>
  *
- * Le récit de l'inspection tient maintenant dans le chapeau — c'est la
- * promesse qui porte toutes les autres, elle est donc dite en premier — et les
- * garanties reprennent la carte commune. Le chiffre reste, en étiquette.
+ * Elle s'appelait « Avant la mise en ligne » et racontait l'inspection : le
+ * vérificateur qui se déplace, les dix-huit points déroulés, les organes
+ * photographiés, le rapport lu, la liste de reprises envoyée au propriétaire.
+ * Le propos était vrai, mais c'était la recette, pas le résultat.
+ *
+ * Deux problèmes. Un prospect qui n'est pas du métier n'a pas à comprendre
+ * notre organisation pour nous faire confiance : on lui demandait de lire un
+ * mode opératoire quand il voulait savoir ce qu'il y gagne. Et un concurrent y
+ * trouvait notre logique de contrôle, nos critères et nos règles de
+ * publication, offerts sur la page d'accueil.
+ *
+ * La section vend donc maintenant ce que le client obtient. Le détail du
+ * fonctionnement vit là où il sert : dans les espaces connectés, pour ceux qui
+ * ont un dossier à suivre.
  */
 
-const FACTS = ['18 points de contrôle', 'Sur le lieu de stationnement', 'Rapport lu avant publication']
+/** Ce que le client gagne, dit en trois mots — pas nos indicateurs internes. */
+const FACTS = ['Un seul interlocuteur', 'Des offres comparées', 'Sans commission']
 
-const GUARANTEES: { icon: LucideIcon; term: string; text: string }[] = [
+const ARGUMENTS: { icon: LucideIcon; term: string; text: string }[] = [
   {
-    icon: Award,
-    term: 'Le niveau est attribué, pas déclaré',
-    text: 'Basic, Silver ou Gold : c’est l’administration qui tranche, après lecture du rapport. Le propriétaire ne choisit pas la note de sa machine.',
+    icon: Layers,
+    term: 'Une plateforme, six expertises',
+    text: 'Louer, acheter, entretenir, équiper, digitaliser, former : les métiers de Génie Sélect sont accessibles depuis une seule adresse.',
   },
   {
-    icon: FolderOpen,
-    term: 'Le dossier reste ouvert',
-    text: 'Qui a inspecté, quel jour, ce qui a été relevé, ce qu’il reste à corriger. Le fournisseur suit son dossier sans avoir à téléphoner pour savoir où il en est.',
+    icon: Award,
+    term: 'Des équipements qualifiés',
+    text: 'VOLTA s’appuie sur des contrôles techniques et documentaires avant de présenter une offre.',
   },
   {
     icon: Scale,
-    term: 'Plusieurs devis, côte à côte',
-    text: 'Une demande part à plusieurs loueurs. Vous comparez les prix, les délais de mise à disposition et les conditions sur le même écran.',
+    term: 'Plusieurs offres, côte à côte',
+    text: 'Vous comparez les prix, les délais de mise à disposition et les conditions sur le même écran.',
   },
   {
     icon: Building2,
-    term: 'On sait à qui vous confiez le chantier',
-    text: 'Raison sociale, coordonnées, parc contrôlé. Pas de numéro de téléphone anonyme au bout d’une annonce.',
+    term: 'Vous savez à qui vous parlez',
+    text: 'Raison sociale, coordonnées, matériel identifié. Pas de numéro anonyme au bout d’une annonce.',
   },
   {
     icon: Coins,
     term: 'Rien n’est prélevé au passage',
     text: 'VOLTA met en relation et ne prend pas de commission. Vous traitez aux conditions convenues entre vous.',
+  },
+  {
+    icon: MapPin,
+    term: 'Un accompagnement local',
+    text: 'Des équipes en Côte d’Ivoire, qui connaissent les chantiers, les délais et les contraintes du terrain.',
   },
 ]
 
@@ -59,33 +73,28 @@ export default function WhyVolta() {
     <Section id="garanties" tone="muted">
       <SectionCover
         tone="muted"
-        label="Avant la mise en ligne"
-        title="Quelqu’un se déplace et monte sur la machine."
-        text="Aucun engin n’entre au catalogue sur parole. Un vérificateur mandaté par Génie Sélect se rend là où la machine travaille, la fait démarrer, déroule dix-huit points de contrôle — moteur, transmission, hydraulique, freinage, sécurité, structure — photographie les organes sensibles et note ce qui cloche."
-        image="/engins/grue-mobile.jpeg"
-        imageAlt="Grue mobile déployée sur un chantier de construction, une grue à tour et un bâtiment en gros œuvre derrière"
+        label="Pourquoi VOLTA"
+        title="Vous avez un projet. Nous trouvons la solution."
+        text="Pas besoin de connaître le marché des engins pour équiper votre chantier. Dites-nous ce que vous avez à faire : nous identifions la solution adaptée parmi les expertises du groupe, et nous vous accompagnons jusqu’au bout."
+        image="/engins/partenaires-poignee-main.jpeg"
+        imageAlt="Deux professionnels se serrant la main devant du matériel de chantier"
         reperes={FACTS}
-      >
-        <p className="mt-6 leading-relaxed text-papier-600">
-          Son rapport est lu avant toute publication. Si la machine n’est pas en état, elle ne sort
-          pas : le propriétaire reçoit la liste de ce qu’il doit reprendre, et la fiche attend.
-        </p>
-      </SectionCover>
+      />
 
       <CardGrid>
-        {GUARANTEES.map((g, i) => (
-          <Reveal key={g.term} delay={(i % 3) * 0.06}>
+        {ARGUMENTS.map((a, i) => (
+          <Reveal key={a.term} delay={(i % 3) * 0.06}>
             <Card>
-              <CardIcon icon={g.icon} />
-              <h3 className="volta-display mt-4 text-xl leading-tight text-acier-900">{g.term}</h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-papier-600">{g.text}</p>
+              <CardIcon icon={a.icon} />
+              <h3 className="volta-display mt-4 text-xl leading-tight text-acier-900">{a.term}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-papier-600">{a.text}</p>
             </Card>
           </Reveal>
         ))}
       </CardGrid>
 
       <SectionActions>
-        <MoreLink to="/catalogue">Voir les engins qui sont passés par là</MoreLink>
+        <MoreLink to="/catalogue">Voir les équipements disponibles</MoreLink>
       </SectionActions>
     </Section>
   )

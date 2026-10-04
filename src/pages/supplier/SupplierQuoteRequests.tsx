@@ -184,7 +184,7 @@ export default function SupplierQuoteRequests() {
 
                   {mine ? (
                     <div className="text-right">
-                      <div className="text-sm font-bold text-slate-900">{formatFcfa(mine.price)} / jour</div>
+                      <div className="text-sm font-bold text-slate-900">{formatFcfa(mine.price)} / heure</div>
                       <div className="text-xs text-slate-500">Devis envoyé le {mine.createdAt}</div>
                     </div>
                   ) : r.status === 'PENDING' ? (
@@ -251,7 +251,7 @@ export default function SupplierQuoteRequests() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">Prix par jour (FCFA)</label>
+                <label className="mb-1 block text-xs font-medium text-slate-500">Prix par heure (FCFA)</label>
                 <input
                   type="number"
                   min={1}

@@ -105,7 +105,7 @@ export default function ClientQuoteRequestDetail() {
 
   /** Critères comparés, dans l'ordre où ils pèsent sur la décision. */
   const criteria: { label: string; render: (q: Quote) => string }[] = [
-    { label: 'Prix par jour', render: (q) => formatFcfa(q.price) },
+    { label: 'Prix par heure', render: (q) => formatFcfa(q.price) },
     {
       label: 'Total estimé',
       render: (q) => {
@@ -175,7 +175,7 @@ export default function ClientQuoteRequestDetail() {
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
             <div className="flex items-center gap-2 font-semibold text-emerald-800">
               <Check size={16} />
-              Offre retenue — {formatFcfa(acceptedQuote.price)} / jour
+              Offre retenue — {formatFcfa(acceptedQuote.price)} / heure
             </div>
             <p className="mt-1 text-xs text-emerald-700">
               VOLTA ne prend ni réservation ni paiement : convenez directement des modalités

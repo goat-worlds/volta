@@ -68,7 +68,7 @@ export default function AdminEquipment() {
               <tr>
                 <th className="px-4 py-3">Engin</th>
                 <th className="px-4 py-3">Fournisseur</th>
-                <th className="px-4 py-3">Prix / jour</th>
+                <th className="px-4 py-3">Prix / heure</th>
                 <th className="px-4 py-3">Statut</th>
                 <th className="px-4 py-3">Niveau</th>
                 <th className="px-4 py-3">Action</th>
@@ -118,7 +118,7 @@ export default function AdminEquipment() {
               <div><span className="text-slate-500">Marque / modèle :</span> {selected.brand} {selected.model}</div>
               <div><span className="text-slate-500">Année :</span> {selected.year}</div>
               <div><span className="text-slate-500">État déclaré :</span> {selected.declaredCondition}</div>
-              <div><span className="text-slate-500">Prix / jour :</span> {fmtPrice(selected.pricePerDay)}</div>
+              <div><span className="text-slate-500">Prix / heure :</span> {fmtPrice(selected.pricePerDay)}</div>
             </div>
             <div className="text-sm">
               <span className="text-slate-500">Documents :</span>{' '}

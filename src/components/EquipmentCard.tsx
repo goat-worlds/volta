@@ -57,7 +57,7 @@ export default function EquipmentCard({ id, name, image, location, price, level 
           <div className="mt-2.5 border-t border-papier-200 pt-2.5 sm:mt-3 sm:pt-3">
             <div className="text-base font-bold text-acier-900 sm:text-lg">
               {price.toLocaleString('fr-FR')}{' '}
-              <span className="text-xs text-papier-600 sm:text-sm">FCFA/jour</span>
+              <span className="text-xs text-papier-600 sm:text-sm">FCFA/heure</span>
             </div>
           </div>
         </div>

@@ -138,18 +138,26 @@ export default function Login() {
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            void enter(email, password, 'Email ou mot de passe incorrect.')
+            void enter(email, password, 'Identifiant ou mot de passe incorrect.')
           }}
           className="grid gap-4"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium text-papier-700">Email</label>
+            <label className="mb-1 block text-sm font-medium text-papier-700">
+              Email ou téléphone
+            </label>
+            {/* `type="text"` et non `email` : le champ accepte désormais les
+                deux, et le contrôle natif du navigateur rejetterait un numéro
+                avant même que le formulaire parte. Le serveur reconnaît l'un de
+                l'autre — dix chiffres valent un numéro. */}
             <input
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@exemple.ci"
+              placeholder="vous@exemple.ci ou 05 00 00 00 00"
               className={field}
             />
           </div>

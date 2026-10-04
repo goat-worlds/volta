@@ -7,15 +7,31 @@ import { useState } from 'react'
  * espaces connectés : trois copies à retoucher à chaque changement d'identité,
  * et deux d'entre elles finissaient toujours par diverger.
  *
- * Le logo dessiné est servi depuis `public/images/logo-volta.png`. Tant que ce
- * fichier n'est pas déposé, le sigle typographique tient sa place — un logo
- * manquant ne doit pas laisser un cadre brisé en haut de chaque page, et le
- * repli se déclenche aussi bien si le fichier est absent que s'il est corrompu
- * ou bloqué par le réseau.
+ * <h2>Le symbole, pas le bloc</h2>
+ *
+ * Le fichier de marque livré est un bloc empilé : le V orange, puis VOLTA en
+ * noir, puis la baseline. Il est fait pour du papier, et il ne survit pas à une
+ * barre de 60 px — le mot y tombe à dix pixels de haut, et son encre noire
+ * disparaît dans le bleu nuit. Posé tel quel dans l'en-tête, on ne voyait
+ * qu'une tache orange suivie d'une bavure.
+ *
+ * On a d'abord tenté de le sauver en l'agrandissant, puis en le posant sur une
+ * plaque blanche. L'agrandissement poussait la navigation à la ligne ; la
+ * plaque collait un rectangle clair dans une barre sombre. Le vrai problème
+ * était la composition : il fallait un logo couché, pas empilé.
+ *
+ * Seul le symbole est donc repris — `logo-volta-mark.png`, découpé de
+ * l'artwork au-dessus du mot — et le nom est composé en typographie à côté.
+ * C'est ce que montre la maquette, c'est lisible à 36 px, et la couleur du
+ * texte suit le fond au lieu de le subir.
+ *
+ * Le repli typographique reste : un logo manquant ne doit pas laisser un cadre
+ * brisé en haut de chaque page, et il se déclenche aussi bien si le fichier est
+ * absent que s'il est corrompu ou bloqué par le réseau.
  */
 
-/** Emplacement du logo dessiné. Déposer le fichier suffit à l'afficher. */
-const LOGO = '/images/logo-volta.png'
+/** Le symbole seul, découpé du bloc de marque. */
+const MARQUE = '/images/logo-volta-mark.png'
 
 /** Signature par défaut, sous le nom. */
 const SIGNATURE = 'by Génie Sélect Digital'
@@ -40,38 +56,35 @@ export default function Logo({
   const nom = tone === 'dark' ? 'text-white' : 'text-acier-900'
   const teinteLigne = tone === 'dark' ? 'text-acier-300' : 'text-papier-600'
 
-  // Le logo dessiné porte déjà le nom : à côté de lui, seule une précision
-  // que l'image ne contient pas mérite d'être écrite — le nom de l'espace.
-  const ligneAvecLogo = subtitle === undefined ? null : subtitle
-
-  if (!absent) {
-    return (
-      <span className={`flex shrink-0 items-center gap-2.5 ${className}`}>
+  return (
+    <span className={`flex shrink-0 items-center gap-2.5 ${className}`}>
+      {absent ? (
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-500 text-lg font-black text-acier-900">
+          V
+        </span>
+      ) : (
         <img
-          src={LOGO}
-          alt="VOLTA"
+          src={MARQUE}
+          // Le nom est écrit juste à côté : décrire l'image le ferait entendre
+          // deux fois à un lecteur d'écran.
+          alt=""
+          aria-hidden
           className="h-9 w-auto"
           onError={() => setAbsent(true)}
           // Le logo est au-dessus de la ligne de flottaison : le différer
           // ferait clignoter l'en-tête au premier affichage.
           loading="eager"
         />
-        {ligneAvecLogo && (
-          <span className={`block text-xs leading-tight ${teinteLigne}`}>{ligneAvecLogo}</span>
-        )}
-      </span>
-    )
-  }
+      )}
 
-  return (
-    <span className={`flex shrink-0 items-center gap-2.5 ${className}`}>
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-500 text-lg font-black text-acier-900">
-        V
-      </span>
       <span className="leading-none">
         <span className={`block text-lg font-black tracking-tight ${nom}`}>VOLTA</span>
         {ligne && (
-          <span className={`block text-[10px] font-semibold uppercase tracking-widest ${teinteLigne}`}>
+          <span
+            // Sans `whitespace-nowrap`, la signature se brise en trois lignes
+            // dès que la barre se charge, et le logo pousse toute la navigation.
+            className={`block whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest ${teinteLigne}`}
+          >
             {ligne === SIGNATURE ? (
               <>
                 <span className="lowercase">by</span> Génie Sélect Digital

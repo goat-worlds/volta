@@ -14,14 +14,17 @@ import { CtaBanner, MoreLink, Reveal, Section, SectionActions, SectionCover } fr
 /**
  * Accueil.
  *
- * L'ordre des sections suit un argumentaire, et ici on vend : la promesse, la
- * question au visiteur, ce qui est à vendre, ce qui est à louer, comment ça se
- * passe, pourquoi nous faire confiance, ce que vaut chaque mention, l'appel
- * aux techniciens, et l'invitation à dire son besoin.
+ * <h2>L'ordre</h2>
  *
- * Le Market vient avant le catalogue de location parce que c'est l'entrée qui
- * convertit ; le catalogue avant « comment ça marche » parce qu'on montre le
- * stock avant d'expliquer la mécanique.
+ * Le visiteur agit d'abord, il s'informe ensuite. Les huit parcours ouvrent
+ * donc la page, et la couverture du groupe vient après : savoir que VOLTA est
+ * la vitrine de Génie Sélect intéresse celui qui hésite, pas celui qui cherche
+ * une pelle pour lundi — et le second est le plus nombreux.
+ *
+ * Suivent ce qui est à vendre, ce qui est à louer, l'appel aux techniciens, les
+ * six expertises du groupe, puis les garanties. Le Market passe avant le
+ * catalogue de location parce que c'est l'entrée qui convertit ; le catalogue
+ * avant les garanties parce qu'on montre le stock avant de parler de soi.
  *
  * Ce qui a changé, c'est la forme. Chaque section apportait sa disposition, sa
  * gouttière, sa taille de titre et son fond : on descendait la page en
@@ -45,14 +48,17 @@ export default function Home() {
 
   return (
     <>
-      {/* Le groupe d'abord : VOLTA se presentait comme une plateforme de
-          location, sans dire de qui elle est la vitrine. Le visiteur
-          apprend en arrivant qu'il a six portes, pas une. */}
-      <GenieSelectCover />
+      {/* Les huit parcours d'abord. La couverture du groupe ouvrait la page :
+          elle expliquait de qui VOLTA est la vitrine avant que le visiteur ait
+          pu faire ce pour quoi il est venu. Celui qui cherche une pelle pour
+          lundi n'a plus un écran de présentation à franchir — il voit les huit
+          portes, et prend la sienne. */}
+      <IntentGrid heading="h1" cover />
 
-      {/* L'entrée prioritaire : le visiteur choisit immédiatement son besoin
-          parmi les huit fonctionnalités, avant de découvrir le groupe. */}
-      <IntentGrid />
+      {/* Le groupe ensuite : qui est derrière la plateforme, et les cinq autres
+          expertises qu'on peut lui demander. C'est une réponse à « à qui ai-je
+          affaire ? » — une question qui vient après le besoin, pas avant. */}
+      <GenieSelectCover heading="h2" />
 
       <MarketShowcase />
 

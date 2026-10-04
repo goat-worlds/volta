@@ -225,7 +225,7 @@ export default function ClientQuotes() {
                       <div className="flex items-center gap-1.5">
                         <Receipt size={13} className="shrink-0 text-slate-400" />
                         <div>
-                          <dt className="text-slate-500">Prix / jour</dt>
+                          <dt className="text-slate-500">Prix / heure</dt>
                           <dd className="font-semibold text-acier-900">{formatFcfa(quote.price)}</dd>
                         </div>
                       </div>

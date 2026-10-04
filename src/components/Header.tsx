@@ -4,11 +4,12 @@ import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, Phone, Search, 
 import { useStore } from '../store/StoreContext'
 import { HOME_BY_ROLE, ROLE_LABEL } from '../lib/navigation'
 import {
+  JOURNEY_COLUMNS,
+  JOURNEYS_FEATURE,
   PRIMARY_LINKS,
   SECONDARY_LINKS,
   TELEPHONE,
 } from '../lib/siteNav'
-import { EXPERTISES } from '../lib/genieSelect'
 import InstallAppButton from './site/InstallAppButton'
 import Logo from './Logo'
 
@@ -25,14 +26,14 @@ import Logo from './Logo'
  * délai (le pointeur traverse un vide entre le bouton et le panneau), à la
  * touche Échap, et à chaque navigation.
  */
-/** Le panneau depliable du groupe. */
-type Panneau = 'groupe'
+/** Le panneau dépliable des parcours. */
+type Panneau = 'parcours'
 
 export default function Header() {
   const { currentUser, logout } = useStore()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  // Le groupe conserve un panneau détaillé, sans surcharger la barre.
+  // Les huit parcours tiennent dans un panneau, sans surcharger la barre.
   const [panneau, setPanneau] = useState<Panneau | null>(null)
   const closeTimer = useRef<number | null>(null)
 
@@ -72,8 +73,11 @@ export default function Header() {
   }, [panneau, menuOpen])
 
   const space = currentUser ? HOME_BY_ROLE[currentUser.role] : null
+  // `whitespace-nowrap` : sans lui, une barre trop chargée coupe les intitulés
+  // en plein milieu — « Louer un / engin » sur trois lignes — au lieu de laisser
+  // le dépassement se voir et se corriger.
   const linkClass = (active: boolean) =>
-    `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+    `whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-semibold transition ${
       active ? 'bg-white/10 text-white' : 'text-acier-200 hover:bg-white/5 hover:text-white'
     }`
 
@@ -94,16 +98,16 @@ export default function Header() {
           {/* Le groupe en premier : VOLTA est sa vitrine, et le visiteur
               doit pouvoir atteindre les six expertises depuis n'importe
               quelle page. */}
-          <div className="relative" onMouseEnter={() => openPanel("groupe")}>
+          <div className="relative" onMouseEnter={() => openPanel("parcours")}>
             <button
               type="button"
-              aria-expanded={panneau === "groupe"}
+              aria-expanded={panneau === "parcours"}
               aria-haspopup="true"
-              onClick={() => setPanneau((p) => (p === "groupe" ? null : "groupe"))}
-              className={`flex items-center gap-1 ${linkClass(panneau === "groupe")}`}
+              onClick={() => setPanneau((p) => (p === "parcours" ? null : "parcours"))}
+              className={`flex items-center gap-1 ${linkClass(panneau === "parcours")}`}
             >
-              Génie Sélect
-              <ChevronDown size={14} className={`transition-transform ${panneau === "groupe" ? "rotate-180" : ""}`} />
+              Parcours
+              <ChevronDown size={14} className={`transition-transform ${panneau === "parcours" ? "rotate-180" : ""}`} />
             </button>
           </div>
           {PRIMARY_LINKS.map((l) => (
@@ -113,23 +117,27 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 lg:flex">
+        <div className="ml-auto hidden shrink-0 items-center gap-1.5 whitespace-nowrap lg:flex">
           {/* Le numero en clair dans la barre : sur un chantier, on
               appelle avant de remplir un formulaire. Il est lu depuis
               siteNav, comme celui du pied de page. */}
           <a
             href={TELEPHONE.lien}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3.5 py-2 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-white/5"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-white/20 px-3 py-2 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-white/5"
           >
             <Phone size={15} className="text-btp-400" aria-hidden />
             {TELEPHONE.affiche}
           </a>
+          {/* Le suivi n'apparaît qu'à partir de `xl` : c'est l'entrée la moins
+              demandée de la barre, et à 1280 px elle poussait « Louer un engin »
+              et le numéro à la ligne. Elle reste dans le menu mobile et en pied
+              de page, où personne ne la cherche en vain. */}
           {SECONDARY_LINKS.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               className={({ isActive }) =>
-                `inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                `hidden items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium transition xl:inline-flex ${
                   isActive ? 'text-white' : 'text-acier-300 hover:text-white'
                 }`
               }
@@ -161,13 +169,13 @@ export default function Header() {
             <>
               <Link
                 to="/connexion"
-                className="rounded-lg border border-white/15 px-3.5 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                className="whitespace-nowrap rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-white transition hover:border-white/40"
               >
                 Connexion
               </Link>
               <Link
                 to="/inscription"
-                className="rounded-lg bg-btp-500 px-4 py-2 text-sm font-bold text-white shadow-md transition hover:bg-btp-600"
+                className="whitespace-nowrap rounded-lg bg-btp-500 px-3.5 py-2 text-sm font-bold text-white shadow-md transition hover:bg-btp-600"
               >
                 Créer un compte
               </Link>
@@ -185,45 +193,65 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Panneau « Génie Sélect » : les six expertises, dans leur ordre. */}
-      {panneau === "groupe" && (
+      {/* Panneau « Parcours » : les huit intentions, groupées par situation.
+
+          Il listait les six expertises du groupe, alors que le bouton annonce
+          les parcours et que la documentation de ce composant décrit déjà ce
+          panneau-ci : le code et son intention avaient divergé. Les expertises
+          restent accessibles par « Collaborons », qui est fait pour elles. */}
+      {panneau === "parcours" && (
         <div
           className="absolute inset-x-0 top-full z-40 hidden border-t border-white/10 bg-acier-900/98 shadow-2xl backdrop-blur lg:block"
-          onMouseEnter={() => openPanel("groupe")}
+          onMouseEnter={() => openPanel("parcours")}
         >
-          <div className="mx-auto max-w-7xl px-4 py-8">
-            <div className="flex items-end justify-between gap-6">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-btp-400">
-                  Nos domaines d’activité
-                </p>
-                <h3 className="mt-2 text-lg font-bold text-white">Un groupe, six expertises.</h3>
-              </div>
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[1fr_2.2fr]">
+            {/* L'encart dit le principe avant la liste : sans lui, huit liens
+                se lisent comme un sommaire et non comme une offre. */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-btp-400">
+                {JOURNEYS_FEATURE.eyebrow}
+              </p>
+              <h3 className="mt-2 text-lg font-bold leading-snug text-white">
+                {JOURNEYS_FEATURE.title}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-acier-300">
+                {JOURNEYS_FEATURE.description}
+              </p>
               <Link
-                to="/collaborons"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-btp-400"
+                to={JOURNEYS_FEATURE.to}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-btp-400"
               >
-                Collaborons avec Génie Sélect
+                {JOURNEYS_FEATURE.ctaLabel}
                 <ArrowRight size={15} />
               </Link>
             </div>
-            <ul className="mt-6 grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-3">
-              {EXPERTISES.map((e) => (
-                <li key={e.id}>
-                  <Link to={e.to} className="group flex gap-3 rounded-lg p-2 transition hover:bg-white/5">
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-btp-500/15 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
-                      <e.icon size={16} />
-                    </span>
-                    <span>
-                      <span className="block text-sm font-semibold text-white">{e.nom}</span>
-                      <span className="mt-0.5 block text-xs leading-snug text-acier-300">
-                        {e.accroche}
-                      </span>
-                    </span>
-                  </Link>
-                </li>
+
+            <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+              {JOURNEY_COLUMNS.map((colonne) => (
+                <div key={colonne.heading}>
+                  <p className="text-xs font-bold uppercase tracking-wider text-acier-400">
+                    {colonne.heading}
+                  </p>
+                  <ul className="mt-2 space-y-0.5">
+                    {colonne.intents.map((intent) => (
+                      <li key={intent.id}>
+                        <Link
+                          to={intent.to}
+                          className="group flex items-start gap-2.5 rounded-lg p-2 transition hover:bg-white/5"
+                        >
+                          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-btp-500/15 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
+                            <intent.icon size={14} />
+                          </span>
+                          <span className="text-sm font-medium leading-snug text-white">
+                            {intent.title}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       )}

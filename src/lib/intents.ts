@@ -72,7 +72,7 @@ export const INTENTS: Intent[] = [
   // filtres de l'espace DG.
   {
     id: 'MAINTAIN_EQUIPMENT',
-    title: 'Faire la maintenance de mon engin',
+    title: 'Je veux faire la maintenance de mon engin',
     description:
       'Entretien courant, panne ou revision : un technicien VOLTA intervient sur votre machine.',
     cta: 'Demander une intervention',
@@ -146,7 +146,7 @@ export const INTENTS: Intent[] = [
   },
   {
     id: 'FIND_TECHNICIAN',
-    title: 'Je recherche un technicien',
+    title: 'Je recherche un technicien ou un opérateur qualifié',
     description:
       'Notre équipe technique est constituée de profils étudiés, auditionnés et sélectionnés par VOLTA.',
     cta: 'Rechercher un technicien',
@@ -258,12 +258,18 @@ export const FALLBACK_INTENT_ICON = ClipboardList
  * ne se deduit d'aucun champ.
  */
 export const PARCOURS_ACCUEIL: IntentId[] = [
+  // Premiere rangee : les quatre parcours qui vendent. Ce sont eux qu'on voit
+  // en arrivant, et ils disent ce que VOLTA fait pour un chantier en marche —
+  // louer, entretenir, trouver quelqu'un, former.
   'RENT_EQUIPMENT',
-  'BUY_EQUIPMENT',
   'MAINTAIN_EQUIPMENT',
   'FIND_TECHNICIAN',
+  'TRAIN_TEAM',
+  // Seconde rangee : les demandes plus engageantes, et l'achat en dernier.
+  // Acheter un engin est la decision la plus lourde du catalogue : la mettre
+  // en tete demanderait au visiteur de s'engager avant d'avoir rien vu.
   'FLEET_NEED',
   'BECOME_GOLD',
   'BUY_PARTS',
-  'TRAIN_TEAM',
+  'BUY_EQUIPMENT',
 ]

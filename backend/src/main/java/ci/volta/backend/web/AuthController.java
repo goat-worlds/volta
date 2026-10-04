@@ -51,6 +51,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest body) {
+        // Le corps nomme encore le champ « email » : c'est le contrat déjà publié,
+        // et les clients installés l'envoient sous ce nom. Il transporte
+        // maintenant une adresse ou un numéro, et c'est le service qui tranche.
         AuthService.AuthResult result = authService.login(body.email(), body.password());
         return new AuthResponse(result.token(), result.user());
     }
