@@ -65,7 +65,20 @@ export default function IntentGrid({
       // la huitième carte sous la ligne de flottaison. Elle garde sa respiration
       // en bas, pour ne pas coller à la section suivante.
       padding={cover ? 'none' : 'default'}
-      className={cover ? 'pb-14 pt-8 sm:pt-10' : ''}
+      /*
+       * Un écran plein, exactement.
+       *
+       * `100svh` et non `100vh` : sur mobile, `vh` compte la barre d'adresse du
+       * navigateur comme si elle n'existait pas, et la couverture dépasse de sa
+       * hauteur. Les 4rem retirés sont ceux de la barre, qui est en `sticky` et
+       * ne se soustrait donc pas d'elle-même.
+       *
+       * Le contenu se centre verticalement : sur un grand écran, les huit cartes
+       * se poseraient sinon en haut avec un vide sous le bouton.
+       */
+      className={
+        cover ? 'flex min-h-[calc(100svh-4rem)] items-center pb-10 pt-6 sm:pt-8' : ''
+      }
     >
       {/* La couverture n'a pas de chapeau : huit cartes illustrées disent
           d'elles-mêmes ce qu'on peut faire, et le titre leur prenait la hauteur

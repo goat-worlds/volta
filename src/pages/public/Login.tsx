@@ -143,7 +143,10 @@ export default function Login() {
           className="grid gap-4"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium text-papier-700">
+            <label
+              htmlFor="connexion-identifiant"
+              className="mb-1 block text-sm font-medium text-papier-700"
+            >
               Email ou téléphone
             </label>
             {/* `type="text"` et non `email` : le champ accepte désormais les
@@ -151,6 +154,7 @@ export default function Login() {
                 avant même que le formulaire parte. Le serveur reconnaît l'un de
                 l'autre — dix chiffres valent un numéro. */}
             <input
+              id="connexion-identifiant"
               type="text"
               inputMode="email"
               autoComplete="username"
@@ -162,8 +166,9 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-papier-700">Mot de passe</label>
+            <label htmlFor="connexion-motdepasse" className="mb-1 block text-sm font-medium text-papier-700">Mot de passe</label>
             <input
+              id="connexion-motdepasse"
               type="password"
               required
               value={password}

@@ -141,8 +141,9 @@ export default function Register() {
 
         <form onSubmit={submit} className="grid gap-4">
           <div>
-            <label className={label}>Nom complet</label>
+            <label className={label} htmlFor="inscription-nom">Nom complet</label>
             <input
+              id="inscription-nom"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -153,10 +154,11 @@ export default function Register() {
 
           {needsCompany && (
             <div>
-              <label className={label}>
+              <label className={label} htmlFor="inscription-structure">
                 {role === 'SUPPLIER' ? 'Raison sociale' : 'Nom du bureau de vérification'}
               </label>
               <input
+                id="inscription-structure"
                 required
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
@@ -168,8 +170,9 @@ export default function Register() {
 
           {!estClient && (
             <div>
-              <label className={label}>Email</label>
+              <label className={label} htmlFor="inscription-email">Email</label>
               <input
+              id="inscription-email"
                 type="email"
                 required
                 value={email}
@@ -182,8 +185,9 @@ export default function Register() {
 
           <div className={estClient ? '' : 'grid gap-4 sm:grid-cols-2'}>
             <div>
-              <label className={label}>Téléphone</label>
+              <label className={label} htmlFor="inscription-tel">Téléphone</label>
               <input
+              id="inscription-tel"
                 type="tel"
                 required
                 value={phone}
@@ -199,8 +203,9 @@ export default function Register() {
             </div>
             {!estClient && (
               <div>
-                <label className={label}>Ville</label>
+                <label className={label} htmlFor="inscription-ville">Ville</label>
                 <input
+              id="inscription-ville"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="Abidjan"
@@ -211,8 +216,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className={label}>Mot de passe</label>
+            <label className={label} htmlFor="inscription-motdepasse">Mot de passe</label>
             <input
+              id="inscription-motdepasse"
               type="password"
               required
               minLength={6}

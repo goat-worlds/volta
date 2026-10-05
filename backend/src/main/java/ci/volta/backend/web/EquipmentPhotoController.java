@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ci.volta.backend.service.WatermarkService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -48,17 +49,26 @@ import java.util.UUID;
 @RequestMapping("/api/equipment/photos")
 public class EquipmentPhotoController {
 
-    /** Types dont le contenu est bien une image, quel que soit le nom du fichier. */
+    /**
+     * Types dont le contenu est bien une image, quel que soit le nom du fichier.
+     *
+     * Le WebP en a été retiré : ImageIO ne sait pas l'ouvrir sans greffon, donc
+     * pas le filigraner. L'accepter reviendrait à publier la seule famille
+     * d'images que la marque ne protège pas — et personne ne s'en apercevrait.
+     */
     private static final List<String> ALLOWED_CONTENT_TYPES =
-            List.of("image/jpeg", "image/png", "image/webp");
+            List.of("image/jpeg", "image/png");
 
     /** Au-delà, ce n'est plus une photo de fiche produit mais un fichier à héberger ailleurs. */
     private static final long MAX_BYTES = 8L * 1024 * 1024;
 
     private final String uploadDir;
+    private final WatermarkService watermark;
 
-    public EquipmentPhotoController(@Value("${app.upload-dir}") String uploadDir) {
+    public EquipmentPhotoController(@Value("${app.upload-dir}") String uploadDir,
+                                    WatermarkService watermark) {
         this.uploadDir = uploadDir;
+        this.watermark = watermark;
     }
 
     @PostMapping
@@ -73,7 +83,7 @@ public class EquipmentPhotoController {
         }
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Seules les images JPEG, PNG ou WebP sont acceptées."));
+            return ResponseEntity.badRequest().body(Map.of("message", "Seules les images JPEG ou PNG sont acceptées."));
         }
 
         Path dir = Paths.get(uploadDir);
@@ -86,7 +96,10 @@ public class EquipmentPhotoController {
         // avant l'écriture, mais filename vient d'un UUID que nous générons :
         // la vérification est redondante, pas une garantie qu'il faille contourner.
         Path target = dir.resolve(filename);
-        file.transferTo(target);
+        // Marqué avant d'être écrit, jamais après : une photo posée nue sur le
+        // disque, même une seconde, est une photo que le serveur statique peut
+        // déjà servir.
+        Files.write(target, watermark.marquer(file.getBytes(), contentType));
 
         String publicUrl = "/uploads/equipment/" + filename;
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("url", publicUrl));

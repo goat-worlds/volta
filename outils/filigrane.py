@@ -53,6 +53,9 @@ SOURCES = RACINE.parent / "volta-junior" / "sources-images"
 SORTIE = RACINE / "public" / "engins"
 MASTERS = RACINE.parent / "volta-junior" / "masters-tatoues"
 
+# Les images de remplacement, affichées à la place d'une photo absente.
+REMPLACEMENTS = RACINE / "public" / "images" / "placeholders"
+
 LOGO = RACINE / "public" / "images" / "logo-volta.png"
 SITE_NAV = RACINE / "src" / "lib" / "siteNav.ts"
 
@@ -173,15 +176,37 @@ def filigraner(source: Path, cible: Path, tel: str) -> None:
     boite = (int(x), int(y), int(min(L, x + largeur)), int(min(H, y + hauteur)))
     teinte = couleur_opposee(image, boite)
 
+    # Un liseré de la couleur opposée, derrière chaque lettre.
+    #
+    # La teinte adaptative suffisait sur un fond uni : blanc sur sombre, gris
+    # très foncé sur clair. Elle échouait partout ailleurs — terre remuée,
+    # bitume, bardage tacheté — où la luminance moyenne tombe au milieu et où
+    # aucune des deux couleurs ne se détache. Quatre photos du catalogue
+    # portaient ainsi une marque qu'on devinait sans pouvoir la lire.
+    #
+    # Le liseré règle le cas général : la lettre et son contour ne peuvent pas
+    # disparaître en même temps, puisqu'ils sont opposés l'un à l'autre.
+    contour = (255, 255, 255) if teinte == (26, 26, 26) else (0, 0, 0)
+    epaisseur = max(1, taille_maison // 9)
+
     # Les deux lignes sont alignées à droite : c'est le bord de l'image qui sert
     # de repère, et « by GÉNIE SÉLECT » est plus court que le numéro sur
     # certaines tailles, plus long sur d'autres.
-    dessin.text((x + largeur - l_maison, y), MAISON, font=f_maison, fill=teinte + (205,))
+    dessin.text(
+        (x + largeur - l_maison, y),
+        MAISON,
+        font=f_maison,
+        fill=teinte + (255,),
+        stroke_width=epaisseur,
+        stroke_fill=contour + (190,),
+    )
     dessin.text(
         (x + largeur - l_tel, y + taille_maison + interligne),
         tel,
         font=f_maison,
-        fill=teinte + (225,),
+        fill=teinte + (255,),
+        stroke_width=epaisseur,
+        stroke_fill=contour + (190,),
     )
 
     image = Image.alpha_composite(image.convert("RGBA"), calque)
@@ -201,6 +226,59 @@ def filigraner(source: Path, cible: Path, tel: str) -> None:
     image = image.convert("RGB")
     cible.parent.mkdir(parents=True, exist_ok=True)
     image.save(cible, "JPEG", quality=90, optimize=True)
+
+
+# Repères qui encadrent le filigrane dans un SVG : ils permettent de le
+# remplacer à chaque passage au lieu d'en empiler un nouveau.
+SVG_DEBUT = "<!-- filigrane VOLTA : genere par outils/filigrane.py -->"
+SVG_FIN = "<!-- fin filigrane VOLTA -->"
+
+
+def filigraner_svg(chemin: Path, tel: str) -> None:
+    """
+    Incruste la marque dans une image de remplacement.
+
+    Ces SVG s'affichent partout où une photo manque — cartes du catalogue,
+    annonces du Market, fiches sans visuel. Ce sont des images du site comme les
+    autres, et elles sortaient nues.
+
+    Le symbole n'y est pas repris : un SVG affiché par une balise `img` ne charge
+    aucune ressource extérieure, et embarquer le PNG en base64 pèserait plus que
+    l'image elle-même. Le nom est donc écrit en toutes lettres — c'est le seul
+    cas du site où le mot VOLTA est composé plutôt que dessiné.
+    """
+    texte = chemin.read_text(encoding="utf-8")
+
+    # Un passage précédent est remplacé, jamais doublé.
+    if SVG_DEBUT in texte:
+        avant, reste = texte.split(SVG_DEBUT, 1)
+        texte = avant + reste.split(SVG_FIN, 1)[1]
+
+    boite = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', texte)
+    if not boite:
+        raise SystemExit(f"viewBox introuvable dans {chemin.name}")
+    largeur, hauteur = float(boite.group(1)), float(boite.group(2))
+
+    corps = max(7.0, largeur * 0.052)
+    petit = corps * 0.62
+    marge = largeur * 0.04
+    bas = hauteur - marge
+
+    filigrane = f"""{SVG_DEBUT}
+  <g text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+     paint-order="stroke" stroke="#ffffff" stroke-width="{corps * 0.16:.2f}"
+     stroke-linejoin="round">
+    <text x="{largeur - marge:.1f}" y="{bas - petit * 1.5:.1f}"
+          font-size="{corps:.1f}" font-weight="800" fill="#0b1f3a">VOLTA</text>
+    <text x="{largeur - marge:.1f}" y="{bas - petit * 0.3:.1f}"
+          font-size="{petit:.1f}" font-weight="600" fill="#334155">by GENIE SELECT</text>
+    <text x="{largeur - marge:.1f}" y="{bas + petit * 0.9:.1f}"
+          font-size="{petit:.1f}" font-weight="600" fill="#334155">{tel}</text>
+  </g>
+  {SVG_FIN}"""
+
+    texte = texte.replace("</svg>", filigrane + chr(10) + "</svg>")
+    chemin.write_text(texte, encoding="utf-8")
 
 
 def signature(nom: str, tel: str) -> str:
@@ -288,7 +366,14 @@ def main() -> None:
         print(f"  {source.name}")
         traitees += 1
 
-    print(f"{traitees} photos filigranées dans {SORTIE}")
+    svg = 0
+    if REMPLACEMENTS.is_dir():
+        for image in sorted(REMPLACEMENTS.glob("*.svg")):
+            filigraner_svg(image, tel)
+            print(f"  {image.name}")
+            svg += 1
+
+    print(f"{traitees} photos et {svg} image(s) de remplacement filigranées")
     if args.lsb:
         print(f"Masters tatoués : {MASTERS}  (relire avec --lire)")
 

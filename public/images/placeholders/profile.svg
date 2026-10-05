@@ -11,4 +11,17 @@
   <text x="100" y="190" font-family="Arial" font-size="12" fill="#7c3aed" text-anchor="middle" font-weight="bold">
     Profil
   </text>
+
+<!-- filigrane VOLTA : genere par outils/filigrane.py -->
+  <g text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+     paint-order="stroke" stroke="#ffffff" stroke-width="1.66"
+     stroke-linejoin="round">
+    <text x="192.0" y="182.3"
+          font-size="10.4" font-weight="800" fill="#0b1f3a">VOLTA</text>
+    <text x="192.0" y="190.1"
+          font-size="6.4" font-weight="600" fill="#334155">by GENIE SELECT</text>
+    <text x="192.0" y="197.8"
+          font-size="6.4" font-weight="600" fill="#334155">05 00 99 13 13</text>
+  </g>
+  <!-- fin filigrane VOLTA -->
 </svg>

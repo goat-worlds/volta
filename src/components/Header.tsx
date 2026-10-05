@@ -89,12 +89,22 @@ export default function Header() {
     >
       <div className="btp-hazard-stripe h-1 w-full" aria-hidden />
 
-      <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-4 px-4">
-        <Link to="/" aria-label="Accueil VOLTA">
+      {/* Pleine largeur, et non centrée sur 1280 px : la marque appartient au
+          bord de l'écran. Dans un conteneur centré, elle flottait au milieu
+          d'une marge vide dès que la fenêtre dépassait la largeur maximale. */}
+      <div className="flex h-[60px] w-full items-center gap-3 pl-4 pr-4 sm:pl-5">
+        <Link to="/" aria-label="Accueil VOLTA" className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Navigation principale">
+        {/* Les entrées se centrent dans l'espace laissé entre la marque et les
+            actions. Le logo garde le bord gauche — c'est lui qui ancre la barre
+            — mais les mots, eux, se lisent mieux groupés au milieu qu'alignés
+            contre la marque. */}
+        <nav
+          className="hidden flex-1 items-center justify-center gap-0.5 lg:flex"
+          aria-label="Navigation principale"
+        >
           {/* Le groupe en premier : VOLTA est sa vitrine, et le visiteur
               doit pouvoir atteindre les six expertises depuis n'importe
               quelle page. */}
@@ -121,23 +131,26 @@ export default function Header() {
           {/* Le numero en clair dans la barre : sur un chantier, on
               appelle avant de remplir un formulaire. Il est lu depuis
               siteNav, comme celui du pied de page. */}
+          {/* Le numéro n'est plus encadré. Trois cadres côte à côte — numéro,
+              connexion, inscription — se disputaient le regard et alourdissaient
+              la barre ; seul le geste qu'on veut provoquer garde un fond plein. */}
           <a
             href={TELEPHONE.lien}
-            className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-white/20 px-3 py-2 text-sm font-bold text-white transition hover:border-btp-400 hover:bg-white/5"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-bold text-white transition hover:text-btp-300"
           >
             <Phone size={15} className="text-btp-400" aria-hidden />
             {TELEPHONE.affiche}
           </a>
-          {/* Le suivi n'apparaît qu'à partir de `xl` : c'est l'entrée la moins
-              demandée de la barre, et à 1280 px elle poussait « Louer un engin »
-              et le numéro à la ligne. Elle reste dans le menu mobile et en pied
+          {/* Le suivi n'apparaît qu'à partir de `2xl` : c'est l'entrée la moins
+              demandée de la barre, et à 1280 px elle faisait déborder « Créer un
+              compte » hors de l'écran. Elle reste dans le menu mobile et en pied
               de page, où personne ne la cherche en vain. */}
           {SECONDARY_LINKS.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               className={({ isActive }) =>
-                `hidden items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium transition xl:inline-flex ${
+                `hidden items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium transition 2xl:inline-flex ${
                   isActive ? 'text-white' : 'text-acier-300 hover:text-white'
                 }`
               }
@@ -169,7 +182,7 @@ export default function Header() {
             <>
               <Link
                 to="/connexion"
-                className="whitespace-nowrap rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                className="whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-semibold text-acier-200 transition hover:text-white"
               >
                 Connexion
               </Link>

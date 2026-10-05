@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ci.volta.backend.service.WatermarkService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,16 +41,24 @@ import java.util.UUID;
 @RequestMapping("/api/inspections/files")
 public class InspectionFileController {
 
+    /**
+     * Le WebP en a été retiré : ImageIO ne sait pas l'ouvrir sans greffon, donc
+     * pas le filigraner, et une image non marquée n'a pas sa place au dossier.
+     * Le PDF reste — c'est un document scanné, pas une photo à rediffuser.
+     */
     private static final List<String> ALLOWED_CONTENT_TYPES =
-            List.of("image/jpeg", "image/png", "image/webp", "application/pdf");
+            List.of("image/jpeg", "image/png", "application/pdf");
 
     /** Une pièce d'inspection est une photo ou un document scanné, pas une archive. */
     private static final long MAX_BYTES = 10L * 1024 * 1024;
 
     private final String uploadDir;
+    private final WatermarkService watermark;
 
-    public InspectionFileController(@Value("${app.inspection-upload-dir}") String uploadDir) {
+    public InspectionFileController(@Value("${app.inspection-upload-dir}") String uploadDir,
+                                    WatermarkService watermark) {
         this.uploadDir = uploadDir;
+        this.watermark = watermark;
     }
 
     @PostMapping
@@ -64,14 +73,20 @@ public class InspectionFileController {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Formats acceptés : JPEG, PNG, WebP ou PDF."));
+                    .body(Map.of("message", "Formats acceptés : JPEG, PNG ou PDF."));
         }
 
         Path dir = Paths.get(uploadDir);
         Files.createDirectories(dir);
 
         String filename = UUID.randomUUID() + extensionOf(file.getOriginalFilename(), contentType);
-        file.transferTo(dir.resolve(filename));
+        // Les photos d'inspection partent dans les rapports : elles portent la
+        // marque comme les autres. Un PDF traverse intact — on ne sait pas le
+        // marquer, et il n'est pas destiné à circuler comme une image.
+        byte[] contenu = watermark.saitMarquer(contentType)
+                ? watermark.marquer(file.getBytes(), contentType)
+                : file.getBytes();
+        Files.write(dir.resolve(filename), contenu);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("url", "/uploads/inspections/" + filename));
