@@ -1,9 +1,24 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Building2, HardHat, Search, type LucideIcon } from 'lucide-react'
+import {
+  ArrowRight,
+  Building2,
+  Check,
+  CalendarCheck,
+  Eye,
+  EyeOff,
+  HardHat,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  Search,
+  ShieldCheck,
+  User,
+  type LucideIcon,
+} from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { HOME_BY_ROLE } from '../../components/RequireRole'
-import { Card } from '../../components/ui'
 import type { Role } from '../../store/types'
 
 /**
@@ -16,27 +31,56 @@ import type { Role } from '../../store/types'
  *
  * ADMIN n'y figure pas : arbitrer entre fournisseur et client ne s'obtient pas
  * en cochant une case. Le serveur refuse ce rôle même si on le lui envoie.
+ *
+ * <h2>Deux colonnes</h2>
+ *
+ * La page tenait dans une carte étroite au milieu d'un fond gris : on y créait
+ * un compte sans savoir pour quoi faire. La colonne de gauche dit ce qu'est
+ * VOLTA pendant que la droite recueille les informations — c'est le moment où
+ * l'on demande un effort au visiteur, donc celui où il faut lui rappeler ce
+ * qu'il y gagne. Elle disparaît sous `lg` : sur un téléphone, une photo
+ * pleine hauteur repousse le formulaire sous la ligne de flottaison.
  */
 
 const ROLES: { value: Role; label: string; pitch: string; icon: LucideIcon }[] = [
   {
     value: 'CLIENT',
-    label: 'Je loue des engins',
-    pitch: 'Chercher au catalogue, demander des devis, suivre vos locations.',
+    label: 'Je cherche un engin',
+    pitch: 'Pour louer ou acheter un équipement.',
     icon: Search,
   },
   {
     value: 'SUPPLIER',
-    label: 'Je loue mes engins',
-    pitch: 'Déclarer votre parc, le faire vérifier, recevoir des demandes.',
+    label: 'Je possède des engins',
+    pitch: 'Pour référencer mon parc et recevoir des demandes.',
     icon: Building2,
   },
   {
     value: 'TECHNICAL',
-    label: "Je vérifie les engins",
-    pitch: "Recevoir les missions d'inspection et transmettre vos rapports.",
+    label: 'Je suis technicien',
+    pitch: 'Pour réaliser des inspections et accéder aux missions.',
     icon: HardHat,
   },
+]
+
+/** Ce que la colonne de gauche promet, sous la photo. */
+const PROMESSES: { icon: LucideIcon; texte: string }[] = [
+  { icon: Search, texte: 'Accédez à un large choix d’engins' },
+  { icon: CalendarCheck, texte: 'Gérez vos locations en toute simplicité' },
+  { icon: ShieldCheck, texte: 'Des équipements vérifiés et conformes' },
+]
+
+/**
+ * Exigences du mot de passe, montrées pendant la frappe.
+ *
+ * Annoncées d'avance et cochées au fur et à mesure, elles évitent le refus
+ * après envoi — le moment où l'on a déjà tout rempli et où l'on recommence.
+ */
+const EXIGENCES: { texte: string; verifie: (v: string) => boolean }[] = [
+  { texte: 'Au moins 8 caractères', verifie: (v) => v.length >= 8 },
+  { texte: '1 lettre majuscule', verifie: (v) => /[A-ZÀ-Þ]/.test(v) },
+  { texte: '1 chiffre', verifie: (v) => /\d/.test(v) },
+  { texte: '1 caractère spécial', verifie: (v) => /[^\w\s]/.test(v) },
 ]
 
 export default function Register() {
@@ -50,12 +94,9 @@ export default function Register() {
   const [phone, setPhone] = useState('')
   const [city, setCity] = useState('')
   const [password, setPassword] = useState('')
+  const [motDePasseVisible, setMotDePasseVisible] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-
-  // Un fournisseur et un vérificateur agissent au nom d'une structure : c'est
-  // cette raison sociale qu'affichent le catalogue et les rapports.
-  const needsCompany = role !== 'CLIENT'
 
   /**
    * Ce qu'on demande au client, et rien de plus.
@@ -89,164 +130,307 @@ export default function Register() {
     }
   }
 
-  const field = 'w-full rounded-lg border border-papier-200 p-2.5 text-sm focus:border-amber-500 focus:outline-none'
-  const label = 'mb-1 block text-sm font-medium text-papier-700'
+  const champ =
+    'w-full rounded-lg border border-papier-200 bg-white py-2.5 pl-10 pr-3 text-sm text-acier-900 ' +
+    'transition placeholder:text-papier-400 focus:border-btp-400 focus:outline-none focus:ring-2 focus:ring-btp-400/25'
+  const etiquette = 'mb-1.5 block text-sm font-medium text-papier-700'
+  const picto = 'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-papier-400'
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-14">
-      <Card className="p-8">
-        <div className="mb-6 text-center">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-xl font-black text-acier-900">
-            V
-          </span>
-          <h1 className="mt-3 text-2xl font-bold text-acier-900">Créer un compte</h1>
-          <p className="mt-1 text-sm text-papier-600">Dites-nous ce que vous venez faire sur VOLTA.</p>
-        </div>
+    <div className="grid min-h-[calc(100svh-4rem)] lg:grid-cols-2">
+      {/* Colonne de gauche : ce qu'est VOLTA, pendant qu'on remplit à droite. */}
+      <aside className="relative hidden overflow-hidden bg-acier-900 lg:block">
+        <img
+          src="/engins/parc-chargeuses.jpeg"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Le voile part du bas : sans lui, le texte blanc passe sur un ciel
+            surexposé et devient illisible selon la photo. */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-acier-900 via-acier-900/75 to-acier-900/25"
+        />
 
-        <fieldset className="mb-6">
-          <legend className="mb-2 text-sm font-medium text-papier-700">Votre profil</legend>
-          <div className="grid gap-2">
-            {ROLES.map((r) => {
-              const selected = role === r.value
-              return (
-                <label
-                  key={r.value}
-                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
-                    selected ? 'border-amber-400 bg-amber-50' : 'border-papier-200 hover:border-papier-200'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    className="sr-only"
-                    checked={selected}
-                    onChange={() => setRole(r.value)}
-                  />
-                  <span
-                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                      selected ? 'bg-amber-400 text-acier-900' : 'bg-papier-100 text-papier-600'
+        <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
+          <div>
+            <span className="volta-eyebrow text-btp-400">
+              <span aria-hidden className="mr-2 inline-block h-4 w-1 rounded-sm bg-btp-500 align-middle" />
+              Louez. Valorisez. Inspectez.
+            </span>
+            <p className="volta-display mt-5 text-4xl leading-[1.12] text-white xl:text-5xl">
+              La plateforme des engins de chantier en Côte d’Ivoire.
+            </p>
+            <p className="mt-5 max-w-md leading-relaxed text-acier-200">
+              Mettez en relation les entreprises, les propriétaires d’engins et les techniciens
+              qualifiés.
+            </p>
+          </div>
+
+          <ul className="grid gap-5 sm:grid-cols-3">
+            {PROMESSES.map(({ icon: Icon, texte }) => (
+              <li key={texte}>
+                <span className="flex size-11 items-center justify-center rounded-full bg-white text-acier-900">
+                  <Icon size={19} aria-hidden />
+                </span>
+                <span className="mt-3 block text-sm font-semibold leading-snug text-white">
+                  {texte}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+
+      {/* Colonne de droite : le formulaire. */}
+      <div className="flex items-center justify-center bg-papier-50 px-4 py-10 sm:px-8">
+        <div className="w-full max-w-xl rounded-2xl border border-papier-200 bg-white p-6 shadow-sm sm:p-9">
+          <span className="volta-eyebrow text-btp-600">Créer un compte</span>
+          <h1 className="volta-display mt-2 text-3xl text-acier-900 sm:text-4xl">
+            Rejoignez VOLTA
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-papier-600">
+            Choisissez votre profil pour accéder aux services adaptés à votre activité.
+          </p>
+
+          <fieldset className="mt-7">
+            <legend className="sr-only">Votre profil</legend>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {ROLES.map((r) => {
+                const Icon = r.icon
+                const actif = role === r.value
+                return (
+                  <label
+                    key={r.value}
+                    className={`relative cursor-pointer rounded-xl border p-4 transition ${
+                      actif
+                        ? 'border-btp-400 bg-btp-50/60 ring-1 ring-btp-400'
+                        : 'border-papier-200 bg-white hover:border-papier-300'
                     }`}
                   >
-                    <r.icon size={16} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-acier-900">{r.label}</span>
-                    <span className="block text-xs text-papier-600">{r.pitch}</span>
-                  </span>
-                </label>
-              )
-            })}
-          </div>
-        </fieldset>
-
-        <form onSubmit={submit} className="grid gap-4">
-          <div>
-            <label className={label} htmlFor="inscription-nom">Nom complet</label>
-            <input
-              id="inscription-nom"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Jean Konan"
-              className={field}
-            />
-          </div>
-
-          {needsCompany && (
-            <div>
-              <label className={label} htmlFor="inscription-structure">
-                {role === 'SUPPLIER' ? 'Raison sociale' : 'Nom du bureau de vérification'}
-              </label>
-              <input
-                id="inscription-structure"
-                required
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder={role === 'SUPPLIER' ? 'BTP CI SARL' : 'Société Technique ABC'}
-                className={field}
-              />
+                    <input
+                      type="radio"
+                      name="profil"
+                      value={r.value}
+                      checked={actif}
+                      onChange={() => setRole(r.value)}
+                      className="sr-only"
+                    />
+                    {actif && (
+                      <span
+                        aria-hidden
+                        className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-btp-500 text-white"
+                      >
+                        <Check size={12} strokeWidth={3} />
+                      </span>
+                    )}
+                    <span
+                      className={`flex size-10 items-center justify-center rounded-lg ${
+                        actif ? 'bg-btp-100 text-btp-600' : 'bg-papier-100 text-papier-500'
+                      }`}
+                    >
+                      <Icon size={19} aria-hidden />
+                    </span>
+                    <span className="mt-3 block text-sm font-bold leading-snug text-acier-900">
+                      {r.label}
+                    </span>
+                    <span className="mt-1 block text-xs leading-snug text-papier-600">
+                      {r.pitch}
+                    </span>
+                  </label>
+                )
+              })}
             </div>
-          )}
+          </fieldset>
 
-          {!estClient && (
-            <div>
-              <label className={label} htmlFor="inscription-email">Email</label>
-              <input
-              id="inscription-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vous@exemple.ci"
-                className={field}
-              />
-            </div>
-          )}
+          <form onSubmit={submit} className="mt-8">
+            <p className="text-sm font-bold text-acier-900">Vos informations</p>
 
-          <div className={estClient ? '' : 'grid gap-4 sm:grid-cols-2'}>
-            <div>
-              <label className={label} htmlFor="inscription-tel">Téléphone</label>
-              <input
-              id="inscription-tel"
-                type="tel"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="05 00 00 00 00"
-                className={field}
-              />
-              {estClient && (
-                <p className="mt-1 text-xs text-papier-600">
-                  C’est avec ce numéro que vous vous connecterez.
-                </p>
-              )}
-            </div>
-            {!estClient && (
+            <div className="mt-4 grid gap-4">
               <div>
-                <label className={label} htmlFor="inscription-ville">Ville</label>
-                <input
-              id="inscription-ville"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Abidjan"
-                  className={field}
-                />
+                <label className={etiquette} htmlFor="inscription-nom">
+                  Nom complet <span className="text-btp-600">*</span>
+                </label>
+                <div className="relative">
+                  <User className={picto} aria-hidden />
+                  <input
+                    id="inscription-nom"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Jean Konan"
+                    className={champ}
+                  />
+                </div>
               </div>
+
+              {!estClient && (
+                <div>
+                  <label className={etiquette} htmlFor="inscription-structure">
+                    {role === 'SUPPLIER' ? 'Raison sociale' : 'Nom du bureau de vérification'}{' '}
+                    <span className="text-btp-600">*</span>
+                  </label>
+                  <div className="relative">
+                    <Building2 className={picto} aria-hidden />
+                    <input
+                      id="inscription-structure"
+                      required
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      placeholder={role === 'SUPPLIER' ? 'BTP CI SARL' : 'Société Technique ABC'}
+                      className={champ}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className={estClient ? '' : 'grid gap-4 sm:grid-cols-2'}>
+                {!estClient && (
+                  <div>
+                    <label className={etiquette} htmlFor="inscription-email">
+                      Email professionnel <span className="text-btp-600">*</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className={picto} aria-hidden />
+                      <input
+                        id="inscription-email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="vous@entreprise.ci"
+                        className={champ}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className={etiquette} htmlFor="inscription-tel">
+                    Téléphone <span className="text-btp-600">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className={picto} aria-hidden />
+                    <input
+                      id="inscription-tel"
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="05 00 00 00 00"
+                      className={champ}
+                    />
+                  </div>
+                  {estClient && (
+                    <p className="mt-1.5 text-xs text-papier-600">
+                      C’est avec ce numéro que vous vous connecterez.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {!estClient && (
+                <div>
+                  <label className={etiquette} htmlFor="inscription-ville">
+                    Ville <span className="text-btp-600">*</span>
+                  </label>
+                  <div className="relative">
+                    <MapPin className={picto} aria-hidden />
+                    <input
+                      id="inscription-ville"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="Abidjan"
+                      className={champ}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className={etiquette} htmlFor="inscription-motdepasse">
+                  Mot de passe <span className="text-btp-600">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className={picto} aria-hidden />
+                  <input
+                    id="inscription-motdepasse"
+                    type={motDePasseVisible ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`${champ} pr-10`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setMotDePasseVisible((v) => !v)}
+                    aria-label={motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-papier-400 transition hover:text-acier-700"
+                  >
+                    {motDePasseVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5">
+                  {EXIGENCES.map((e) => {
+                    const ok = e.verifie(password)
+                    return (
+                      <li
+                        key={e.texte}
+                        className={`inline-flex items-center gap-1.5 text-xs ${
+                          ok ? 'text-emerald-600' : 'text-papier-500'
+                        }`}
+                      >
+                        <span
+                          aria-hidden
+                          className={`grid size-3.5 place-items-center rounded-full ${
+                            ok ? 'bg-emerald-500 text-white' : 'bg-papier-200 text-transparent'
+                          }`}
+                        >
+                          <Check size={9} strokeWidth={3.5} />
+                        </span>
+                        {e.texte}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            </div>
+
+            {error && (
+              <p role="alert" className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </p>
             )}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-btp-500 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-btp-600 disabled:opacity-60"
+            >
+              {busy ? 'Création…' : 'Créer mon compte'}
+              {!busy && <ArrowRight size={16} aria-hidden />}
+            </button>
+          </form>
+
+          <div className="my-5 flex items-center gap-3 text-xs text-papier-400">
+            <span className="h-px flex-1 bg-papier-200" />
+            ou
+            <span className="h-px flex-1 bg-papier-200" />
           </div>
 
-          <div>
-            <label className={label} htmlFor="inscription-motdepasse">Mot de passe</label>
-            <input
-              id="inscription-motdepasse"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="6 caractères minimum"
-              className={field}
-            />
-          </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-lg bg-amber-400 py-2.5 font-semibold text-acier-900 transition hover:bg-amber-500 disabled:opacity-60"
-          >
-            {busy ? 'Inscription…' : "S'inscrire"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-papier-600">
-          Déjà un compte ?{' '}
-          <Link to="/connexion" className="font-semibold text-amber-600 hover:underline">
-            Se connecter
-          </Link>
-        </p>
-      </Card>
+          <p className="text-center text-sm text-papier-600">
+            Vous avez déjà un compte ?{' '}
+            <Link to="/connexion" className="font-semibold text-btp-600 hover:text-btp-700">
+              Se connecter
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
