@@ -60,7 +60,24 @@ public class VoltaService {
             new ChecklistItem("ÉTAT GÉNÉRAL", "Carrosserie", null, ""),
             new ChecklistItem("ÉTAT GÉNÉRAL", "Corrosion", null, ""),
             new ChecklistItem("ÉTAT GÉNÉRAL", "Usure", null, ""),
-            new ChecklistItem("ÉTAT GÉNÉRAL", "Fonctionnement général", null, ""));
+            new ChecklistItem("ÉTAT GÉNÉRAL", "Fonctionnement général", null, ""),
+            /*
+             * Ce qui décide si la machine peut servir ailleurs, et vite.
+             *
+             * La grille ne regardait que l'engin à l'arrêt : son moteur, ses
+             * organes, sa carrosserie. Or un chantier ne demande pas seulement
+             * « cette pelle est-elle saine » mais « peut-elle venir chez moi, et
+             * quand ». Une machine impeccable bloquée à la frontière faute de
+             * certificat, ou dont le détenteur n'a personne à envoyer, ne répond
+             * pas au besoin — et rien dans le rapport ne le disait.
+             *
+             * Le délai se note en observation : c'est une durée, pas un verdict,
+             * et le forcer dans « conforme / non conforme » perdrait le chiffre
+             * que l'administration doit confronter au délai annoncé.
+             */
+            new ChecklistItem("MOBILITÉ & INTERVENTION", "Certificat de déplacement entre pays", null, ""),
+            new ChecklistItem("MOBILITÉ & INTERVENTION", "Équipe mobile du détenteur", null, ""),
+            new ChecklistItem("MOBILITÉ & INTERVENTION", "Délai d'intervention constaté", null, ""));
 
     private final EquipmentRepository equipmentRepository;
     private final InspectionRepository inspectionRepository;

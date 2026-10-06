@@ -56,8 +56,15 @@ export default function TechnicalInspection() {
   const filled = checklist.filter((c) => c.result !== null).length
   const complete = filled === checklist.length
 
-  const setResult = async (index: number, result: CheckResult) => {
-    const next = checklist.map((c, i) => (i === index ? { ...c, result } : c))
+  /**
+   * Enregistre une modification d'un point de contrôle.
+   *
+   * Le verdict et l'observation passent par le même chemin : ils vivent dans la
+   * même ligne, et les sauvegarder séparément ferait perdre l'un quand l'autre
+   * part. `patch` dit ce qui change, le reste de la ligne est conservé.
+   */
+  const majPoint = async (index: number, patch: Partial<(typeof checklist)[number]>) => {
+    const next = checklist.map((c, i) => (i === index ? { ...c, ...patch } : c))
     const previous = checklist
     setChecklist(next)
     try {
@@ -73,7 +80,24 @@ export default function TechnicalInspection() {
     }
   }
 
+  const setResult = (index: number, result: CheckResult) => majPoint(index, { result })
+
   const sections = [...new Set(checklist.map((c) => c.section))]
+
+  /**
+   * Les points qui appellent une précision écrite.
+   *
+   * « Conforme » ne dit pas en combien de temps une équipe se déplace, ni quel
+   * certificat couvre quel pays. Sur ces trois lignes, le verdict seul ferait
+   * perdre ce que l'administration doit confronter à ce que le détenteur
+   * annonce. Ailleurs, la zone d'observations générale suffit et un champ par
+   * ligne alourdirait une grille de vingt points.
+   */
+  const PRECISIONS: Record<string, string> = {
+    "Certificat de déplacement entre pays": 'Pays couverts, numéro, validité…',
+    'Équipe mobile du détenteur': 'Composition, base, moyens de déplacement…',
+    "Délai d'intervention constaté": 'Ex. : moins de 24 h, 24–48 h, 48–72 h…',
+  }
 
   /**
    * Enregistre les constats dès qu'ils changent.
@@ -195,21 +219,34 @@ export default function TechnicalInspection() {
               <div className="divide-y divide-slate-100">
                 {checklist.map((c, i) =>
                   c.section !== section ? null : (
-                    <div key={c.label} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                      <span className="text-sm font-medium">{c.label}</span>
-                      <div className="flex gap-1.5">
-                        {RESULT_OPTIONS.map((o) => (
-                          <button
-                            key={o.value}
-                            onClick={() => setResult(i, o.value)}
-                            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                              c.result === o.value ? o.cls : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }`}
-                          >
-                            {o.label}
-                          </button>
-                        ))}
+                    <div key={c.label} className="py-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-medium">{c.label}</span>
+                        <div className="flex gap-1.5">
+                          {RESULT_OPTIONS.map((o) => (
+                            <button
+                              key={o.value}
+                              onClick={() => setResult(i, o.value)}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                c.result === o.value ? o.cls : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              }`}
+                            >
+                              {o.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
+
+                      {PRECISIONS[c.label] && (
+                        <input
+                          value={c.observation ?? ''}
+                          onChange={(e) => majPoint(i, { observation: e.target.value })}
+                          disabled={done}
+                          placeholder={PRECISIONS[c.label]}
+                          aria-label={`Précision — ${c.label}`}
+                          className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-btp-400 focus:outline-none focus:ring-2 focus:ring-btp-400/25 disabled:bg-slate-50"
+                        />
+                      )}
                     </div>
                   ),
                 )}
