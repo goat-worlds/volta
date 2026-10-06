@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { Package, Plus, ArrowRight } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { quoteRequestsClient, quotesClient, type QuoteRequest } from '../../store/quotesClient'
-import { Card, CopyRef, EmptyState, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus } from '../../components/ui'
+import { Card, CopyRef, EmptyState, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus, fmtPrice } from '../../components/ui'
+import { useToast } from '../../components/feedback/Toaster'
 import { quoteRequestRef } from '../../lib/references'
-import { listMyRequests, type MyRequestView } from '../../services/requests'
+import { listMyRequests, respondToRequest, type MyRequestView } from '../../services/requests'
 import { requestStatusLabel, type IntentId } from '../../types/domain'
 import { intentById } from '../../lib/intents'
 import { LinkButton } from '../../components/ui'
@@ -38,6 +39,8 @@ export default function ClientQuoteRequests() {
    * seraient à moitié vides.
    */
   const [parcours, setParcours] = useState<MyRequestView[]>([])
+  const [repondant, setRepondant] = useState<string | null>(null)
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' | 'DECLINED'>('all')
@@ -82,6 +85,41 @@ export default function ClientQuoteRequests() {
     void load()
     return () => { cancelled = true }
   }, [currentUser])
+
+  /**
+   * Accepter ou refuser la proposition.
+   *
+   * Le refus demande son motif puis s'arrête si le client ferme la boîte : un
+   * clic malheureux sur « Refuser » clôturait sinon un dossier que rien ne
+   * rouvre. Refusée, la demande reste affichée, clôturée, avec le prix qu'on
+   * lui avait proposé — elle n'est pas retirée de l'espace.
+   */
+  const repondre = async (d: MyRequestView, accepted: boolean) => {
+    let motif = ''
+    if (!accepted) {
+      const saisi = window.prompt(
+        `Refuser la proposition pour ${d.reference} ?
+
+Indiquez brièvement pourquoi (facultatif).`,
+      )
+      if (saisi === null) return
+      motif = saisi.trim()
+    }
+    setRepondant(d.id)
+    try {
+      const maj = await respondToRequest(d.id, accepted, motif)
+      setParcours((liste) => liste.map((x) => (x.id === maj.id ? maj : x)))
+      if (accepted) {
+        toast.success('Proposition acceptée', `${d.reference} — VOLTA prépare la suite.`)
+      } else {
+        toast.info('Proposition refusée', `${d.reference} a été clôturée.`)
+      }
+    } catch (e) {
+      toast.fromError(e)
+    } finally {
+      setRepondant(null)
+    }
+  }
 
   const equipmentName = (id: string) => equipment.find((e) => e.id === id)?.name ?? 'Équipement'
 
@@ -142,14 +180,49 @@ export default function ClientQuoteRequests() {
                       Déposée le {new Date(d.createdAt).toLocaleDateString('fr-FR')}
                       {d.location ? ` · ${d.location}` : ''}
                     </div>
+                    {d.offerAmount != null && (
+                      <div className="mt-1 text-sm font-semibold text-btp-700">
+                        {fmtPrice(d.offerAmount)}
+                        {d.status === 'QUOTE_SENT' && (
+                          <span className="ml-2 text-xs font-medium text-slate-500">
+                            proposé par VOLTA
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <LinkButton
-                    to={`/suivi?ref=${encodeURIComponent(d.reference)}&token=${encodeURIComponent(d.trackingToken)}`}
-                    tone="secondary"
-                    size="sm"
-                  >
-                    Suivre
-                  </LinkButton>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Les deux boutons n'existent qu'au moment où le dossier
+                        attend le client : avant, il n'y a rien à accepter ;
+                        après, la prestation court. */}
+                    {d.status === 'QUOTE_SENT' && d.offerAmount != null && (
+                      <>
+                        <button
+                          type="button"
+                          disabled={repondant === d.id}
+                          onClick={() => void repondre(d, true)}
+                          className="rounded-lg bg-btp-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-btp-600 disabled:opacity-50"
+                        >
+                          Accepter
+                        </button>
+                        <button
+                          type="button"
+                          disabled={repondant === d.id}
+                          onClick={() => void repondre(d, false)}
+                          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-acier-900 transition hover:border-red-300 hover:text-red-700 disabled:opacity-50"
+                        >
+                          Refuser
+                        </button>
+                      </>
+                    )}
+                    <LinkButton
+                      to={`/suivi?ref=${encodeURIComponent(d.reference)}&token=${encodeURIComponent(d.trackingToken)}`}
+                      tone="secondary"
+                      size="sm"
+                    >
+                      Suivre
+                    </LinkButton>
+                  </div>
                 </Card>
               )
             })}

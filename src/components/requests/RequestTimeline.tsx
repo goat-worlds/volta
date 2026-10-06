@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { flowFor, requestStatusLabel, type RequestStatus } from '../../types/domain'
+import { etapeDe, flowFor, requestStatusLabel, type RequestStatus } from '../../types/domain'
 
 /**
  * Frise de suivi d'une demande.
@@ -27,7 +27,10 @@ export default function RequestTimeline({
   // Les étapes montrées dépendent de ce que la demande est : une candidature
   // en connaît dix, un devis six. Le statut stocké reste le même.
   const etapes = flowFor(intent)
-  const current = etapes.indexOf(status)
+  // La frise courte replie dix états sur cinq repères ; la longue, celle du
+  // recrutement, les porte tous et traverse ce repli sans y toucher.
+  const repere = etapes.includes(status) ? status : etapeDe(status)
+  const current = etapes.indexOf(repere)
   // Une demande clôturée l'est quel qu'ait été son chemin : toutes les étapes
   // se lisent alors comme derrière soi.
   const reached = (index: number) => (status === 'CLOSED' ? true : index <= current)
@@ -39,9 +42,9 @@ export default function RequestTimeline({
           <li
             key={step}
             title={requestStatusLabel(step, intent)}
-            aria-current={step === status ? 'step' : undefined}
+            aria-current={step === repere ? 'step' : undefined}
             className={`h-1.5 w-6 rounded-full ${
-              step === status ? 'bg-btp-500' : reached(index) ? 'bg-acier-700' : 'bg-slate-200'
+              step === repere ? 'bg-btp-500' : reached(index) ? 'bg-acier-700' : 'bg-slate-200'
             }`}
           />
         ))}
@@ -55,8 +58,8 @@ export default function RequestTimeline({
   return (
     <ol className="space-y-0" aria-label="Avancement de la demande">
       {etapes.map((step, index) => {
-        const done = reached(index) && step !== status
-        const active = step === status
+        const done = reached(index) && step !== repere
+        const active = step === repere
         const last = index === etapes.length - 1
 
         return (

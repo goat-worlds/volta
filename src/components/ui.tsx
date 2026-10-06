@@ -285,32 +285,102 @@ export function ProgressBar({ value }: { value: number }) {
   )
 }
 
+/**
+ * Fenêtre modale.
+ *
+ * <h2>Pourquoi elle défile</h2>
+ *
+ * Elle n'avait ni hauteur maximale ni défilement : le panneau prenait la
+ * hauteur de son contenu et débordait de la fenêtre dès qu'il y en avait un
+ * peu. Un rapport d'inspection — résumé, points de contrôle, puis la décision
+ * de catégorie — dépassait toujours, et le bas restait hors de portée : on
+ * voyait les constats, jamais les boutons qui servaient à trancher. L'écran
+ * paraissait figé.
+ *
+ * C'est maintenant le fond qui défile, pas le panneau : sur un téléphone, un
+ * panneau à défilement interne piège le doigt — on croit faire glisser la page
+ * et rien ne bouge. Le panneau s'ancre en haut sous `sm` pour qu'un contenu
+ * plus haut que l'écran commence au commencement, et se centre au-delà.
+ *
+ * <h2>Le titre reste</h2>
+ *
+ * L'en-tête est collant : après trois écrans de points de contrôle, on ne sait
+ * plus quel engin on juge, et la croix de fermeture était remontée hors de vue
+ * — c'est précisément ce qui fait croire qu'on est bloqué.
+ *
+ * <h2>Échappement</h2>
+ *
+ * La touche Échap ferme, et le fond de page ne défile plus derrière. Sans
+ * cela, une fenêtre dont le bouton de fermeture a disparu n'a plus de sortie
+ * au clavier.
+ */
 export function Modal({
   open,
   onClose,
   title,
   children,
+  /**
+   * Largeur du panneau. `large` pour ce qui se lit en liste — un rapport
+   * d'inspection, le détail d'une demande ; la valeur par défaut suffit à une
+   * confirmation ou à un formulaire de trois champs.
+   */
+  size = 'default',
 }: {
   open: boolean
   onClose: () => void
   title: string
   children: ReactNode
+  size?: 'default' | 'large'
 }) {
+  useEffect(() => {
+    if (!open) return
+
+    const auClavier = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', auClavier)
+
+    // Le fond ne défile plus derrière la fenêtre. La valeur précédente est
+    // remise telle quelle : une autre fenêtre peut déjà l'avoir posée.
+    const precedent = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', auClavier)
+      document.body.style.overflow = precedent
+    }
+  }, [open, onClose])
+
   if (!open) return null
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold">{title}</h3>
-          <button
-            onClick={onClose}
-            aria-label="Fermer"
-            className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-          >
-            <X size={18} />
-          </button>
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/40 p-3 sm:p-6"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div className="flex min-h-full items-start justify-center sm:items-center">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          onClick={(e) => e.stopPropagation()}
+          className={`w-full rounded-xl bg-white shadow-xl ${
+            size === 'large' ? 'max-w-2xl' : 'max-w-lg'
+          }`}
+        >
+          <div className="sticky top-0 z-10 flex items-start justify-between gap-3 rounded-t-xl border-b border-slate-100 bg-white px-4 py-3.5 sm:px-6 sm:py-4">
+            <h3 className="min-w-0 text-base font-bold leading-snug sm:text-lg">{title}</h3>
+            <button
+              onClick={onClose}
+              aria-label="Fermer"
+              className="-mr-1 shrink-0 rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="px-4 py-4 sm:px-6 sm:py-5">{children}</div>
         </div>
-        {children}
       </div>
     </div>
   )

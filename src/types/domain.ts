@@ -115,7 +115,6 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
  * Les statuts stockés ne changent pas — c'est leur affichage qui se resserre.
  */
 export const REQUEST_FLOW_COURT: RequestStatus[] = [
-  'RECEIVED',
   'QUALIFYING',
   'QUOTE_SENT',
   'VALIDATED',
@@ -123,8 +122,45 @@ export const REQUEST_FLOW_COURT: RequestStatus[] = [
   'DONE',
 ]
 
+/**
+ * Le statut représentatif de l'étape où se trouve la demande.
+ *
+ * La frise courte ne connaît que cinq repères, mais la demande peut porter
+ * n'importe lequel des dix états. « Recherche en cours » n'est pas dans la
+ * liste : sans cette table, la frise ne trouvait pas le statut, n'allumait
+ * aucune étape, et le client lisait un parcours entièrement gris pendant que
+ * son dossier avançait.
+ */
+export function etapeDe(status: RequestStatus): RequestStatus {
+  switch (status) {
+    case 'RECEIVED':
+    case 'QUALIFYING':
+    case 'SEARCHING':
+    case 'QUOTE_DRAFT':
+      return 'QUALIFYING'
+    case 'MATCHED':
+      return 'VALIDATED'
+    default:
+      return status
+  }
+}
+
+/**
+ * Les cinq mots que voient le client et l'équipe.
+ *
+ * La machine compte dix états — reçue, qualification, recherche, devis en
+ * préparation, proposition, validée, appariée, mission, terminée, close. Ce
+ * sont des rouages : ils disent où en est le traitement, pas où en est le
+ * dossier. Affichés tels quels, ils faisaient lire au client des étapes dont
+ * il n'avait rien à faire, et à l'équipe un menu de dix boutons.
+ *
+ * Il n'y a que cinq choses à savoir : on traite, on a proposé, c'est accepté,
+ * c'est en cours, c'est fini. Les dix états se replient dessus. « Reçue » a
+ * disparu au profit de « En traitement » : du point de vue du déposant, une
+ * demande reçue est une demande qu'on traite.
+ */
 export const SHORT_STATUS_LABELS: Record<RequestStatus, string> = {
-  RECEIVED: 'Reçue',
+  RECEIVED: 'En traitement',
   QUALIFYING: 'En traitement',
   SEARCHING: 'En traitement',
   QUOTE_DRAFT: 'En traitement',

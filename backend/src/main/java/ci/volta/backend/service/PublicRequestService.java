@@ -92,12 +92,17 @@ public class PublicRequestService {
                             ContactInput contact, String location, String status, String priority,
                             String ownerId, Map<String, String> payload, String notes,
                             String createdUserId, String createdAt, String updatedAt,
-                            String meetingAt, String meetingNote, String orientation) {
+                            String meetingAt, String meetingNote, String orientation,
+                            /** Le fournisseur à qui VOLTA a transmis, s'il y en a un. */
+                            String supplierId,
+                            /** Le prix proposé au client, s'il a été chiffré. */
+                            Long offerAmount) {
         static AdminView of(PublicRequest r) {
             return new AdminView(r.id, r.reference, r.kind, r.intent, r.subject,
                     new ContactInput(r.contactName, r.contactCompany, r.contactPhone, r.contactEmail, r.contactCity),
                     r.location, r.status, r.priority, r.ownerId, r.payload, r.notes,
-                    r.createdUserId, r.createdAt, r.updatedAt, r.meetingAt, r.meetingNote, r.orientation);
+                    r.createdUserId, r.createdAt, r.updatedAt, r.meetingAt, r.meetingNote, r.orientation,
+                    r.supplierId, r.offerAmount);
         }
     }
 
@@ -391,12 +396,14 @@ public class PublicRequestService {
      * évite de retrouver l'accusé. Il n'est servi qu'à son propriétaire, qui
      * pourrait de toute façon le relire sur son accusé.
      */
-    public record MyRequestView(String reference, String kind, String intent, String subject,
+    public record MyRequestView(String id, String reference, String kind, String intent, String subject,
                                 String location, String status, String createdAt, String updatedAt,
+                                /** Le prix proposé par VOLTA ou son fournisseur, s'il y en a un. */
+                                Long offerAmount,
                                 String trackingToken) {
         static MyRequestView of(PublicRequest r) {
-            return new MyRequestView(r.reference, r.kind, r.intent, r.subject, r.location,
-                    r.status, r.createdAt, r.updatedAt, r.trackingToken);
+            return new MyRequestView(r.id, r.reference, r.kind, r.intent, r.subject, r.location,
+                    r.status, r.createdAt, r.updatedAt, r.offerAmount, r.trackingToken);
         }
     }
 
@@ -429,6 +436,198 @@ public class PublicRequestService {
         List<AttachmentMeta> metas = attachments.findByRequestId(id).stream()
                 .map(AttachmentMeta::of).toList();
         return new RequestDetail(AdminView.of(r), metas);
+    }
+
+    /**
+     * Les trois décisions de VOLTA sur une demande, et leurs suites.
+     *
+     * <h2>Pourquoi elles remplacent la liste des statuts</h2>
+     *
+     * L'écran d'administration offrait un bouton par statut atteignable : on y
+     * lisait « Qualification », « Recherche », « Devis en préparation »,
+     * « Proposition envoyée »… Ce sont les rouages de la machine, pas des
+     * décisions. L'équipe devait traduire sa décision — « je passe au
+     * fournisseur » — en une étape interne, et deux personnes traduisaient
+     * différemment.
+     *
+     * Il n'y a que trois décisions à l'arrivée d'une demande : la transmettre,
+     * la prendre en charge, ou la clore. Chacune pose le statut qui lui
+     * correspond dans la machine qui existait déjà — aucune étape n'est
+     * ajoutée, aucune n'est retirée.
+     */
+    public AdminView transmit(String id, String supplierId, String note) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        PublicRequest r = load(id);
+        if (blank(supplierId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Indiquez le fournisseur à qui transmettre la demande");
+        }
+        UserAccount supplier = users.findById(supplierId.trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Fournisseur introuvable : " + supplierId));
+        if (!CurrentUser.ROLE_SUPPLIER.equalsIgnoreCase(supplier.role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Une demande ne se transmet qu'à un fournisseur");
+        }
+        RequestWorkflow.checkTransition(r.status, RequestWorkflow.SEARCHING);
+
+        r.supplierId = supplier.id;
+        r.status = RequestWorkflow.SEARCHING;
+        trace(r, "Transmise à " + supplier.name + (blank(note) ? "" : " — " + note.trim()));
+        r = requests.save(r);
+
+        notify(CurrentUser.ROLE_SUPPLIER, "Demande à chiffrer : " + r.subject + " (" + r.reference + ")");
+        audit.record("REQUEST_TRANSMITTED", "REQUEST", r.id, r.reference, "vers " + supplier.name);
+        return AdminView.of(r);
+    }
+
+    /** VOLTA chiffre elle-même : la demande ne part chez personne. */
+    public AdminView handle(String id, String note) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        PublicRequest r = load(id);
+        RequestWorkflow.checkTransition(r.status, RequestWorkflow.QUOTE_DRAFT);
+
+        // Une demande reprise en main après avoir été transmise ne doit plus
+        // montrer son ancien destinataire : il n'a plus rien à en faire.
+        r.supplierId = null;
+        r.status = RequestWorkflow.QUOTE_DRAFT;
+        trace(r, "Prise en charge par VOLTA" + (blank(note) ? "" : " — " + note.trim()));
+        r = requests.save(r);
+        audit.record("REQUEST_HANDLED", "REQUEST", r.id, r.reference, "prise en charge");
+        return AdminView.of(r);
+    }
+
+    /**
+     * Le prix proposé au client.
+     *
+     * Deux mains peuvent l'écrire, jamais n'importe laquelle : l'administration
+     * quand elle a pris le dossier en charge, et le seul fournisseur à qui il a
+     * été transmis. Un fournisseur tiers qui connaîtrait l'identifiant ne
+     * chiffre pas la demande d'un autre.
+     */
+    public AdminView propose(String id, Long amount, String note) {
+        UserAccount me = currentUser.require();
+        PublicRequest r = load(id);
+
+        boolean admin = currentUser.isAdmin();
+        boolean destinataire = currentUser.isSupplier()
+                && r.supplierId != null && r.supplierId.equals(me.id);
+        if (!admin && !destinataire) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Cette demande ne vous a pas été transmise");
+        }
+        if (amount == null || amount <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Une proposition se fait avec un montant");
+        }
+        RequestWorkflow.checkTransition(r.status, RequestWorkflow.QUOTE_SENT);
+
+        r.offerAmount = amount;
+        r.status = RequestWorkflow.QUOTE_SENT;
+        trace(r, "Proposition de " + amount + " FCFA par " + (admin ? "VOLTA" : me.name)
+                + (blank(note) ? "" : " — " + note.trim()));
+        r = requests.save(r);
+
+        notify(CurrentUser.ROLE_ADMIN, "Proposition envoyée sur " + r.reference);
+        audit.record("REQUEST_QUOTE_SENT", "REQUEST", r.id, r.reference, String.valueOf(amount));
+        return AdminView.of(r);
+    }
+
+    /** La demande n'ira pas plus loin. Elle reste chez son auteur, clôturée. */
+    public AdminView close(String id, String motif) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        PublicRequest r = load(id);
+        RequestWorkflow.checkTransition(r.status, RequestWorkflow.CLOSED);
+
+        r.status = RequestWorkflow.CLOSED;
+        trace(r, "Clôturée" + (blank(motif) ? "" : " : " + motif.trim()));
+        r = requests.save(r);
+        audit.record("REQUEST_CLOSED", "REQUEST", r.id, r.reference, blank(motif) ? "" : motif.trim());
+        return AdminView.of(r);
+    }
+
+    /**
+     * Le client accepte ou refuse la proposition.
+     *
+     * C'est le seul moment où le dossier lui appartient : avant, VOLTA
+     * travaille ; après, la prestation court. Accepter mène à VALIDATED,
+     * refuser clôt — deux états que la machine portait déjà et qui attendaient
+     * quelqu'un pour les franchir.
+     */
+    public MyRequestView respond(String id, boolean accepted, String motif) {
+        UserAccount me = currentUser.require();
+        PublicRequest r = load(id);
+        if (!appartientA(r, me)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette demande n'est pas la vôtre");
+        }
+        if (!RequestWorkflow.QUOTE_SENT.equals(r.status) || r.offerAmount == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Aucune proposition n'attend votre réponse sur cette demande");
+        }
+        String target = accepted ? RequestWorkflow.VALIDATED : RequestWorkflow.CLOSED;
+        RequestWorkflow.checkTransition(r.status, target);
+
+        r.status = target;
+        trace(r, accepted
+                ? "Proposition acceptée par le client"
+                : "Proposition refusée par le client" + (blank(motif) ? "" : " : " + motif.trim()));
+        r = requests.save(r);
+
+        notify(CurrentUser.ROLE_ADMIN,
+                (accepted ? "Proposition acceptée" : "Proposition refusée") + " — " + r.reference);
+        audit.record("REQUEST_" + target, "REQUEST", r.id, r.reference, "réponse du client");
+        return MyRequestView.of(r);
+    }
+
+    /** La prestation commence, puis s'achève. Même main que la proposition. */
+    public AdminView setMission(String id, boolean termine) {
+        UserAccount me = currentUser.require();
+        PublicRequest r = load(id);
+        boolean destinataire = currentUser.isSupplier()
+                && r.supplierId != null && r.supplierId.equals(me.id);
+        if (!currentUser.isAdmin() && !destinataire) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette demande ne vous appartient pas");
+        }
+        String target = termine ? RequestWorkflow.DONE : RequestWorkflow.MISSION;
+        RequestWorkflow.checkTransition(r.status, target);
+
+        r.status = target;
+        trace(r, termine ? "Prestation terminée" : "Prestation démarrée");
+        r = requests.save(r);
+        audit.record("REQUEST_" + target, "REQUEST", r.id, r.reference, "");
+        return AdminView.of(r);
+    }
+
+    /**
+     * Les demandes transmises au fournisseur connecté.
+     *
+     * Il ne voit que ce que l'administration lui a passé : une demande non
+     * transmise n'existe pas pour lui, et celle reprise en charge par VOLTA
+     * disparaît de sa liste puisque son identifiant en a été retiré.
+     */
+    @Transactional(readOnly = true)
+    public List<AdminView> listForSupplier() {
+        UserAccount me = currentUser.requireRole(CurrentUser.ROLE_SUPPLIER);
+        return requests.findBySupplierIdOrderByCreatedAtDesc(me.id).stream()
+                .map(AdminView::of).toList();
+    }
+
+    /** Vrai si la demande est celle de ce compte — par le lien, le courriel ou le numéro. */
+    private boolean appartientA(PublicRequest r, UserAccount me) {
+        if (r.clientId != null && r.clientId.equals(me.id)) {
+            return true;
+        }
+        if (!blank(me.email) && me.email.trim().equalsIgnoreCase(r.contactEmail)) {
+            return true;
+        }
+        return !blank(me.phone) && me.phone.trim().equals(r.contactPhone);
+    }
+
+    /** Une ligne au journal interne du dossier, datée. */
+    private void trace(PublicRequest r, String ligne) {
+        r.notes = (blank(r.notes) ? "" : r.notes + System.lineSeparator())
+                + "[" + today() + "] " + ligne;
+        r.updatedAt = Instant.now().toString();
     }
 
     public AdvanceResult advance(String id, String status, String notes) {

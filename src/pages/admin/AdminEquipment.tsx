@@ -102,7 +102,7 @@ export default function AdminEquipment() {
         </Card>
       )}
 
-      <Modal open={!!selected} onClose={() => setSelectedId(null)} title={selected?.name ?? ''}>
+      <Modal open={!!selected} onClose={() => setSelectedId(null)} title={selected?.name ?? ''} size="large">
         {selected && (
           <div className="grid gap-4">
             <div className="flex gap-2">

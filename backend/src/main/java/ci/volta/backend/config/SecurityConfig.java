@@ -103,6 +103,16 @@ public class SecurityConfig {
                 // contrôlée pièce par pièce dans le service.
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                // --- Demandes de parcours : qui agit à quel moment ---
+                // Le rôle ouvre la porte, le service vérifie ensuite que le
+                // dossier est bien celui de l'appelant : un fournisseur a le
+                // droit de chiffrer, pas de chiffrer la demande d'un autre.
+                .requestMatchers(HttpMethod.GET, "/api/supplier/requests").hasRole("SUPPLIER")
+                .requestMatchers(HttpMethod.POST, "/api/requests/*/propose",
+                                 "/api/requests/*/start",
+                                 "/api/requests/*/complete").hasAnyRole("SUPPLIER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/requests/*/response").hasAnyRole("CLIENT", "ADMIN")
+
                 // --- Catalogue : consultation ouverte, écriture réservée ---
                 .requestMatchers(HttpMethod.POST, "/api/equipment/photos").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/equipment").hasAnyRole("SUPPLIER", "ADMIN")

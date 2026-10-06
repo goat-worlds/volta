@@ -57,9 +57,18 @@ export default function AdminReports() {
         </Card>
       )}
 
-      <Modal open={!!report} onClose={() => setOpenId(null)} title={`Rapport — ${reportEq?.name ?? ''}`}>
+      <Modal
+        open={!!report}
+        onClose={() => setOpenId(null)}
+        title={`Rapport — ${reportEq?.name ?? ''}`}
+        size="large"
+      >
+        {/* Plus de hauteur bornée ici : un cadre à défilement interne, dans une
+            fenêtre qui défile déjà, piégeait le doigt sur téléphone — on faisait
+            glisser le rapport en croyant faire glisser la page, et la décision
+            de catégorie restait hors de portée. */}
         {report && (
-          <div className="grid max-h-[70vh] gap-3 overflow-y-auto">
+          <div className="grid gap-3">
             <p className="text-sm text-slate-600">{report.summary}</p>
             <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
               {report.checklist.map((c) => (

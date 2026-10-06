@@ -107,6 +107,10 @@ export interface AdminRequestView {
   meetingNote?: string | null
   /** Décision du responsable académie après les rencontres. */
   orientation?: Orientation | null
+  /** Le fournisseur à qui VOLTA a transmis la demande, s'il y en a un. */
+  supplierId?: string | null
+  /** Le prix proposé au client, s'il a été chiffré. */
+  offerAmount?: number | null
 }
 
 export interface AttachmentMeta {
@@ -126,6 +130,35 @@ export interface RequestDetail {
 export const listRequests = () => apiGet<AdminRequestView[]>('/admin/requests')
 
 /**
+ * Les trois décisions de VOLTA sur une demande.
+ *
+ * L'écran offrait un bouton par statut atteignable — « Qualification »,
+ * « Recherche », « Devis en préparation »… — soit les rouages de la machine
+ * plutôt que des décisions. Il n'y en a que trois à prendre : passer la main,
+ * s'en charger, refermer. Chacune pose le statut qui lui correspond dans la
+ * machine existante.
+ */
+export const transmitRequest = (id: string, supplierId: string, note?: string) =>
+  apiPost<AdminRequestView>(`/admin/requests/${id}/transmit`, { supplierId, note })
+
+export const handleRequest = (id: string, note?: string) =>
+  apiPost<AdminRequestView>(`/admin/requests/${id}/handle`, { note })
+
+export const closeRequest = (id: string, note?: string) =>
+  apiPost<AdminRequestView>(`/admin/requests/${id}/close`, { note })
+
+/** Le prix : par VOLTA si elle a pris en charge, par le fournisseur si elle a transmis. */
+export const proposeOnRequest = (id: string, amount: number, note?: string) =>
+  apiPost<AdminRequestView>(`/requests/${id}/propose`, { amount, note })
+
+export const startRequest = (id: string) => apiPost<AdminRequestView>(`/requests/${id}/start`)
+
+export const completeRequest = (id: string) => apiPost<AdminRequestView>(`/requests/${id}/complete`)
+
+/** Ce que le fournisseur connecté s'est vu transmettre, et rien d'autre. */
+export const listSupplierRequests = () => apiGet<AdminRequestView[]>('/supplier/requests')
+
+/**
  * Ce que le client voit de ses propres demandes.
  *
  * Volontairement plus pauvre que la vue d'administration : ni notes internes,
@@ -133,6 +166,7 @@ export const listRequests = () => apiGet<AdminRequestView[]>('/admin/requests')
  * dossier, pas au carnet de l'équipe.
  */
 export interface MyRequestView {
+  id: string
   reference: string
   kind: RequestKind
   intent: string
@@ -141,9 +175,15 @@ export interface MyRequestView {
   status: RequestStatus
   createdAt: string
   updatedAt: string
+  /** Le prix proposé par VOLTA ou son fournisseur, tant qu'il n'y en a pas : null. */
+  offerAmount: number | null
   /** Ouvre la page de suivi public sans ressortir l'accusé de dépôt. */
   trackingToken: string
 }
+
+/** Le client accepte ou refuse la proposition qu'on lui a faite. */
+export const respondToRequest = (id: string, accepted: boolean, motif?: string) =>
+  apiPost<MyRequestView>(`/requests/${id}/response`, { accepted, motif })
 
 /**
  * Les demandes déposées par le compte connecté.

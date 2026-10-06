@@ -62,6 +62,25 @@ public class PublicRequest {
     public String ownerId;
 
     /**
+     * Le fournisseur à qui l'administration a transmis la demande.
+     *
+     * Nul tant qu'elle n'est transmise à personne — et elle ne l'est jamais
+     * d'elle-même : c'est VOLTA qui décide de passer la main ou de traiter.
+     * Un fournisseur ne voit une demande que s'il est écrit ici, ce qui est la
+     * seule chose qui l'autorise à en proposer le prix.
+     */
+    public String supplierId;
+
+    /**
+     * Le prix proposé au client, en francs CFA.
+     *
+     * Posé par le fournisseur à qui la demande a été transmise, ou par
+     * l'administration quand elle l'a prise en charge. Le champ est unique
+     * parce que la proposition l'est : le client reçoit un prix, pas une liste.
+     */
+    public Long offerAmount;
+
+    /**
      * Le compte qui a déposé la demande, s'il y en avait un.
      *
      * La demande ne portait que des coordonnées : nom, téléphone, courriel.

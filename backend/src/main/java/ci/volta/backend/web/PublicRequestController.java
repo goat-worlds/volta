@@ -60,6 +60,75 @@ public class PublicRequestController {
         return service.listMine();
     }
 
+    // --- Les trois décisions de VOLTA, et leurs suites ---
+
+    public record TransmitBody(String supplierId, String note) {
+    }
+
+    public record NoteBody(String note) {
+    }
+
+    public record ProposeBody(Long amount, String note) {
+    }
+
+    public record RespondBody(boolean accepted, String motif) {
+    }
+
+    @PostMapping("/admin/requests/{id}/transmit")
+    public PublicRequestService.AdminView transmit(@PathVariable String id,
+                                                   @RequestBody TransmitBody body) {
+        return service.transmit(id, body == null ? null : body.supplierId(),
+                body == null ? null : body.note());
+    }
+
+    @PostMapping("/admin/requests/{id}/handle")
+    public PublicRequestService.AdminView handle(@PathVariable String id,
+                                                 @RequestBody(required = false) NoteBody body) {
+        return service.handle(id, body == null ? null : body.note());
+    }
+
+    @PostMapping("/admin/requests/{id}/close")
+    public PublicRequestService.AdminView close(@PathVariable String id,
+                                                @RequestBody(required = false) NoteBody body) {
+        return service.close(id, body == null ? null : body.note());
+    }
+
+    /**
+     * Chiffrer : l'administration qui a pris en charge, ou le fournisseur à
+     * qui la demande a été transmise. Le service tranche entre les deux.
+     */
+    @PostMapping("/requests/{id}/propose")
+    public PublicRequestService.AdminView propose(@PathVariable String id,
+                                                  @RequestBody ProposeBody body) {
+        return service.propose(id, body == null ? null : body.amount(),
+                body == null ? null : body.note());
+    }
+
+    /** Démarrer la prestation, puis la clore. */
+    @PostMapping("/requests/{id}/start")
+    public PublicRequestService.AdminView start(@PathVariable String id) {
+        return service.setMission(id, false);
+    }
+
+    @PostMapping("/requests/{id}/complete")
+    public PublicRequestService.AdminView complete(@PathVariable String id) {
+        return service.setMission(id, true);
+    }
+
+    /** La réponse du client à la proposition : il accepte ou il refuse. */
+    @PostMapping("/requests/{id}/response")
+    public PublicRequestService.MyRequestView respond(@PathVariable String id,
+                                                      @RequestBody RespondBody body) {
+        return service.respond(id, body != null && body.accepted(),
+                body == null ? null : body.motif());
+    }
+
+    /** Ce que le fournisseur connecté s'est vu transmettre. */
+    @GetMapping("/supplier/requests")
+    public List<PublicRequestService.AdminView> forSupplier() {
+        return service.listForSupplier();
+    }
+
     // --- Console d'administration ---
 
     @GetMapping("/admin/requests")

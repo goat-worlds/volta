@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CheckCircle2, Copy, Download, Inbox, KeyRound, Loader2, Paperclip } from 'lucide-react'
+import {
+  CheckCircle2, Copy, Download, Hand, Inbox, KeyRound, Loader2, Paperclip,
+  PlayCircle, Receipt, Send, XCircle,
+} from 'lucide-react'
 import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
-import { Button, Card, EmptyState, Modal, PageTitle, StatCard } from '../../components/ui'
+import { Button, Card, EmptyState, Modal, PageTitle, StatCard, fmtPrice } from '../../components/ui'
+import { useStore } from '../../store/StoreContext'
 import RequestTimeline from '../../components/requests/RequestTimeline'
 import { journeyFor } from '../../lib/journeys'
 import {
@@ -15,7 +19,13 @@ import {
 import {
   advanceRequest,
   canTransition,
+  closeRequest,
+  completeRequest,
   downloadAttachment,
+  handleRequest,
+  proposeOnRequest,
+  startRequest,
+  transmitRequest,
   getRequestDetail,
   scheduleMeeting,
   selectRequest,
@@ -83,11 +93,22 @@ export default function AdminSubmissions() {
   const [kind, setKind] = useState<RequestKind | 'all'>('all')
   const [openId, setOpenId] = useState<string | null>(null)
 
+  /*
+   * Les compteurs disent où est la balle, pas le détail des rouages.
+   *
+   * « Reçues » comptait le seul statut RECEIVED, alors qu'une demande
+   * transmise à un fournisseur ou prise en charge attend tout autant VOLTA :
+   * l'équipe lisait un petit nombre rassurant à côté d'une pile de dossiers
+   * ouverts. Trois nombres suffisent : ce qu'on traite, ce qui attend une
+   * réponse du client, ce qui est derrière nous.
+   */
   const counts = useMemo(() => {
     const terminal = (s: RequestStatus) => s === 'DONE' || s === 'CLOSED'
+    const chezVolta = (s: RequestStatus) =>
+      s === 'RECEIVED' || s === 'QUALIFYING' || s === 'SEARCHING' || s === 'QUOTE_DRAFT'
     return {
-      received: requests.filter((r) => r.status === 'RECEIVED').length,
-      inProgress: requests.filter((r) => !terminal(r.status) && r.status !== 'RECEIVED').length,
+      received: requests.filter((r) => chezVolta(r.status)).length,
+      inProgress: requests.filter((r) => !terminal(r.status) && !chezVolta(r.status)).length,
       done: requests.filter((r) => terminal(r.status)).length,
     }
   }, [requests])
@@ -115,8 +136,8 @@ export default function AdminSubmissions() {
       />
 
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3">
-        <StatCard label="Reçues" value={counts.received} icon={Inbox} accent="text-amber-700" />
-        <StatCard label="En cours de traitement" value={counts.inProgress} icon={Loader2} />
+        <StatCard label="En traitement" value={counts.received} icon={Inbox} accent="text-amber-700" />
+        <StatCard label="Chez le client" value={counts.inProgress} icon={Loader2} />
         <StatCard label="Terminées ou clôturées" value={counts.done} icon={Inbox} accent="text-slate-600" />
       </div>
 
@@ -267,6 +288,256 @@ function MeetingBox({
 }
 
 /**
+ * Ce que VOLTA peut faire d'une demande, à chaque moment.
+ *
+ * L'écran listait un bouton par statut atteignable : « Qualification »,
+ * « Recherche », « Devis en préparation », « Proposition envoyée »… Ce sont
+ * les rouages de la machine, pas des décisions. L'équipe devait traduire ce
+ * qu'elle voulait faire — « je passe au fournisseur » — en une étape interne,
+ * et deux personnes traduisaient différemment.
+ *
+ * Il n'y a jamais plus de trois choses à faire, et elles dépendent de où en
+ * est le dossier :
+ *
+ *   à l'arrivée     transmettre · prendre en charge · clôturer
+ *   pris en charge  chiffrer · clôturer
+ *   transmis        on attend le fournisseur · reprendre la main · clôturer
+ *   proposé         on attend le client · clôturer
+ *   accepté         démarrer la prestation
+ *   en cours        clôturer la prestation
+ *
+ * Aucun statut n'a été ajouté ni retiré : chaque bouton pose un état qui
+ * existait déjà.
+ */
+function DecisionBox({
+  request,
+  suppliers,
+  onAdvanced,
+  onError,
+}: {
+  request: AdminRequestView
+  suppliers: { id: string; name: string; company?: string | null }[]
+  onAdvanced: (updated: AdminRequestView) => void
+  onError: (err: unknown) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [ouvert, setOuvert] = useState<'transmettre' | 'chiffrer' | 'cloturer' | null>(null)
+  const [supplierId, setSupplierId] = useState('')
+  const [montant, setMontant] = useState('')
+  const [note, setNote] = useState('')
+
+  const fermer = () => {
+    setOuvert(null)
+    setNote('')
+    setMontant('')
+  }
+
+  const agir = async (action: () => Promise<AdminRequestView>) => {
+    setBusy(true)
+    try {
+      onAdvanced(await action())
+      fermer()
+    } catch (err) {
+      onError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const statut = request.status
+  const aLArrivee = statut === 'RECEIVED' || statut === 'QUALIFYING'
+  const transmis = statut === 'SEARCHING'
+  const prisEnCharge = statut === 'QUOTE_DRAFT'
+  const propose = statut === 'QUOTE_SENT'
+  const accepte = statut === 'VALIDATED' || statut === 'MATCHED'
+  const enCours = statut === 'MISSION'
+  const fini = statut === 'DONE' || statut === 'CLOSED'
+
+  const destinataire = suppliers.find((s) => s.id === request.supplierId)
+
+  if (fini) {
+    return (
+      <div className="border-t border-slate-100 pt-4 text-sm text-slate-500">
+        Ce dossier est {statut === 'DONE' ? 'terminé' : 'clôturé'}. Il n’attend plus rien.
+      </div>
+    )
+  }
+
+  return (
+    <div className="border-t border-slate-100 pt-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        Décision
+      </div>
+
+      {/* L'état du dossier dit en une phrase ce qu'on attend, et de qui. Sans
+          elle, l'équipe devait déduire d'un statut si la balle était dans son
+          camp ou dans celui d'un autre. */}
+      <p className="mt-2 text-sm text-slate-600">
+        {aLArrivee && 'Cette demande vient d’arriver. Passez-la à un fournisseur, chiffrez-la vous-même, ou refermez-la.'}
+        {transmis && (
+          <>
+            Transmise à <strong>{destinataire?.company || destinataire?.name || 'un fournisseur'}</strong>.
+            On attend son prix.
+          </>
+        )}
+        {prisEnCharge && 'Vous avez pris ce dossier en charge. Indiquez le prix à proposer au client.'}
+        {propose && (
+          <>
+            Proposition de <strong>{fmtPrice(request.offerAmount ?? 0)}</strong> envoyée. On attend la
+            réponse du client.
+          </>
+        )}
+        {accepte && 'Le client a accepté. La prestation peut démarrer.'}
+        {enCours && 'La prestation est en cours.'}
+      </p>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(aLArrivee || transmis) && (
+          <Button size="sm" disabled={busy} onClick={() => setOuvert('transmettre')}>
+            <Send size={14} />
+            {transmis ? 'Transmettre à un autre' : 'Transmettre au fournisseur'}
+          </Button>
+        )}
+        {(aLArrivee || transmis) && (
+          <Button size="sm" tone="secondary" disabled={busy} onClick={() => void agir(() => handleRequest(request.id))}>
+            <Hand size={14} />
+            Prendre en charge
+          </Button>
+        )}
+        {prisEnCharge && (
+          <Button size="sm" disabled={busy} onClick={() => setOuvert('chiffrer')}>
+            <Receipt size={14} />
+            Proposer un prix
+          </Button>
+        )}
+        {accepte && (
+          <Button size="sm" tone="success" disabled={busy} onClick={() => void agir(() => startRequest(request.id))}>
+            <PlayCircle size={14} />
+            Démarrer la prestation
+          </Button>
+        )}
+        {enCours && (
+          <Button size="sm" tone="success" disabled={busy} onClick={() => void agir(() => completeRequest(request.id))}>
+            <CheckCircle2 size={14} />
+            Clôturer la prestation
+          </Button>
+        )}
+        {!accepte && !enCours && (
+          <Button size="sm" tone="danger" disabled={busy} onClick={() => setOuvert('cloturer')}>
+            <XCircle size={14} />
+            Clôturer
+          </Button>
+        )}
+      </div>
+
+      {ouvert === 'transmettre' && (
+        <div className="mt-3 space-y-2 rounded-lg border border-slate-200 p-3">
+          <label className="block text-sm font-medium text-slate-700" htmlFor="dest-fournisseur">
+            À quel fournisseur ?
+          </label>
+          <select
+            id="dest-fournisseur"
+            value={supplierId}
+            onChange={(e) => setSupplierId(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
+          >
+            <option value="">Choisir…</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.company || s.name}
+              </option>
+            ))}
+          </select>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            placeholder="Note pour le fournisseur (facultative)"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
+          />
+          <div className="flex justify-end gap-2">
+            <Button size="sm" tone="secondary" onClick={fermer} disabled={busy}>
+              Annuler
+            </Button>
+            <Button
+              size="sm"
+              disabled={busy || !supplierId}
+              onClick={() => void agir(() => transmitRequest(request.id, supplierId, note.trim() || undefined))}
+            >
+              {busy ? 'Envoi…' : 'Transmettre'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {ouvert === 'chiffrer' && (
+        <div className="mt-3 space-y-2 rounded-lg border border-slate-200 p-3">
+          <label className="block text-sm font-medium text-slate-700" htmlFor="prix-propose">
+            Prix proposé au client (FCFA)
+          </label>
+          <input
+            id="prix-propose"
+            type="number"
+            min={1}
+            value={montant}
+            onChange={(e) => setMontant(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
+          />
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            placeholder="Précision (facultative)"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
+          />
+          <div className="flex justify-end gap-2">
+            <Button size="sm" tone="secondary" onClick={fermer} disabled={busy}>
+              Annuler
+            </Button>
+            <Button
+              size="sm"
+              disabled={busy || !(Number(montant) > 0)}
+              onClick={() => void agir(() => proposeOnRequest(request.id, Number(montant), note.trim() || undefined))}
+            >
+              {busy ? 'Envoi…' : 'Envoyer la proposition'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {ouvert === 'cloturer' && (
+        <div className="mt-3 space-y-2 rounded-lg border border-red-200 bg-red-50 p-3">
+          <p className="text-sm text-red-900">
+            Le dossier sera refermé. Il reste visible chez le client, clôturé — il n’est pas
+            supprimé.
+          </p>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            placeholder="Motif (facultatif), lu par le client"
+            className="w-full rounded-lg border border-red-200 px-3 py-2 text-sm focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+          />
+          <div className="flex justify-end gap-2">
+            <Button size="sm" tone="secondary" onClick={fermer} disabled={busy}>
+              Annuler
+            </Button>
+            <Button
+              size="sm"
+              tone="danger"
+              disabled={busy}
+              onClick={() => void agir(() => closeRequest(request.id, note.trim() || undefined))}
+            >
+              {busy ? 'Envoi…' : 'Clôturer'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
  * Orientation du candidat, après les rencontres.
  *
  * C'est la décision du responsable académie, et elle a une conséquence
@@ -368,6 +639,13 @@ function RequestDetailModal({
   const [busy, setBusy] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [provisioned, setProvisioned] = useState<ProvisionedAccount | null>(null)
+  // Les comptes sont déjà en mémoire : la fenêtre n'a pas à les redemander
+  // pour remplir une liste déroulante de trois entrées.
+  const { users } = useStore()
+  const fournisseurs = useMemo(
+    () => users.filter((u) => u.role === 'SUPPLIER').map((u) => ({ id: u.id, name: u.name, company: u.company })),
+    [users],
+  )
 
   useEffect(() => {
     setTarget(null)
@@ -435,7 +713,12 @@ function RequestDetailModal({
   }
 
   return (
-    <Modal open={request !== null} onClose={() => (busy ? undefined : onClose())} title={`${request.reference} — ${request.subject}`}>
+    <Modal
+      open={request !== null}
+      onClose={() => (busy ? undefined : onClose())}
+      title={`${request.reference} — ${request.subject}`}
+      size="large"
+    >
       <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -557,13 +840,18 @@ function RequestDetailModal({
               </Button>
             </div>
           </div>
-        ) : (
+        ) : request.intent === 'JOIN_TECHNICAL_TEAM' ? (
+          /* Le recrutement garde ses étapes.
+             
+             Une candidature ne se transmet pas à un fournisseur et ne se
+             chiffre pas : elle s'examine, se convoque, s'oriente, et sa
+             validation ouvre un compte. Ses dix étapes sont la réalité du
+             parcours, pas un rouage à masquer. */
           <div className="border-t border-slate-100 pt-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Faire avancer le dossier</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Faire avancer la candidature
+            </div>
 
-            {/* Lire un dossier et le juger bon est un seul geste. Le faire en
-                trois clics fait traiter moins de dossiers, pas mieux : ce
-                raccourci enchaîne les mêmes étapes, sans en sauter aucune. */}
             {REQUEST_FLOW.indexOf(request.status) < REQUEST_FLOW.indexOf('SEARCHING') && (
               <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -571,12 +859,7 @@ function RequestDetailModal({
                     Ce dossier est bon ? Retenez-le, il passe directement à «{' '}
                     {requestStatusLabel('SEARCHING', request?.intent)} ».
                   </p>
-                  <Button
-                    tone="success"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => void retain()}
-                  >
+                  <Button tone="success" size="sm" disabled={busy} onClick={() => void retain()}>
                     <CheckCircle2 size={14} />
                     {busy ? 'En cours…' : 'Retenir ce dossier'}
                   </Button>
@@ -602,7 +885,7 @@ function RequestDetailModal({
                 <p className="text-sm text-slate-600">
                   Passage à « {requestStatusLabel(target, request?.intent)} ».
                   {target === 'CLOSED' && ' Cette action est définitive.'}
-                  {target === 'VALIDATED' && request.intent === 'JOIN_TECHNICAL_TEAM' && (
+                  {target === 'VALIDATED' && (
                     <span className="mt-1 block font-medium text-btp-700">
                       Un compte équipe technique sera créé pour ce candidat.
                     </span>
@@ -626,6 +909,13 @@ function RequestDetailModal({
               </div>
             )}
           </div>
+        ) : (
+          <DecisionBox
+            request={request}
+            suppliers={fournisseurs}
+            onAdvanced={onAdvanced}
+            onError={onError}
+          />
         )}
       </div>
     </Modal>

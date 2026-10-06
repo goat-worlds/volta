@@ -10,6 +10,14 @@ import {
 } from '../../store/quotesClient'
 import { Card, EmptyState, Modal, PageTitle, QuoteStatusBadge, fmtDate } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
+import {
+  completeRequest,
+  listSupplierRequests,
+  proposeOnRequest,
+  startRequest,
+  type AdminRequestView,
+} from '../../services/requests'
+import { requestStatusLabel } from '../../types/domain'
 
 /**
  * Demandes de devis reçues, et réponse du fournisseur.
@@ -23,6 +31,144 @@ import { useToast } from '../../components/feedback/Toaster'
  * La demande de location, elle, naît de l'acceptation d'un devis : elle est la
  * fin du parcours, pas son début.
  */
+
+/**
+ * Les demandes que VOLTA transmet au fournisseur.
+ *
+ * Elles viennent des parcours du site — louer, composer une flotte, chercher
+ * un technicien, bâtir — et non du catalogue. Elles n'arrivent jamais seules :
+ * VOLTA reçoit tout, puis décide de passer la main. Un fournisseur ne voit
+ * donc ici que ce qu'on lui a explicitement confié, et rien tant qu'on ne lui
+ * a rien confié.
+ *
+ * Il n'y a qu'un geste à faire : donner son prix. Le client l'accepte ou le
+ * refuse ensuite, puis la prestation démarre et s'achève.
+ */
+function DemandesTransmises() {
+  const [rows, setRows] = useState<AdminRequestView[] | null>(null)
+  const [montants, setMontants] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<string | null>(null)
+  const toast = useToast()
+
+  const charger = useCallback(
+    () =>
+      listSupplierRequests()
+        .then(setRows)
+        .catch(() => setRows([])),
+    [],
+  )
+
+  useEffect(() => {
+    void charger()
+  }, [charger])
+
+  const agir = async (id: string, action: () => Promise<unknown>, message: string) => {
+    setBusy(id)
+    try {
+      await action()
+      toast.success(message)
+      await charger()
+    } catch (e) {
+      toast.fromError(e)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (!rows || rows.length === 0) return null
+
+  return (
+    <section className="mb-8">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Transmises par VOLTA
+      </h2>
+      <div className="grid gap-3">
+        {rows.map((r) => {
+          const aChiffrer = r.status === 'SEARCHING'
+          const accepte = r.status === 'VALIDATED' || r.status === 'MATCHED'
+          const enCours = r.status === 'MISSION'
+          return (
+            <Card key={r.id} className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-slate-500">{r.reference}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      {requestStatusLabel(r.status, r.intent)}
+                    </span>
+                  </div>
+                  <div className="mt-1 font-semibold text-acier-900">{r.subject}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">
+                    Reçue le {new Date(r.createdAt).toLocaleDateString('fr-FR')}
+                    {r.location ? ` · ${r.location}` : ''}
+                  </div>
+                  {r.offerAmount != null && (
+                    <div className="mt-1 text-sm font-semibold text-btp-700">
+                      Votre prix : {formatFcfa(r.offerAmount)}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {aChiffrer && (
+                    <>
+                      <label className="sr-only" htmlFor={`prix-${r.id}`}>
+                        Votre prix pour {r.reference}
+                      </label>
+                      <input
+                        id={`prix-${r.id}`}
+                        type="number"
+                        min={1}
+                        placeholder="Prix en FCFA"
+                        value={montants[r.id] ?? ''}
+                        onChange={(e) => setMontants((m) => ({ ...m, [r.id]: e.target.value }))}
+                        className="w-36 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-acier-500 focus:outline-none focus:ring-2 focus:ring-acier-200"
+                      />
+                      <button
+                        type="button"
+                        disabled={busy === r.id || !(Number(montants[r.id]) > 0)}
+                        onClick={() =>
+                          void agir(
+                            r.id,
+                            () => proposeOnRequest(r.id, Number(montants[r.id])),
+                            'Proposition envoyée au client',
+                          )
+                        }
+                        className="rounded-lg bg-btp-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-btp-600 disabled:opacity-50"
+                      >
+                        Proposer
+                      </button>
+                    </>
+                  )}
+                  {accepte && (
+                    <button
+                      type="button"
+                      disabled={busy === r.id}
+                      onClick={() => void agir(r.id, () => startRequest(r.id), 'Prestation démarrée')}
+                      className="rounded-lg bg-btp-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-btp-600 disabled:opacity-50"
+                    >
+                      Démarrer
+                    </button>
+                  )}
+                  {enCours && (
+                    <button
+                      type="button"
+                      disabled={busy === r.id}
+                      onClick={() => void agir(r.id, () => completeRequest(r.id), 'Prestation terminée')}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      Terminer
+                    </button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 
 /** Nombre de jours facturés, bornes incluses. */
 function rentalDays(request: QuoteRequest): number | null {
@@ -148,6 +294,8 @@ export default function SupplierQuoteRequests() {
             : 'Les demandes envoyées par les clients pour vos engins.'
         }
       />
+
+      <DemandesTransmises />
 
       {error && (
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">

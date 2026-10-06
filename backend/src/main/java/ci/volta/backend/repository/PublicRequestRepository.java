@@ -14,6 +14,9 @@ public interface PublicRequestRepository extends JpaRepository<PublicRequest, St
 
     List<PublicRequest> findAllByOrderByCreatedAtDesc();
 
+    /** Ce qu'un fournisseur voit : uniquement ce que VOLTA lui a transmis. */
+    List<PublicRequest> findBySupplierIdOrderByCreatedAtDesc(String supplierId);
+
     /**
      * Les demandes d'un client : les siennes par le compte, et celles qu'il a
      * déposées avant d'en avoir un.
