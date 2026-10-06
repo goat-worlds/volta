@@ -1326,7 +1326,17 @@ public class VoltaService {
 
         Equipment eq = getEquipment(qreq.equipmentId);
 
-        // Créer automatiquement une demande de location
+        /*
+         * Le devis accepté devient une réservation, prête à démarrer.
+         *
+         * Elle naissait « en attente », et il fallait encore la qualifier,
+         * l'accepter, la confirmer — trois validations pour un dossier déjà
+         * qualifié par l'administration, chiffré, et accepté par le client. On
+         * revalidait ce qui venait d'être décidé, et la prestation attendait.
+         *
+         * Elle naît donc confirmée : il ne reste qu'à dire quand elle commence
+         * et quand elle finit.
+         */
         RentalRequest rental = new RentalRequest();
         rental.id = newId("rental");
         rental.reference = references.next(ReferenceService.RENTAL);
@@ -1339,13 +1349,13 @@ public class VoltaService {
         rental.clientName = qreq.clientName;
         rental.clientPhone = qreq.clientPhone;
         rental.clientEmail = qreq.clientEmail;
-        rental.status = RentalWorkflow.PENDING;
+        rental.status = RentalWorkflow.CONFIRMED;
         rental.createdAt = today();
         rental.updatedAt = today();
         rentalRequestRepository.save(rental);
 
-        notify("SUPPLIER", "Devis accepté pour " + eq.name + " — demande de location créée");
-        notify("ADMIN", "Nouvelle réservation à qualifier " + rental.reference + " — " + eq.name);
+        notify("SUPPLIER", "Devis accepté pour " + eq.name + " — réservation " + rental.reference + " à exécuter");
+        notify("ADMIN", "Réservation confirmée " + rental.reference + " — " + eq.name);
         audit.record("QUOTE_ACCEPTED", "QUOTE", quote.id, rental.reference,
                 eq.name + " — réservation " + rental.reference + " créée");
         webhookService.dispatch("QUOTE_ACCEPTED", Map.of(

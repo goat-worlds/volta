@@ -120,14 +120,27 @@ public class ReservationService {
         return saved;
     }
 
+    /**
+     * Démarrer et clore appartiennent à qui exécute.
+     *
+     * Les deux gestes étaient réservés à l'administration. Le loueur présent sur
+     * le chantier devait donc téléphoner pour qu'on note à sa place que la
+     * machine était partie, puis rappeler pour dire qu'elle était rendue — deux
+     * appels pour deux faits qu'il était seul à constater.
+     *
+     * Le fournisseur peut désormais le faire, sur ses propres réservations
+     * seulement : `requireOwnership` s'en assure, et laisse passer
+     * l'administration, qui exécute quand elle a pris la demande à son compte.
+     */
     public RentalRequest start(String requestId) {
-        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
-        return move(load(requestId), RentalWorkflow.IN_PROGRESS, "RENTAL_STARTED", null);
+        RentalRequest r = load(requestId);
+        currentUser.requireOwnership(r.supplierId, "cette réservation");
+        return move(r, RentalWorkflow.IN_PROGRESS, "RENTAL_STARTED", null);
     }
 
     public RentalRequest complete(String requestId, String note) {
-        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         RentalRequest r = load(requestId);
+        currentUser.requireOwnership(r.supplierId, "cette réservation");
         if (note != null && !note.isBlank()) r.adminNote = note.trim();
         return move(r, RentalWorkflow.COMPLETED, "RENTAL_COMPLETED", note);
     }

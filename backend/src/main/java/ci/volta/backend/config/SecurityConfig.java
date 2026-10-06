@@ -142,10 +142,16 @@ public class SecurityConfig {
                 // --- Réservations : le fournisseur répond, VOLTA qualifie et suit ---
                 .requestMatchers("/api/rental-requests/*/accept",
                                  "/api/rental-requests/*/decline").hasAnyRole("SUPPLIER", "ADMIN")
+                // Démarrer et clore appartiennent à qui exécute : le
+                // fournisseur quand la demande lui a été transmise, VOLTA quand
+                // elle s'en est chargée. Réservés à l'administration, ils
+                // obligeaient un loueur présent sur le chantier à téléphoner
+                // pour qu'on note à sa place que la machine était partie.
+                // Le service vérifie que la réservation est bien la sienne.
+                .requestMatchers("/api/rental-requests/*/start",
+                                 "/api/rental-requests/*/complete").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers("/api/rental-requests/*/qualify",
                                  "/api/rental-requests/*/confirm",
-                                 "/api/rental-requests/*/start",
-                                 "/api/rental-requests/*/complete",
                                  "/api/rental-requests/*/cancel").hasRole("ADMIN")
 
                 // --- Volta Market : le vendeur rédige, l'équipe VOLTA publie ---

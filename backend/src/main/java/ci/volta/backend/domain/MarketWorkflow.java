@@ -101,11 +101,16 @@ public final class MarketWorkflow {
     }
 
     /**
-     * Une demande avance d'une étape à la fois, ou se clôt.
+     * Une demande avance aussi loin qu'il le faut, recule d'un cran, ou se clôt.
      *
-     * Reculer est permis d'un cran seulement : une offre refusée revient en
-     * analyse commerciale, une négociation rouvre l'offre. Sauter en avant ne
-     * l'est jamais.
+     * Sauter en avant était interdit : une commande dont l'engin était en stock
+     * et le prix affiché traversait quand même disponibilité, analyse
+     * commerciale, offre et négociation — quatre étapes qui n'avaient pas eu
+     * lieu, et que l'acheteur lisait dans son suivi comme si elles l'avaient
+     * été.
+     *
+     * Reculer reste limité à un cran : une offre refusée revient en analyse,
+     * une négociation rouvre l'offre. Au-delà, ce n'est plus une correction.
      */
     public static void checkRequestTransition(String current, String target) {
         String from = normalize(current, RECEIVED);
@@ -120,10 +125,10 @@ public final class MarketWorkflow {
         if (CLOSED.equals(from)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Une demande clôturée ne bouge plus");
         }
-        boolean forwardOne = toIndex == fromIndex + 1;
+        boolean forward = toIndex > fromIndex;
         boolean backOne = toIndex == fromIndex - 1 && fromIndex > 0;
         boolean close = CLOSED.equals(target);
-        if (!forwardOne && !backOne && !close) {
+        if (!forward && !backOne && !close) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Transition impossible pour cette demande : " + from + " vers " + target);
         }
