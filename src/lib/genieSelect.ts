@@ -183,7 +183,7 @@ export const EXPERTISES: readonly Expertise[] = [
     // bungalows — et la carte d'accueil, elle, dit bien « projet de
     // construction ».
     accroche: 'Construction et rénovation',
-    texte: 'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché.',
+    texte: 'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché, etc.',
     icon: Building2,
     couleur: ACIER,
     points: ['Bases vie de chantier', 'Villas et duplex', 'Bâtiments à usage public'],
