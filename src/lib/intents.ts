@@ -36,7 +36,15 @@ export interface Intent {
   title: string
   /** Ce que VOLTA fait de la demande — la promesse, pas la mécanique. */
   description: string
-  /** Libellé du bouton : un verbe, jamais « en savoir plus ». */
+  /**
+   * La phrase d'appel, en bas de la carte.
+   *
+   * C'était un libellé de bouton — « Voir les engins », « Demander une piece ».
+   * Un verbe seul dit où l'on clique, pas ce qu'on obtient : le visiteur lisait
+   * huit fois « demander » sans savoir ce qui lui reviendrait. La phrase dit
+   * l'acte et sa suite — « Indiquez votre besoin et recevez votre proposition
+   * de pièces » — pour que le parcours soit choisi, pas essayé.
+   */
   cta: string
   to: string
   icon: LucideIcon
@@ -73,8 +81,8 @@ export const INTENTS: Intent[] = [
     id: 'MAINTAIN_EQUIPMENT',
     title: 'Je veux faire la maintenance de mon engin',
     description:
-      'Entretien courant, panne ou revision : un technicien VOLTA intervient sur votre machine.',
-    cta: 'Demander une intervention',
+      'Entretien courant, panne ou révision : un technicien VOLTA intervient sur votre machine.',
+    cta: 'Ne perdez plus de temps : demandez votre intervention de maintenance.',
     to: '/demande/technicien',
     icon: Wrench,
     image: '/engins/technicien-maintenance.jpeg',
@@ -84,8 +92,9 @@ export const INTENTS: Intent[] = [
   {
     id: 'FLEET_NEED',
     title: 'Besoin d’une flotte pour votre projet ?',
-    description: 'Listez les engins dont vous avez besoin pour votre projet.',
-    cta: 'Expliquer mon projet',
+    description:
+      'Listez les engins dont vous avez besoin pour votre projet et nous vous proposerons une solution.',
+    cta: 'Décrivez vos besoins, VOLTA vous propose une solution adaptée.',
     to: '/demande/flotte',
     icon: Truck,
     image: '/engins/camion-kamaz.jpeg',
@@ -95,8 +104,9 @@ export const INTENTS: Intent[] = [
   {
     id: 'BUY_PARTS',
     title: 'Acheter des pièces de rechange',
-    description: 'Indiquez la piece et la machine concernee : VOLTA la recherche et vous repond.',
-    cta: 'Demander une piece',
+    description:
+      'Indiquez la pièce et la machine concernée, VOLTA la recherche et vous répond.',
+    cta: 'Indiquez votre besoin et recevez votre proposition de pièces.',
     to: '/market',
     icon: Settings,
     image: '/engins/pieces-rechange.jpeg',
@@ -106,8 +116,9 @@ export const INTENTS: Intent[] = [
   {
     id: 'TRAIN_TEAM',
     title: 'Je veux former mon équipe',
-    description: 'Conduite d’engins, securite, maintenance : des formations pratiques et certifiantes.',
-    cta: 'Demander une formation',
+    description:
+      'Conduite d’engins, sécurité, maintenance des machines, formations pratiques et certifiantes.',
+    cta: 'Envoyez-nous votre planning de formation, nous préparons votre programme.',
     to: '/recrutement',
     icon: GraduationCap,
     image: '/engins/formation-equipe.jpeg',
@@ -123,7 +134,7 @@ export const INTENTS: Intent[] = [
     id: 'RENT_EQUIPMENT',
     title: 'Je veux louer un engin',
     description: 'Parcourez les engins inspectés, disponibles à la location.',
-    cta: 'Voir les engins à louer',
+    cta: 'Demandez votre devis de location dès maintenant.',
     to: '/catalogue',
     icon: Truck,
     image: '/engins/pelle-cat-6015b.jpeg',
@@ -133,8 +144,8 @@ export const INTENTS: Intent[] = [
   {
     id: 'BUY_EQUIPMENT',
     title: 'Avez-vous des engins à mettre en location ?',
-    description: 'Appelez-nous pour une inspection avant la publication.',
-    cta: 'Proposer mon engin',
+    description: 'Appelez-nous pour une inspection avant la mise en location.',
+    cta: 'Soumettez votre engin à VOLTA pour inspection et mise en location.',
     to: '/proposer-un-engin',
     icon: Truck,
     image: '/engins/parc-chargeuses.jpeg',
@@ -146,7 +157,7 @@ export const INTENTS: Intent[] = [
     title: 'Je recherche un technicien ou un opérateur qualifié',
     description:
       'Notre équipe technique est constituée de profils étudiés, auditionnés et sélectionnés par VOLTA.',
-    cta: 'Rechercher un technicien',
+    cta: 'Soumettez votre besoin, nous vous proposerons le profil adapté.',
     to: '/demande/technicien',
     icon: Wrench,
     image: '/engins/technicien-maintenance.jpeg',
@@ -182,9 +193,8 @@ export const INTENTS: Intent[] = [
     id: 'BUILD_BASE_LIFE',
     title: 'J’ai un projet de construction',
     description:
-      'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché. ' +
-      'Confiez-nous votre projet de construction.',
-    cta: 'Décrire mon projet',
+      'Études, engins, équipe, logistique et conseils pour réussir votre projet de construction.',
+    cta: 'Confiez-nous votre projet de construction.',
     to: '/demande/base-vie',
     icon: Building2,
     image: '/engins/agence-volta.jpeg',

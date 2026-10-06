@@ -162,6 +162,10 @@ public class SecurityConfig {
                 // Déclarer une non-livraison revient au vendeur concerné ;
                 // l'administration peut le faire à sa place après un appel.
                 .requestMatchers("/api/market/requests/*/delivery-failure").hasAnyRole("SUPPLIER", "ADMIN")
+                // Répondre à une proposition est l'acte de l'acheteur ; le
+                // service vérifie ensuite que la commande est bien la sienne.
+                .requestMatchers(HttpMethod.POST, "/api/market/requests/*/response")
+                    .hasAnyRole("CLIENT", "ADMIN")
                 .requestMatchers("/api/market/listings/*/publish",
                                  "/api/market/listings/*/reject",
                                  "/api/market/listings/*/feature",

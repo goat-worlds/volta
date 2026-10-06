@@ -153,15 +153,20 @@ export const PURCHASE_FLOW: PurchaseStage[] = [
 ]
 
 export const PURCHASE_STAGE: Record<PurchaseStage, StatusStyle> = {
-  // Volta Market est un achat, pas un marchandage : l'acheteur commande au
-  // prix affiché et VOLTA confirme. Les étapes restent celles du serveur ;
-  // seuls les mots vus par l'acheteur changent.
-  RECEIVED: { label: 'Commande reçue', className: 'bg-slate-100 text-slate-700' },
-  QUALIFYING: { label: 'Qualification', className: 'bg-acier-100 text-acier-800' },
-  AVAILABILITY_CHECK: { label: 'Vérification disponibilité', className: 'bg-blue-100 text-blue-800' },
-  COMMERCIAL_REVIEW: { label: 'Analyse commerciale', className: 'bg-indigo-100 text-indigo-800' },
-  OFFER: { label: 'Commande confirmée', className: 'bg-btp-100 text-btp-800' },
-  NEGOTIATION: { label: 'Conditions à préciser', className: 'bg-btp-100 text-btp-800' },
+  // L'acheteur dit ce qu'il cherche et en quelle quantité ; VOLTA cherche la
+  // disponibilité et le prix, puis lui transmet une proposition qu'il accepte
+  // ou refuse. Les étapes restent celles du serveur ; seuls les mots vus par
+  // l'acheteur changent.
+  //
+  // OFFER a longtemps été affiché « Commande confirmée ». C'était dire au
+  // client que l'affaire était faite au moment précis où on attendait sa
+  // réponse — celui qui lisait cela n'avait aucune raison de répondre.
+  RECEIVED: { label: 'Demande reçue', className: 'bg-slate-100 text-slate-700' },
+  QUALIFYING: { label: 'En traitement', className: 'bg-acier-100 text-acier-800' },
+  AVAILABILITY_CHECK: { label: 'Recherche en cours', className: 'bg-blue-100 text-blue-800' },
+  COMMERCIAL_REVIEW: { label: 'Chiffrage en cours', className: 'bg-indigo-100 text-indigo-800' },
+  OFFER: { label: 'Proposition reçue', className: 'bg-btp-100 text-btp-800' },
+  NEGOTIATION: { label: 'Proposition révisée', className: 'bg-btp-100 text-btp-800' },
   VALIDATED: { label: 'Validée', className: 'bg-emerald-100 text-emerald-800' },
   SOLD: { label: 'Vente conclue', className: 'bg-emerald-100 text-emerald-800' },
   DELIVERED: { label: 'Livrée', className: 'bg-emerald-100 text-emerald-800' },

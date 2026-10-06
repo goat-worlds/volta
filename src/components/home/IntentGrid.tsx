@@ -176,14 +176,30 @@ export default function IntentGrid({
 
                 {/* Masquée à deux colonnes : sous 170 px, trois lignes de gris
                     poussent la flèche hors de vue sans rien apprendre. */}
-                <span className="mt-1 hidden flex-1 text-xs leading-relaxed text-papier-600 sm:block">
+                <span className="mt-1 hidden text-xs leading-relaxed text-papier-600 sm:block">
                   {intent.description}
                 </span>
 
-                <span className="mt-3 flex items-center justify-end">
+                {/* L'appel à l'action, et non une flèche nue.
+                    
+                    La carte se terminait sur un rond fléché : il disait qu'on
+                    pouvait cliquer, jamais ce qu'on obtiendrait en cliquant.
+                    La phrase le dit — « Demandez votre devis de location dès
+                    maintenant » — et c'est elle qui décide du parcours choisi.
+                    
+                    Elle est posée en bas par `mt-auto` : les huit phrases n'ont
+                    pas la même longueur, et sans cela les bandes se seraient
+                    décalées d'une carte à l'autre sur une même ligne.
+                    
+                    Sous `sm` — deux colonnes, 160 px — seule la flèche reste :
+                    la phrase y prendrait quatre lignes et chasserait le titre. */}
+                <span className="mt-auto flex items-center justify-end gap-2 pt-3 sm:justify-between sm:rounded-lg sm:bg-papier-100 sm:px-2.5 sm:py-2 sm:transition sm:group-hover:bg-btp-50">
+                  <span className="hidden text-[11px] font-semibold leading-snug text-acier-800 transition group-hover:text-btp-700 sm:block">
+                    {intent.cta}
+                  </span>
                   <span
                     aria-hidden
-                    className="grid size-8 place-items-center rounded-full bg-btp-500 text-white transition group-hover:bg-btp-600"
+                    className="grid size-8 shrink-0 place-items-center rounded-full bg-btp-500 text-white transition group-hover:bg-btp-600 sm:size-7"
                   >
                     <ArrowRight size={15} />
                   </span>

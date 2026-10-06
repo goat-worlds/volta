@@ -1,11 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, ShoppingCart } from 'lucide-react'
-import { apiGet } from '../../store/api'
+import { Check, Phone, ShoppingCart, X } from 'lucide-react'
+import { apiGet, apiPost } from '../../store/api'
 import type { PurchaseRequest } from '../../store/types'
 import { Card, CopyRef, EmptyState, LinkButton, PageTitle, fmtPrice } from '../../components/ui'
 import { PURCHASE_STAGE } from '../../lib/statuses'
 import { TELEPHONE } from '../../lib/siteNav'
+import { useToast } from '../../components/feedback/Toaster'
+
+/**
+ * Les deux étapes où la commande attend l'acheteur, et lui seul.
+ *
+ * Ailleurs, c'est VOLTA qui travaille — elle cherche la disponibilité, elle
+ * chiffre. Ici le dossier ne bouge plus sans une réponse, et c'est le seul
+ * moment où les deux boutons ont un sens.
+ */
+const A_DECIDER = new Set(['OFFER', 'NEGOTIATION'])
 
 /**
  * Les achats du client sur Volta Market.
@@ -18,26 +28,64 @@ import { TELEPHONE } from '../../lib/siteNav'
 export default function ClientPurchases() {
   const [rows, setRows] = useState<PurchaseRequest[] | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
+  const [encours, setEncours] = useState<string | null>(null)
+  const toast = useToast()
+
+  const charger = useCallback(
+    () =>
+      apiGet<PurchaseRequest[]>('/market/requests/mine')
+        .then((d) => setRows(d ?? []))
+        .catch((e) => setErreur(e instanceof Error ? e.message : 'Chargement impossible')),
+    [],
+  )
 
   useEffect(() => {
-    let annule = false
-    apiGet<PurchaseRequest[]>('/market/requests/mine')
-      .then((d) => {
-        if (!annule) setRows(d ?? [])
-      })
-      .catch((e) => {
-        if (!annule) setErreur(e instanceof Error ? e.message : 'Chargement impossible')
-      })
-    return () => {
-      annule = true
+    void charger()
+  }, [charger])
+
+  /**
+   * Accepter ou refuser la proposition.
+   *
+   * Le refus demande son motif, puis s'arrête si l'acheteur ferme la boîte :
+   * un clic malheureux sur « Refuser » clôturait sinon une commande que rien
+   * ne rouvre.
+   *
+   * Refusée, la commande reste affichée — clôturée, avec son montant. Elle
+   * n'est pas retirée de l'espace : c'est la trace de ce qui a été proposé et
+   * de ce qui a été répondu.
+   */
+  const repondre = async (r: PurchaseRequest, accepted: boolean) => {
+    let motif = ''
+    if (!accepted) {
+      const saisi = window.prompt(
+        `Refuser la proposition ${r.reference} ?
+
+Indiquez brièvement pourquoi (facultatif).`,
+      )
+      if (saisi === null) return
+      motif = saisi.trim()
     }
-  }, [])
+    setEncours(r.id)
+    try {
+      await apiPost(`/market/requests/${r.id}/response`, { accepted, motif })
+      if (accepted) {
+        toast.success('Proposition acceptée', `${r.reference} — VOLTA prépare la suite.`)
+      } else {
+        toast.info('Proposition refusée', `${r.reference} a été clôturée.`)
+      }
+      await charger()
+    } catch (e) {
+      toast.fromError(e)
+    } finally {
+      setEncours(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
       <PageTitle
         title="Mes achats"
-        subtitle="Vos commandes sur Volta Market, de l’envoi à la livraison."
+        subtitle="Vos demandes d’achat, de l’envoi à la livraison. Elles restent ici jusqu’à leur clôture."
       />
 
       {/* Le numéro et la référence au même endroit : au téléphone, on cite la
@@ -96,15 +144,45 @@ export default function ClientPurchases() {
                   {r.offerAmount != null && (
                     <div className="mt-1 text-sm font-semibold text-btp-700">
                       {fmtPrice(r.offerAmount)}
+                      {A_DECIDER.has(r.status) && (
+                        <span className="ml-2 text-xs font-medium text-papier-600">
+                          proposé par VOLTA
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
-                <Link
-                  to={`/suivi?ref=${encodeURIComponent(r.reference)}`}
-                  className="shrink-0 rounded-lg border border-papier-200 px-4 py-2 text-sm font-semibold text-acier-900 transition hover:border-btp-400"
-                >
-                  Suivre
-                </Link>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {A_DECIDER.has(r.status) && r.offerAmount != null && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => void repondre(r, true)}
+                        disabled={encours === r.id}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-btp-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-btp-600 disabled:opacity-50"
+                      >
+                        <Check size={15} aria-hidden />
+                        Accepter
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void repondre(r, false)}
+                        disabled={encours === r.id}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-papier-200 px-4 py-2 text-sm font-semibold text-acier-900 transition hover:border-red-300 hover:text-red-700 disabled:opacity-50"
+                      >
+                        <X size={15} aria-hidden />
+                        Refuser
+                      </button>
+                    </>
+                  )}
+                  <Link
+                    to={`/suivi?ref=${encodeURIComponent(r.reference)}`}
+                    className="rounded-lg border border-papier-200 px-4 py-2 text-sm font-semibold text-acier-900 transition hover:border-btp-400"
+                  >
+                    Suivre
+                  </Link>
+                </div>
               </Card>
             )
           })}

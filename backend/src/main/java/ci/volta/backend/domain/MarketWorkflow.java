@@ -65,6 +65,26 @@ public final class MarketWorkflow {
     /** Étape à laquelle VOLTA interroge le vendeur : « peux-tu livrer ? ». */
     public static final String AVAILABILITY_CHECK = "AVAILABILITY_CHECK";
 
+    /** VOLTA a chiffré : la demande attend la réponse de l'acheteur. */
+    public static final String OFFER = "OFFER";
+    public static final String NEGOTIATION = "NEGOTIATION";
+    public static final String VALIDATED = "VALIDATED";
+
+    /**
+     * La balle est-elle dans le camp de l'acheteur ?
+     *
+     * Une proposition chiffrée n'avance plus sans lui : c'est à ce moment, et à
+     * ce moment seulement, qu'il peut valider ou refuser. Avant, il n'y a rien
+     * à accepter ; après, la commande est partie en livraison.
+     *
+     * La négociation compte aussi : elle est une offre révisée, pas une autre
+     * étape du dialogue.
+     */
+    public static boolean awaitingClientDecision(String stage) {
+        String current = normalize(stage, RECEIVED);
+        return OFFER.equals(current) || NEGOTIATION.equals(current);
+    }
+
     /**
      * La commande a-t-elle été transmise au vendeur ?
      *

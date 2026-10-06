@@ -77,6 +77,13 @@ public class MarketController {
         return market.track(reference);
     }
 
+    /** L'acheteur valide ou refuse la proposition chiffrée par VOLTA. */
+    @PostMapping("/requests/{id}/response")
+    public PurchaseRequest respondToOffer(@PathVariable String id,
+                                          @RequestBody MarketService.OfferResponseInput body) {
+        return market.respondToOffer(id, body);
+    }
+
     // --- Vendeur ---
 
     @PostMapping("/listings")

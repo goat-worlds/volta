@@ -53,6 +53,10 @@ public class MarketService {
                                 String deliveryLocation, String usageLocation) {
     }
 
+    /** La réponse de l'acheteur à une proposition chiffrée. */
+    public record OfferResponseInput(boolean accepted, String motif) {
+    }
+
     public record StageInput(String stage, String notes, Long offerAmount) {
     }
 
@@ -416,6 +420,55 @@ public class MarketService {
         }
         r.updatedAt = today();
         r = purchases.save(r);
+        audit.record("PURCHASE_" + target, "PURCHASE", r.id, r.reference, previous + " vers " + target);
+        return r;
+    }
+
+    /**
+     * L'acheteur valide ou refuse la proposition.
+     *
+     * Le parcours d'achat allait jusqu'au prix, puis s'arrêtait : VOLTA
+     * cherchait la disponibilité, chiffrait, et le client voyait le montant
+     * s'afficher dans son espace sans rien pouvoir en faire. Il fallait
+     * téléphoner pour dire oui — et l'avancement du dossier dépendait alors de
+     * ce qu'un administrateur se souvenait de cliquer.
+     *
+     * Aucune étape n'est créée pour autant : accepter, c'est franchir le
+     * VALIDATED qui existait déjà et attendait quelqu'un pour le franchir ;
+     * refuser, c'est la clôture. Le même {@code checkRequestTransition} garde
+     * les deux, et l'administration conserve son propre chemin par
+     * {@link #moveStage} — pour le client qui répond au téléphone.
+     *
+     * La demande n'est jamais supprimée : refusée, elle reste dans l'espace de
+     * son auteur, clôturée et chiffrée, avec le motif qu'il a donné.
+     */
+    public PurchaseRequest respondToOffer(String id, OfferResponseInput in) {
+        PurchaseRequest r = purchases.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Demande introuvable : " + id));
+        currentUser.requireOwnership(r.clientId, "cette commande");
+
+        if (!MarketWorkflow.awaitingClientDecision(r.status) || r.offerAmount == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Aucune proposition n'attend votre réponse sur cette commande");
+        }
+        if (in == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Réponse attendue : acceptée ou refusée");
+        }
+
+        String target = in.accepted() ? MarketWorkflow.VALIDATED : MarketWorkflow.CLOSED;
+        MarketWorkflow.checkRequestTransition(r.status, target);
+
+        String previous = r.status;
+        r.status = target;
+        String trace = in.accepted()
+                ? "Proposition acceptée par le client"
+                : "Proposition refusée par le client"
+                        + (blank(in.motif()) ? "" : " : " + in.motif().trim());
+        r.notes = (blank(r.notes) ? "" : r.notes + "\n") + "[" + today() + " · " + target + "] " + trace;
+        r.updatedAt = today();
+        r = purchases.save(r);
+
+        notify(CurrentUser.ROLE_ADMIN, trace + " — commande " + r.reference);
         audit.record("PURCHASE_" + target, "PURCHASE", r.id, r.reference, previous + " vers " + target);
         return r;
     }
