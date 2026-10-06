@@ -180,9 +180,9 @@ export const INTENTS: Intent[] = [
   },
   {
     id: 'BUILD_BASE_LIFE',
-    title: 'Construction de base vie',
+    title: 'J’ai un projet de construction',
     description:
-      'Nous construisons un cadre de vie. Confiez-nous votre projet de construction.',
+      'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché.',
     cta: 'Décrire mon projet',
     to: '/demande/base-vie',
     icon: Building2,
@@ -255,20 +255,19 @@ export const FALLBACK_INTENT_ICON = ClipboardList
  * ne se deduit d'aucun champ.
  */
 export const PARCOURS_ACCUEIL: IntentId[] = [
-  // Premiere rangee : les quatre parcours qui vendent. Ce sont eux qu'on voit
-  // en arrivant, et ils disent ce que VOLTA fait pour un chantier en marche —
-  // louer, entretenir, trouver quelqu'un, former.
+  // Louer et mettre en location voisinent : ce sont les deux faces d'un même
+  // parc, et le détenteur d'engins se reconnaît aussitôt plutôt qu'au bas de la
+  // grille, où il ne descendait pas.
   'RENT_EQUIPMENT',
-  'MAINTAIN_EQUIPMENT',
+  'BUY_EQUIPMENT',
   'FIND_TECHNICIAN',
   'TRAIN_TEAM',
-  // Seconde rangee : les demandes plus engageantes, et l'achat en dernier.
-  // Acheter un engin est la decision la plus lourde du catalogue : la mettre
-  // en tete demanderait au visiteur de s'engager avant d'avoir rien vu.
+  // La flotte et la maintenance voisinent à leur tour : l'une compose un parc,
+  // l'autre le garde en état.
   'FLEET_NEED',
-  'BUILD_BASE_LIFE',
+  'MAINTAIN_EQUIPMENT',
   'BUY_PARTS',
-  // En dernier, en bas à droite : c'est l'appel au détenteur d'engins, qui
-  // n'arrive pas sur le site pour lui-même mais s'y reconnaît en descendant.
-  'BUY_EQUIPMENT',
+  // En dernier : un projet de construction n'est pas un besoin de chantier
+  // courant, c'est un chantier en soi.
+  'BUILD_BASE_LIFE',
 ]

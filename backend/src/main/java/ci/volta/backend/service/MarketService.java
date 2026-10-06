@@ -155,6 +155,20 @@ public class MarketService {
     // Vendeur
     // ------------------------------------------------------------------
 
+    /**
+     * Les commandes passées par le client connecté.
+     *
+     * Elles n'étaient consultables que par leur référence, sur la page de suivi
+     * publique : un client qui avait commandé deux engins et perdu ses deux
+     * accusés n'avait plus aucun moyen de retrouver ses dossiers, alors qu'ils
+     * portent son identifiant. Une commande appartient à qui l'a passée.
+     */
+    @Transactional(readOnly = true)
+    public List<PurchaseRequest> listMyPurchases() {
+        UserAccount me = currentUser.require();
+        return purchases.findByClientIdOrderByCreatedAtDesc(me.id);
+    }
+
     /** Annonces du vendeur connecté ; l'administration voit tout. */
     @Transactional(readOnly = true)
     public List<SaleListing> listMine() {

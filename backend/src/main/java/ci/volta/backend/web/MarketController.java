@@ -66,6 +66,12 @@ public class MarketController {
         return market.requestOffer(id, body);
     }
 
+    /** Les commandes du client connecté — son historique d'achats. */
+    @GetMapping("/requests/mine")
+    public List<PurchaseRequest> myPurchases() {
+        return market.listMyPurchases();
+    }
+
     @GetMapping("/requests/track/{reference}")
     public MarketService.PurchaseTracking track(@PathVariable String reference) {
         return market.track(reference);

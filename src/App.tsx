@@ -29,6 +29,7 @@ const Market = lazy(() => import('./pages/public/Market'))
 const MarketListing = lazy(() => import('./pages/public/MarketListing'))
 const Recruitment = lazy(() => import('./pages/public/Recruitment'))
 const JourneyPage = lazy(() => import('./pages/journeys/JourneyPage'))
+const ClientPurchases = lazy(() => import('./pages/client/ClientPurchases'))
 
 const ClientDashboard = lazy(() => import('./pages/client/ClientDashboard'))
 const ClientQuoteRequests = lazy(() => import('./pages/client/ClientQuoteRequests'))
@@ -137,6 +138,7 @@ export default function App() {
                 {/* Le Market est le même qu'en public, monté dans l'espace pour
                     garder la barre latérale. */}
                 <Route path="/client/market" element={<Market />} />
+                <Route path="/client/achats" element={<ClientPurchases />} />
                 <Route path="/client/market/demande" element={<JourneyPage intent="BUY_EQUIPMENT" />} />
                 <Route path="/client/market/:id" element={<MarketListing />} />
                 <Route path="/client/acheter" element={<Navigate to="/client/market" replace />} />

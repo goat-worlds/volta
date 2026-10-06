@@ -454,9 +454,18 @@ function RequestDetailModal({
           </div>
         </div>
 
-        <MeetingBox request={request} onSaved={onAdvanced} onError={onError} />
+        {/* Rencontre et orientation ne valent que pour une candidature.
+            
+            La rencontre s'affichait sur tout : une demande de devis se tranche
+            sur un prix, pas sur un entretien, et proposer d'y fixer un rendez-vous
+            donnait à l'équipe une case à remplir qui n'a pas d'objet — puis au
+            client une date qui ne voulait rien dire. Un candidat, lui, se
+            rencontre avant d'être retenu. */}
         {request.intent === 'JOIN_TECHNICAL_TEAM' && (
-          <OrientationBox request={request} onSaved={onAdvanced} onError={onError} />
+          <>
+            <MeetingBox request={request} onSaved={onAdvanced} onError={onError} />
+            <OrientationBox request={request} onSaved={onAdvanced} onError={onError} />
+          </>
         )}
 
         {entries.length > 0 && (

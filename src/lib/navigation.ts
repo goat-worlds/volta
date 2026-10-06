@@ -67,6 +67,7 @@ const TREE: NavSection[] = [
       { to: '/client/catalogue', label: 'Louer', icon: Search, roles: ['CLIENT'] },
       { to: '/client/market', label: 'Acheter — Volta Market', icon: ShoppingCart, roles: ['CLIENT'] },
       { to: '/client/locations', label: 'Réserver', icon: CalendarCheck, roles: ['CLIENT'] },
+      { to: '/client/achats', label: 'Mes achats', icon: ShoppingCart, roles: ['CLIENT'] },
       { to: '/client/demandes', label: 'Demandes de devis', icon: Inbox, roles: ['CLIENT'] },
       { to: '/client/devis', label: 'Devis reçus', icon: Receipt, roles: ['CLIENT'] },
       { to: '/client/favoris', label: 'Favoris', icon: Heart, roles: ['CLIENT'] },
