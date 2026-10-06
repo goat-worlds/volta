@@ -126,7 +126,7 @@ export default function Catalogue() {
               className={`${FIELD} mb-4`}
             >
               <option value="">Tous</option>
-              <option value="BASIC">Basic</option>
+              <option value="BASIC">Basique</option>
               <option value="SILVER">Silver</option>
               <option value="GOLD">Gold</option>
             </select>
@@ -239,7 +239,7 @@ export default function Catalogue() {
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-papier-700">
             VOLTA s’appuie sur des contrôles techniques et documentaires avant de présenter un
-            équipement. La mention portée par chaque fiche — Basic, Silver ou Gold — indique
+            équipement. La mention portée par chaque fiche — Basique, Silver ou Gold — indique
             jusqu’où ce contrôle a été mené.
           </p>
           <p className="mt-4 text-papier-700">

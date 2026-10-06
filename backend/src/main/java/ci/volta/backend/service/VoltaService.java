@@ -1041,6 +1041,59 @@ public class VoltaService {
     }
 
     /**
+     * VOLTA prend la demande à son compte.
+     *
+     * Le circuit n'offrait qu'une sortie : transmettre au fournisseur. Pour
+     * répondre elle-même, l'administration devait d'abord transmettre, puis
+     * chiffrer à la place du fournisseur — un détour qui faisait apparaître
+     * l'affaire dans un espace à qui elle ne reviendrait pas.
+     *
+     * La demande accepte désormais un devis sans jamais passer par un tiers, et
+     * reste invisible aux fournisseurs. Le client, lui, voit une proposition
+     * comme une autre : c'est la plateforme qui répond.
+     */
+    public QuoteRequest handleQuoteRequest(String quoteRequestId) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+        QuoteWorkflow.checkRequestTransition(qreq.status, QuoteWorkflow.REQUEST_HANDLED_BY_ADMIN);
+        qreq.status = QuoteWorkflow.REQUEST_HANDLED_BY_ADMIN;
+        qreq = quoteRequestRepository.save(qreq);
+
+        Equipment eq = getEquipment(qreq.equipmentId);
+        notify("CLIENT", "VOLTA prend en charge votre demande de devis pour " + eq.name);
+        webhookService.dispatch("QUOTE_REQUEST_HANDLED", Map.of(
+                "requestId", qreq.id,
+                "equipmentId", eq.id,
+                "equipmentName", eq.name));
+        return qreq;
+    }
+
+    /**
+     * Clôture sans suite.
+     *
+     * Distincte du refus d'entrée : une demande a pu être travaillée longtemps
+     * avant qu'on y renonce. Elle n'est pas effacée — le client la retrouve dans
+     * son espace, avec son motif, parce qu'une demande appartient à qui l'a
+     * déposée et doit rester consultable tout son cycle de vie.
+     */
+    public QuoteRequest closeQuoteRequest(String quoteRequestId, String motif) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+        QuoteWorkflow.checkRequestTransition(qreq.status, QuoteWorkflow.REQUEST_CLOSED);
+        qreq.status = QuoteWorkflow.REQUEST_CLOSED;
+        if (motif != null && !motif.isBlank()) {
+            qreq.adminNote = motif.trim();
+        }
+        qreq = quoteRequestRepository.save(qreq);
+
+        Equipment eq = getEquipment(qreq.equipmentId);
+        notify("CLIENT", "Votre demande de devis pour " + eq.name + " a été clôturée par VOLTA");
+        return qreq;
+    }
+
+    /**
      * VOLTA transmet la demande au fournisseur.
      *
      * C'est le geste central du circuit : l'administrateur a lu le client, son

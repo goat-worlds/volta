@@ -23,4 +23,13 @@ public class QuoteRequest {
     public String clientPhone;
     public String clientEmail;
     public String createdAt;
+
+    /**
+     * Motif de clôture, écrit par VOLTA.
+     *
+     * Une demande close sans raison laisse le client devant un statut muet : il
+     * a rempli un formulaire, attendu, et n'apprend rien. Le motif voyage avec
+     * la demande, qui reste dans son espace.
+     */
+    public String adminNote;
 }

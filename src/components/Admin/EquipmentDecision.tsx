@@ -19,7 +19,7 @@ import type { Equipment, Level } from '../../store/types'
  */
 
 const LEVELS: { value: Level; label: string; hint: string }[] = [
-  { value: 'BASIC', label: 'Basic', hint: 'Conforme, sans distinction particulière' },
+  { value: 'BASIC', label: 'Basique', hint: 'Conforme, sans distinction particulière' },
   { value: 'SILVER', label: 'Silver', hint: 'Bon état général, entretien suivi' },
   { value: 'GOLD', label: 'Gold', hint: 'État remarquable, dossier complet' },
 ]

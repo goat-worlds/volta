@@ -313,6 +313,25 @@ public class ApiController {
         return service.approveQuoteRequest(id);
     }
 
+    /**
+     * VOLTA s'en charge : elle chiffrera elle-même, sans fournisseur. Réservé au
+     * rôle ADMIN (SecurityConfig).
+     */
+    @PostMapping("/quote-requests/{id}/handle")
+    public QuoteRequest handleQuoteRequest(@PathVariable String id) {
+        return service.handleQuoteRequest(id);
+    }
+
+    public record CloseRequestBody(String motif) {
+    }
+
+    /** Clôture sans suite : la demande reste dans l'espace du client. */
+    @PostMapping("/quote-requests/{id}/close")
+    public QuoteRequest closeQuoteRequest(@PathVariable String id,
+                                          @RequestBody(required = false) CloseRequestBody body) {
+        return service.closeQuoteRequest(id, body == null ? null : body.motif());
+    }
+
     @PostMapping("/quote-requests/{id}/reject")
     public QuoteRequest rejectQuoteRequest(@PathVariable String id, @RequestBody(required = false) RejectQuoteRequestBody body) {
         return service.rejectQuoteRequest(id, body == null ? null : body.reason());

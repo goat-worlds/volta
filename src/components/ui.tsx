@@ -90,16 +90,19 @@ export function SeverityBadge({ severity }: { severity: string }) {
 }
 
 const LEVEL_COLORS: Record<Level, string> = {
-  BASIC: 'bg-slate-200 text-slate-700',
-  SILVER: 'bg-gray-300 text-gray-800',
-  GOLD: 'bg-yellow-200 text-yellow-800',
+  // Les trois couleurs demandées : blanc, gris, or. Le blanc porte une bordure,
+  // sans quoi la mention la plus basse disparaîtrait sur une carte blanche —
+  // l'absence de pastille se lirait comme une absence de qualification.
+  BASIC: 'border border-papier-300 bg-white text-acier-800',
+  SILVER: 'bg-slate-300 text-slate-800',
+  GOLD: 'bg-amber-300 text-amber-900',
 }
 
 export function LevelBadge({ level }: { level: Level | null }) {
   if (!level) return null
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${LEVEL_COLORS[level]}`}>
-      {level === 'BASIC' ? 'Basic' : level === 'SILVER' ? 'Silver' : 'Gold'}
+      {level === 'BASIC' ? 'Basique' : level === 'SILVER' ? 'Silver' : 'Gold'}
     </span>
   )
 }
@@ -394,6 +397,10 @@ export function QuoteStatusBadge({ status }: { status: string }) {
     // Demande de devis
     AWAITING_VALIDATION: { label: 'En attente de validation VOLTA', className: 'bg-orange-50 text-orange-700 ring-orange-200' },
     PENDING: { label: 'Transmise au fournisseur', className: 'bg-amber-50 text-amber-700 ring-amber-200' },
+    // VOLTA répond elle-même : le client n'a pas à savoir qu'aucun fournisseur
+    // n'est saisi, seulement que son dossier avance et chez qui.
+    HANDLED_BY_ADMIN: { label: 'Prise en charge par VOLTA', className: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
+    CLOSED: { label: 'Clôturée', className: 'bg-slate-100 text-slate-600 ring-slate-200' },
     // Statut d'affichage, pas de base : une demande transmise à laquelle le
     // fournisseur a répondu. Voir displayQuoteRequestStatus().
     OFFER_RECEIVED: { label: 'Offre reçue', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },

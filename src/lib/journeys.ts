@@ -126,10 +126,13 @@ const EQUIPMENT_CATEGORIES = opts(
 const URGENCY = opts('Immédiate', 'Sous 24 h', 'Sous 48 h', 'Cette semaine', 'Planifiée')
 
 const TRADES = opts(
-  'Mécanicien',
-  'Mécanicien auto',
-  'Mécanicien diesel',
-  'Hydraulicien',
+  // Un seul mécanicien.
+  //
+  // La liste en comptait trois — général, auto, diesel — plus un hydraulicien.
+  // Sur un parc d'engins, celui qui ouvre un moteur ouvre aussi le circuit
+  // hydraulique : la distinction venait du garage automobile, pas du chantier,
+  // et obligeait le candidat à choisir une case qui ne décrit pas son travail.
+  'Mécanicien engins',
   'Électricien',
   'Électromécanicien',
   'Technicien de maintenance',
@@ -792,8 +795,94 @@ const JOIN_TEAM: Journey = {
   ],
 }
 
+/**
+ * Construction de base vie.
+ *
+ * Un chantier qui dure a besoin d'un endroit où dormir, manger et se réunir.
+ * Ce n'est pas une location d'engin : on ne choisit pas un bungalow dans un
+ * catalogue, on décrit un site, un effectif et une durée, et Génie Sélect
+ * Construction compose l'installation.
+ *
+ * D'où un parcours à part plutôt qu'une ligne dans la demande de location :
+ * les questions n'ont rien en commun avec celles d'une pelle.
+ */
+const BASE_VIE: Journey = {
+  intent: 'BUILD_BASE_LIFE',
+  kind: 'CONSTRUCTION',
+  title: 'Construction de base vie',
+  subtitle:
+    'Nous construisons un cadre de vie. Confiez-nous votre projet de construction.',
+  promise:
+    'Génie Sélect Construction étudie votre site et vous propose une installation adaptée.',
+  subject: (v) => `Base vie — ${v.siteLocation || 'site à préciser'}`,
+  recap: (v) => [
+    v.siteLocation ? `Le chantier se trouve à ${v.siteLocation}.` : null,
+    v.headcount ? `Nous serons ${v.headcount} personnes sur place.` : null,
+    v.duration ? `L'installation doit tenir ${v.duration}.` : null,
+    v.besoins ? `Il nous faut : ${v.besoins.split(';').join(', ')}.` : null,
+    v.description ? `À savoir : ${v.description}` : null,
+  ],
+  steps: [
+    {
+      title: 'Votre chantier',
+      intro: 'Où s’installe la base, pour combien de personnes et combien de temps.',
+      fields: [
+        {
+          name: 'siteLocation',
+          label: 'Lieu du chantier',
+          kind: 'text',
+          required: true,
+          full: true,
+          placeholder: 'Ville, zone, accès',
+        },
+        { name: 'headcount', label: 'Effectif à loger ou accueillir', kind: 'number', required: true },
+        { name: 'duration', label: 'Durée prévue', kind: 'text', required: true, placeholder: '8 mois' },
+        { name: 'startDate', label: 'Installation souhaitée à partir du', kind: 'date' },
+        {
+          name: 'terrain',
+          label: 'État du terrain',
+          kind: 'select',
+          options: opts('Nu et viabilisé', 'Nu sans réseaux', 'Déjà aménagé', 'À confirmer'),
+        },
+      ],
+    },
+    {
+      title: 'Ce qu’il vous faut',
+      fields: [
+        {
+          name: 'besoins',
+          label: 'Installations attendues',
+          kind: 'tags',
+          required: true,
+          full: true,
+          options: opts(
+            'Bungalows de vie',
+            'Sanitaires et douches',
+            'Bureaux',
+            'Salle de réunion',
+            'Réfectoire',
+            'Magasin / stockage',
+            'Poste de garde',
+            'Groupe électrogène',
+            'Adduction d’eau',
+          ),
+        },
+        {
+          name: 'description',
+          label: 'Précisions sur le projet',
+          kind: 'textarea',
+          full: true,
+          placeholder: 'Contraintes d’accès, raccordements existants, délais imposés…',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
 export const JOURNEYS: Journey[] = [
   RENT,
+  BASE_VIE,
   BUY,
   TECHNICIAN,
   OFFER_EQUIPMENT,

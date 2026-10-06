@@ -2,8 +2,6 @@ import {
   ArrowRight,
   Award,
   BadgeCheck,
-  Cog,
-  Droplets,
   FileUp,
   Flame,
   HardHat,
@@ -51,9 +49,11 @@ import {
  */
 
 const TRADES: { icon: LucideIcon; title: string; text: string }[] = [
-  { icon: Wrench, title: 'Mécanicien', text: 'Engins de terrassement, levage, transport — entretien et réparation sur site.' },
-  { icon: Cog, title: 'Mécanicien diesel', text: 'Moteurs et injection des engins lourds, diagnostic et remise en route.' },
-  { icon: Droplets, title: 'Hydraulicien', text: 'Circuits, vérins, pompes et distributeurs : la force des engins passe par vous.' },
+  {
+    icon: Wrench,
+    title: 'Mécanicien engins',
+    text: 'Moteurs, hydraulique, transmissions : entretien, diagnostic et remise en route sur site.',
+  },
   { icon: Zap, title: 'Électricien / électromécanicien', text: 'Faisceaux, calculateurs, groupes électrogènes et diagnostics électroniques.' },
   { icon: HardHat, title: 'Technicien de maintenance', text: 'Préventif, correctif, suivi des plans d’entretien sur les parcs clients.' },
   { icon: Search, title: 'Vérificateur d’engins', text: 'Inspections VOLTA : 18 points de contrôle, photos, rapport avant publication.' },
@@ -138,7 +138,7 @@ export default function Recruitment() {
               de couverture, comme toutes les pages d'accueil du monde. Ils se
               lisent en une phrase, et ce qu'ils annoncent est juste en dessous. */}
           <p className="mx-auto mt-10 max-w-2xl border-t border-white/10 pt-6 text-sm leading-relaxed text-acier-300">
-            Huit métiers recherchés, cinq étapes de sélection, dix-huit points de contrôle par
+            Six métiers recherchés, cinq étapes de sélection, dix-huit points de contrôle par
             inspection. Profils étudiés, auditionnés, sélectionnés — c’est ce que VOLTA promet à ses
             clients, et ce qui fait votre valeur.
           </p>
@@ -148,7 +148,7 @@ export default function Recruitment() {
       <Section id="metiers" tone="light">
         <SectionHeader
           label="Métiers recherchés"
-          title="Huit métiers, un même terrain."
+          title="Six métiers, un même terrain."
           text="Les besoins viennent des clients de VOLTA : parcs d’engins à entretenir, pannes à diagnostiquer, machines à inspecter avant publication."
         />
         <CardGrid columns={4}>

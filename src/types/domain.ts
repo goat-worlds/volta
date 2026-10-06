@@ -32,6 +32,7 @@ export type IntentId =
   | 'MAINTAIN_EQUIPMENT'
   | 'FIND_TECHNICIAN'
   | 'FLEET_NEED'
+  | 'BUILD_BASE_LIFE'
   | 'BUY_PARTS'
   | 'TRAIN_TEAM'
   | 'OFFER_EQUIPMENT'
@@ -53,6 +54,7 @@ export type RequestKind =
   | 'PURCHASE'
   | 'TECHNICIAN'
   | 'EQUIPMENT_OFFER'
+  | 'CONSTRUCTION'
   | 'SUPPORT'
   | 'GOLD'
 

@@ -119,6 +119,8 @@ public class SecurityConfig {
                 // Le fournisseur ne voit une demande qu'une fois transmise par
                 // l'administration : ces deux gestes lui sont donc fermés.
                 .requestMatchers("/api/quote-requests/*/approve",
+                                 "/api/quote-requests/*/handle",
+                                 "/api/quote-requests/*/close",
                                  "/api/quote-requests/*/reject").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/quote-requests").hasAnyRole("CLIENT", "ADMIN")
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, Clock, Phone, XCircle } from 'lucide-react'
+import { Archive, CheckCircle2, Clock, Hand, Phone, XCircle } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
@@ -40,6 +40,8 @@ export default function AdminQuotes() {
    */
   const demandes = useLiveResource<AdminRequestView[]>('/admin/requests')
   const [pendingReject, setPendingReject] = useState<QuoteRequest | null>(null)
+  const [pendingClose, setPendingClose] = useState<QuoteRequest | null>(null)
+  const [motifCloture, setMotifCloture] = useState('')
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
 
@@ -82,6 +84,45 @@ export default function AdminQuotes() {
       toast.success('Demande transmise', `${r.clientName} — ${equipmentName(r.equipmentId)}. Le fournisseur peut répondre.`)
     } catch (err) {
       toast.fromError(err, 'Transmission impossible')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  /**
+   * VOLTA répond elle-même.
+   *
+   * L'écran n'offrait que « transmettre » : l'administration qui voulait
+   * chiffrer devait d'abord envoyer la demande à un fournisseur, donc faire
+   * apparaître chez lui une affaire qui ne lui reviendrait pas.
+   */
+  const handle = async (r: QuoteRequest) => {
+    setBusy(r.id)
+    try {
+      const updated = await quoteRequestsClient.handle(r.id)
+      requests.patch((c) => (c ?? []).map((x) => (x.id === r.id ? updated : x)))
+      toast.success(
+        'Demande prise en charge',
+        `${r.clientName} — ${equipmentName(r.equipmentId)}. Vous pouvez proposer votre prix.`,
+      )
+    } catch (err) {
+      toast.fromError(err, 'Prise en charge impossible')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const close = async () => {
+    if (!pendingClose) return
+    setBusy(pendingClose.id)
+    try {
+      const updated = await quoteRequestsClient.close(pendingClose.id, motifCloture)
+      requests.patch((c) => (c ?? []).map((x) => (x.id === pendingClose.id ? updated : x)))
+      toast.info('Demande clôturée', 'Elle reste consultable par le client.')
+      setPendingClose(null)
+      setMotifCloture('')
+    } catch (err) {
+      toast.fromError(err, 'Clôture impossible')
     } finally {
       setBusy(null)
     }
@@ -220,8 +261,24 @@ export default function AdminQuotes() {
                     </div>
 
                     <div className="flex shrink-0 flex-col gap-2">
+                      {/* Les trois décisions, côte à côte : transmettre, s'en
+                          charger, clore. Elles étaient deux, et « s'en charger »
+                          n'existait pas. */}
                       <Button tone="success" disabled={busy === r.id} onClick={() => approve(r)}>
-                        <CheckCircle2 size={15} /> Autoriser le fournisseur
+                        <CheckCircle2 size={15} /> Transmettre au fournisseur
+                      </Button>
+                      <Button tone="primary" disabled={busy === r.id} onClick={() => handle(r)}>
+                        <Hand size={15} /> Prendre en charge
+                      </Button>
+                      <Button
+                        tone="secondary"
+                        disabled={busy === r.id}
+                        onClick={() => {
+                          setMotifCloture('')
+                          setPendingClose(r)
+                        }}
+                      >
+                        <Archive size={15} /> Clôturer
                       </Button>
                       <Button
                         tone="ghost"
@@ -317,6 +374,35 @@ export default function AdminQuotes() {
           <div className="flex justify-end gap-2">
             <Button tone="ghost" onClick={() => setPendingReject(null)}>Annuler</Button>
             <Button tone="danger" disabled={busy !== null} onClick={reject}>Écarter la demande</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Clôture : le motif n'est pas obligatoire, mais il part avec la demande
+          dans l'espace du client — qui a rempli un formulaire et mérite de
+          savoir pourquoi on n'y donne pas suite. */}
+      <Modal
+        open={pendingClose !== null}
+        onClose={() => setPendingClose(null)}
+        title="Clôturer la demande"
+      >
+        <div className="grid gap-3">
+          <p className="text-sm text-slate-600">
+            La demande reste consultable par le client, avec son motif. Aucun fournisseur n'en est
+            saisi.
+          </p>
+          <textarea
+            rows={3}
+            placeholder="Motif de clôture (facultatif) — visible par le client"
+            className="w-full rounded-lg border border-papier-200 p-2.5 text-sm focus:border-btp-400 focus:outline-none"
+            value={motifCloture}
+            onChange={(e) => setMotifCloture(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <Button tone="ghost" onClick={() => setPendingClose(null)}>Annuler</Button>
+            <Button tone="secondary" disabled={busy !== null} onClick={close}>
+              Clôturer
+            </Button>
           </div>
         </div>
       </Modal>

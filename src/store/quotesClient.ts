@@ -31,6 +31,8 @@ export interface QuoteRequest {
   clientPhone: string
   clientEmail: string
   createdAt: string
+  /** Motif de clôture écrit par VOLTA, s'il y en a un. */
+  adminNote?: string | null
 }
 
 export interface Quote {
@@ -96,6 +98,11 @@ export const quoteRequestsClient = {
    * Avant ce geste elle n'existe que pour l'administration et le client.
    */
   approve: (id: string) => apiPost<QuoteRequest>(`/quote-requests/${id}/approve`),
+  /** VOLTA s'en charge : elle chiffrera sans passer par un fournisseur. */
+  handle: (id: string) => apiPost<QuoteRequest>(`/quote-requests/${id}/handle`),
+  /** Clôture sans suite : la demande reste dans l'espace du client. */
+  close: (id: string, motif: string) =>
+    apiPost<QuoteRequest>(`/quote-requests/${id}/close`, { motif }),
 
   /** VOLTA écarte la demande avant transmission ; le client reçoit le motif. */
   reject: (id: string, reason: string) =>

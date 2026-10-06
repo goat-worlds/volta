@@ -45,6 +45,24 @@ public final class QuoteWorkflow {
     public static final String REQUEST_DECLINED = "DECLINED";
     /** Refusée par VOLTA avant transmission : le fournisseur ne l'a jamais vue. */
     public static final String REQUEST_REJECTED = "REJECTED";
+    /**
+     * VOLTA s'en charge elle-même : elle chiffrera sans passer par un
+     * fournisseur.
+     *
+     * Le circuit n'offrait qu'une sortie — transmettre — et l'administration qui
+     * voulait répondre elle-même devait d'abord s'envoyer la demande à
+     * elle-même. La demande accueille donc des devis comme une demande
+     * transmise, mais aucun fournisseur ne la voit : ce n'est pas la sienne.
+     */
+    public static final String REQUEST_HANDLED_BY_ADMIN = "HANDLED_BY_ADMIN";
+    /**
+     * Close, sans suite commerciale.
+     *
+     * Distincte de REJECTED, qui dit un refus d'entrée. Une demande clôturée a
+     * pu être traitée longuement avant qu'on y renonce — le client doit la
+     * retrouver dans son espace avec ce qu'elle contenait.
+     */
+    public static final String REQUEST_CLOSED = "CLOSED";
 
     /**
      * Suites autorisées pour un devis.
@@ -67,17 +85,29 @@ public final class QuoteWorkflow {
      * besoin.
      */
     private static final Map<String, Set<String>> REQUEST_TRANSITIONS = Map.of(
-        REQUEST_AWAITING_VALIDATION, Set.of(REQUEST_PENDING, REQUEST_REJECTED),
-        REQUEST_PENDING, Set.of(REQUEST_ACCEPTED, REQUEST_DECLINED),
+        // Trois sorties à la réception : transmettre, prendre en charge, clore.
+        REQUEST_AWAITING_VALIDATION,
+            Set.of(REQUEST_PENDING, REQUEST_HANDLED_BY_ADMIN, REQUEST_REJECTED, REQUEST_CLOSED),
+        REQUEST_PENDING, Set.of(REQUEST_ACCEPTED, REQUEST_DECLINED, REQUEST_CLOSED),
+        REQUEST_HANDLED_BY_ADMIN, Set.of(REQUEST_ACCEPTED, REQUEST_DECLINED, REQUEST_CLOSED),
         REQUEST_ACCEPTED, Set.of(),
         REQUEST_DECLINED, Set.of(),
-        REQUEST_REJECTED, Set.of()
+        REQUEST_REJECTED, Set.of(),
+        REQUEST_CLOSED, Set.of()
     );
 
-    /** Statuts qu'un fournisseur a le droit de voir : à partir de la validation par VOLTA. */
+    /**
+     * Statuts qu'un fournisseur a le droit de voir.
+     *
+     * À partir de la transmission, et jamais une demande que VOLTA s'est
+     * réservée : la faire apparaître chez un fournisseur l'inviterait à chiffrer
+     * une affaire qui ne lui reviendra pas.
+     */
     public static boolean visibleToSupplier(String requestStatus) {
         String current = normalize(requestStatus, REQUEST_PENDING);
-        return !REQUEST_AWAITING_VALIDATION.equals(current) && !REQUEST_REJECTED.equals(current);
+        return !REQUEST_AWAITING_VALIDATION.equals(current)
+                && !REQUEST_REJECTED.equals(current)
+                && !REQUEST_HANDLED_BY_ADMIN.equals(current);
     }
 
     private QuoteWorkflow() {
@@ -110,7 +140,9 @@ public final class QuoteWorkflow {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cette demande est en attente de validation par VOLTA : aucun devis ne peut y répondre avant");
         }
-        if (!REQUEST_PENDING.equals(current)) {
+        // Transmise au fournisseur ou prise en charge par VOLTA : dans les deux
+        // cas un prix peut être proposé. Seul l'auteur du devis change.
+        if (!REQUEST_PENDING.equals(current) && !REQUEST_HANDLED_BY_ADMIN.equals(current)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cette demande est déjà traitée (" + current + ") : aucun nouveau devis ne peut y être ajouté");
         }

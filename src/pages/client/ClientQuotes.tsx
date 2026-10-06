@@ -34,6 +34,16 @@ export default function ClientQuotes() {
   const { currentUser, equipment, users } = useStore()
 
   const [rows, setRows] = useState<Line[]>([])
+  /**
+   * Toutes les demandes du client, devis ou non.
+   *
+   * La page n'assemblait que des devis : une demande envoyée disparaissait de
+   * l'espace du client jusqu'à ce qu'un prix arrive, et une demande clôturée
+   * n'y revenait jamais. Il voyait son dossier s'évanouir sans comprendre.
+   * Une demande appartient à qui l'a déposée : elle reste visible tout son
+   * cycle de vie.
+   */
+  const [demandes, setDemandes] = useState<QuoteRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'SENT' | 'ACCEPTED' | 'REJECTED'>('all')
@@ -60,6 +70,7 @@ export default function ClientQuotes() {
       // décision.
       collected.sort((a, b) => b.quote.createdAt.localeCompare(a.quote.createdAt))
       setRows(collected)
+      setDemandes([...requests].sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Chargement impossible')
     } finally {
@@ -92,6 +103,9 @@ export default function ClientQuotes() {
   const equipmentOf = (id: string) => equipment.find((e) => e.id === id)
   const supplierOf = (id: string) => users.find((u) => u.id === id)
 
+  /** Les demandes auxquelles aucun devis ne répond encore — ou plus jamais. */
+  const sansDevis = demandes.filter((d) => !rows.some((r) => r.request.id === d.id))
+
   const visible = filter === 'all' ? rows : rows.filter((r) => r.quote.status === filter)
   const waiting = rows.filter((r) => r.quote.status === 'SENT')
   const waitingTotal = waiting.reduce(
@@ -109,9 +123,59 @@ export default function ClientQuotes() {
   return (
     <div className="space-y-6">
       <PageTitle
-        title="Mon panier de devis"
-        subtitle="Les offres chiffrées envoyées par les fournisseurs, prêtes à être comparées."
+        title="Mes demandes de devis"
+        subtitle="Toutes vos demandes, de l’envoi à la décision — et les offres chiffrées qui y répondent."
       />
+
+      {/* Les demandes sans prix.
+          
+          Elles n'apparaissaient nulle part : la page n'assemblait que des devis,
+          si bien qu'une demande envoyée disparaissait jusqu'à ce qu'un
+          fournisseur réponde, et qu'une demande clôturée ne revenait jamais. Le
+          client voyait son dossier s'évanouir sans savoir pourquoi. */}
+      {sansDevis.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+            En cours de traitement
+          </h2>
+          <div className="grid gap-3">
+            {sansDevis.map((d) => {
+              const eq = equipmentOf(d.equipmentId)
+              return (
+                <Card key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <img
+                      loading="lazy"
+                      src={eq?.photos[0] ?? '/images/placeholders/equipment.svg'}
+                      alt=""
+                      className="h-14 w-20 shrink-0 rounded-lg object-cover"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CopyRef value={quoteRequestRef(d.id, d.createdAt)} />
+                        <QuoteStatusBadge status={d.status} />
+                      </div>
+                      <div className="mt-1 font-semibold text-acier-900">
+                        {eq?.name ?? 'Équipement'}
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        Demandée le {new Date(d.createdAt).toLocaleDateString('fr-FR')}
+                        {d.quantity > 1 ? ` · ${d.quantity} unités` : ''}
+                      </div>
+                      {d.adminNote && (
+                        <p className="mt-1.5 text-xs italic text-slate-600">{d.adminNote}</p>
+                      )}
+                    </div>
+                  </div>
+                  <LinkButton to={`/client/demandes/${d.id}`} tone="secondary" size="sm">
+                    Voir les détails
+                  </LinkButton>
+                </Card>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {waiting.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-btp-200 bg-btp-50 p-5">

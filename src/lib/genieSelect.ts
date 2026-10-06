@@ -61,7 +61,14 @@ export interface Teintes {
 export interface Expertise {
   /** Le numéro affiché sur la carte. Il vient de l'ordre, pas d'une saisie. */
   id: string
-  /** La marque du domaine, telle qu'elle s'écrit : GS RENTAL, GS INVEST… */
+  /**
+   * La marque du domaine, en toutes lettres.
+   *
+   * Elle s'est écrite « GS RENTAL », « GS INVEST ». L'abréviation ne dit rien à
+   * qui découvre la maison, et elle se lit « gé-esse » à voix haute : un nom
+   * qu'on ne peut pas prononcer ne se retient pas. Le nom complet est désormais
+   * la seule forme employée sur le site.
+   */
   nom: string
   /** Ce que le visiteur vient y faire, dit à la première personne du pluriel. */
   accroche: string
@@ -82,7 +89,7 @@ export interface Expertise {
   /**
    * Les autres portes du même pôle.
    *
-   * <p>Un domaine n'ouvre pas toujours sur un seul geste. GS RENTAL en a deux,
+   * <p>Un domaine n'ouvre pas toujours sur un seul geste. Rental en a deux,
    * qui ne s'adressent pas à la même personne : celui qui vient choisir une
    * machine parcourt le catalogue ; celui qui doit équiper un chantier entier
    * ne cherche pas une pelle, il décrit un besoin de flotte. Les renvoyer tous
@@ -150,7 +157,7 @@ const BLEU: Teintes = {
 export const EXPERTISES: readonly Expertise[] = [
   {
     id: '01',
-    nom: 'GS RENTAL',
+    nom: 'Génie Sélect Rental',
     accroche: 'Louez des engins',
     texte:
       'Accédez rapidement à un large choix d’engins de chantier performants et bien entretenus.',
@@ -169,7 +176,7 @@ export const EXPERTISES: readonly Expertise[] = [
   },
   {
     id: '02',
-    nom: 'GS CONSTRUCTION',
+    nom: 'Génie Sélect Construction base vie',
     accroche: 'Base Vie',
     texte: 'Installez vos bases vie complètes et modulaires sur vos chantiers.',
     icon: Building2,
@@ -184,7 +191,7 @@ export const EXPERTISES: readonly Expertise[] = [
   },
   {
     id: '03',
-    nom: 'GS MAINTENANCE',
+    nom: 'Génie Sélect Maintenance',
     accroche: 'Réparez vos engins',
     texte:
       'Maintenance préventive et corrective par des experts pour garantir la disponibilité de vos équipements.',
@@ -196,7 +203,7 @@ export const EXPERTISES: readonly Expertise[] = [
   },
   {
     id: '04',
-    nom: 'GS INVEST',
+    nom: 'Génie Sélect Invest',
     accroche: 'Achetez un engin',
     texte: 'Acquérez des engins neufs ou d’occasion avec un accompagnement professionnel.',
     icon: ShoppingCart,
@@ -207,7 +214,7 @@ export const EXPERTISES: readonly Expertise[] = [
   },
   {
     id: '05',
-    nom: 'GS DIGITAL',
+    nom: 'Génie Sélect Digital',
     accroche: 'Smart Fleet',
     texte: 'Suivez et optimisez votre flotte en temps réel grâce à nos solutions digitales.',
     icon: Radio,
@@ -218,7 +225,7 @@ export const EXPERTISES: readonly Expertise[] = [
   },
   {
     id: '06',
-    nom: 'GS ACADEMY',
+    nom: 'Génie Sélect Academy',
     accroche: 'Formez mon équipe',
     texte: 'Développez les compétences de vos équipes avec des formations pratiques et certifiantes.',
     icon: GraduationCap,

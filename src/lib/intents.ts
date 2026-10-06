@@ -17,11 +17,10 @@
  */
 import {
   Boxes,
+  Building2,
   ClipboardList,
   HardHat,
   Package,
-  ShoppingCart,
-  Star,
   Truck,
   TrendingUp,
   Wrench,
@@ -85,8 +84,7 @@ export const INTENTS: Intent[] = [
   {
     id: 'FLEET_NEED',
     title: 'Besoin d’une flotte pour votre projet ?',
-    description:
-      'Decrivez le chantier : VOLTA compose la flotte plutot que de vous faire choisir machine par machine.',
+    description: 'Listez les engins de votre projet.',
     cta: 'Expliquer mon projet',
     to: '/demande/location',
     icon: Truck,
@@ -134,15 +132,14 @@ export const INTENTS: Intent[] = [
   },
   {
     id: 'BUY_EQUIPMENT',
-    title: 'Je veux acheter un engin',
-    description:
-      'Parcourez les engins à vendre sur Volta Market, vérifiés avant l’offre.',
-    cta: 'Voir les engins à vendre',
-    to: '/market',
-    icon: ShoppingCart,
+    title: 'Avez-vous des engins à mettre en location ?',
+    description: 'Appelez-nous pour une inspection avant la publication.',
+    cta: 'Proposer mon engin',
+    to: '/proposer-un-engin',
+    icon: Truck,
     image: '/engins/parc-chargeuses.jpeg',
-    audience: 'CLIENT',
-    kind: 'PURCHASE',
+    audience: 'OWNER',
+    kind: 'EQUIPMENT_OFFER',
   },
   {
     id: 'FIND_TECHNICIAN',
@@ -182,16 +179,16 @@ export const INTENTS: Intent[] = [
     kind: 'EQUIPMENT_OFFER',
   },
   {
-    id: 'BECOME_GOLD',
-    title: 'Faire qualifier mon équipement',
+    id: 'BUILD_BASE_LIFE',
+    title: 'Construction de base vie',
     description:
-      'Améliorez votre référencement, votre visibilité et votre capacité à accéder à de nouvelles opportunités.',
-    cta: 'Découvrir GOLD',
-    to: '/gold',
-    icon: Star,
-    image: '/engins/verificateur-tablette.jpeg',
-    audience: 'COMPANY',
-    kind: 'GOLD',
+      'Nous construisons un cadre de vie. Confiez-nous votre projet de construction.',
+    cta: 'Décrire mon projet',
+    to: '/demande/base-vie',
+    icon: Building2,
+    image: '/engins/agence-volta.jpeg',
+    audience: 'CLIENT',
+    kind: 'CONSTRUCTION',
   },
   {
     id: 'GROW_SALES',
@@ -269,7 +266,9 @@ export const PARCOURS_ACCUEIL: IntentId[] = [
   // Acheter un engin est la decision la plus lourde du catalogue : la mettre
   // en tete demanderait au visiteur de s'engager avant d'avoir rien vu.
   'FLEET_NEED',
-  'BECOME_GOLD',
+  'BUILD_BASE_LIFE',
   'BUY_PARTS',
+  // En dernier, en bas à droite : c'est l'appel au détenteur d'engins, qui
+  // n'arrive pas sur le site pour lui-même mais s'y reconnaît en descendant.
   'BUY_EQUIPMENT',
 ]

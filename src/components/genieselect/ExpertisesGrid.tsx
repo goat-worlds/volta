@@ -10,7 +10,7 @@ import { Reveal } from '../site/SiteKit'
  *
  * Elles étaient six blocs d'acier identiques, portant chacun quatre étiquettes
  * d'un mot. On y lisait le périmètre du groupe, jamais ce qu'il s'engage à
- * faire — et rien ne distinguait GS MAINTENANCE de GS ACADEMY avant d'avoir lu
+ * faire — et rien ne distinguait Maintenance d'Academy avant d'avoir lu
  * le titre. Or ces six marques existent hors du site : elles ont leurs devis,
  * leurs interlocuteurs, leur couleur.
  *
@@ -33,7 +33,7 @@ import { Reveal } from '../site/SiteKit'
  * <h2>Pourquoi la carte n'est pas elle-même un lien</h2>
  *
  * Elle l'a été, pour que le doigt n'ait pas à viser une flèche. Mais un pôle
- * peut ouvrir sur deux gestes — GS RENTAL mène au catalogue et à la demande de
+ * peut ouvrir sur deux gestes — Rental mène au catalogue et à la demande de
  * flotte — et un lien ne peut pas en contenir un autre : le HTML l'interdit.
  * Le bouton de pied est donc étiré sur toute la carte par un pseudo-élément :
  * la cible tactile reste la carte entière, et la porte secondaire, posée

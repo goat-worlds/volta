@@ -144,7 +144,16 @@ public class DataSeeder {
                 category("c-grue", "Grues", "🏙️"),
                 category("c-camion", "Camions", "🚚"),
                 category("c-compacteur", "Compacteurs", "⚙️"),
-                category("c-groupe", "Groupes électrogènes", "🔌"));
+                category("c-bulldozer", "Bulldozers", "🚜"),
+                category("c-niveleuse", "Niveleuses", "🛣️"),
+                category("c-foreuse", "Foreuses", "🔩"),
+                category("c-groupe", "Groupes électrogènes", "🔌"),
+                // « Équipement » n'est pas une famille d'engins : c'est tout ce
+                // qui s'ajoute au parc sans rouler — compresseurs, pompes,
+                // groupes de soudage, matériel de première installation. Elle
+                // ferme la liste parce qu'elle recueille ce que les autres ne
+                // nomment pas.
+                category("c-equipement", "Équipement", "🧰"));
     }
 
     /**

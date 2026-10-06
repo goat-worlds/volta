@@ -25,8 +25,35 @@ import { Reveal, Section, SectionHeader } from './site/SiteKit'
  * attribuent les niveaux.
  */
 
+/**
+ * Les trois mentions, dans leurs couleurs.
+ *
+ * Blanc, gris, or : elles se lisent d'un coup d'œil sans avoir à déchiffrer un
+ * libellé. Sur le fond bleu nuit de la section, le blanc est la teinte la plus
+ * lumineuse — la mention la plus basse ne doit pas pour autant paraître la plus
+ * haute, d'où la carte restée sobre derrière elle et le liseré doré réservé à
+ * Gold.
+ */
+const TEINTES: Record<Level, { picto: string; texte: string; carte: string }> = {
+  BASIC: {
+    picto: 'text-white',
+    texte: 'text-white',
+    carte: 'border-white/15 bg-white/[0.03]',
+  },
+  SILVER: {
+    picto: 'text-slate-300',
+    texte: 'text-slate-300',
+    carte: 'border-slate-300/30 bg-white/[0.05]',
+  },
+  GOLD: {
+    picto: 'text-amber-300',
+    texte: 'text-amber-300',
+    carte: 'border-amber-300/60 bg-amber-300/[0.08]',
+  },
+}
+
 const LEVELS: { id: Level; label: string; note: string }[] = [
-  { id: 'BASIC', label: 'Basic', note: 'Dossier contrôlé' },
+  { id: 'BASIC', label: 'Basique', note: 'Dossier contrôlé' },
   { id: 'SILVER', label: 'Silver', note: 'Contrôle sur site' },
   { id: 'GOLD', label: 'Gold', note: 'Contrôle complet' },
 ]
@@ -46,23 +73,15 @@ export default function VerificationLevels() {
           {LEVELS.map((level) => (
             <li
               key={level.id}
-              className={`rounded-xl border px-5 py-6 text-center ${
-                level.id === 'GOLD'
-                  ? 'border-btp-500/60 bg-white/[0.07]'
-                  : 'border-white/15 bg-white/[0.03]'
-              }`}
+              className={`rounded-xl border px-5 py-6 text-center ${TEINTES[level.id].carte}`}
             >
               <ShieldCheck
                 size={22}
                 aria-hidden
                 strokeWidth={1.75}
-                className={`mx-auto ${level.id === 'GOLD' ? 'text-btp-400' : 'text-acier-300'}`}
+                className={`mx-auto ${TEINTES[level.id].picto}`}
               />
-              <span
-                className={`volta-display mt-3 block text-2xl ${
-                  level.id === 'GOLD' ? 'text-btp-400' : 'text-white'
-                }`}
-              >
+              <span className={`volta-display mt-3 block text-2xl ${TEINTES[level.id].texte}`}>
                 {level.label}
               </span>
               <span className="mt-1 block text-sm text-acier-300">{level.note}</span>

@@ -97,6 +97,7 @@ export default function App() {
                     dans un historique de navigation. */}
                 <Route path="/demande/location" element={<JourneyPage intent="RENT_EQUIPMENT" />} />
                 <Route path="/demande/technicien" element={<JourneyPage intent="FIND_TECHNICIAN" />} />
+                <Route path="/demande/base-vie" element={<JourneyPage intent="BUILD_BASE_LIFE" />} />
                 {/* Volta Market : la vitrine d'abord, le formulaire libre pour
                     qui n'a pas trouvé. « demande » précède « :id ». */}
                 <Route path="/market" element={<Market />} />
