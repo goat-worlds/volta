@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, Phone, ShoppingCart, X } from 'lucide-react'
-import { apiGet, apiPost } from '../../store/api'
+import { apiPost } from '../../store/api'
+import { useLiveResource } from '../../store/useLiveResource'
 import type { PurchaseRequest } from '../../store/types'
 import { Card, CopyRef, EmptyState, LinkButton, PageTitle, fmtPrice } from '../../components/ui'
 import { PURCHASE_STAGE } from '../../lib/statuses'
@@ -26,22 +27,21 @@ const A_DECIDER = new Set(['OFFER', 'NEGOTIATION'])
  * et que son espace existe. Une commande appartient à qui l'a passée.
  */
 export default function ClientPurchases() {
-  const [rows, setRows] = useState<PurchaseRequest[] | null>(null)
-  const [erreur, setErreur] = useState<string | null>(null)
+  /*
+   * La liste se recharge à chaque tour du magasin.
+   *
+   * Elle ne chargeait qu'au montage : le client qui laissait la page ouverte
+   * pendant que VOLTA cherchait la disponibilité et chiffrait voyait « Demande
+   * reçue » indéfiniment, et les deux boutons n'apparaissaient jamais. Le
+   * suivi d'une commande est ce qu'on regarde sans recharger.
+   */
+  const { data, error: erreurVive, reload: charger } = useLiveResource<PurchaseRequest[]>(
+    '/market/requests/mine',
+  )
+  const rows = data
+  const erreur = erreurVive ? 'Chargement impossible' : null
   const [encours, setEncours] = useState<string | null>(null)
   const toast = useToast()
-
-  const charger = useCallback(
-    () =>
-      apiGet<PurchaseRequest[]>('/market/requests/mine')
-        .then((d) => setRows(d ?? []))
-        .catch((e) => setErreur(e instanceof Error ? e.message : 'Chargement impossible')),
-    [],
-  )
-
-  useEffect(() => {
-    void charger()
-  }, [charger])
 
   /**
    * Accepter ou refuser la proposition.

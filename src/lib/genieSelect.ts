@@ -176,13 +176,18 @@ export const EXPERTISES: readonly Expertise[] = [
   },
   {
     id: '02',
-    nom: 'Génie Sélect Construction base vie',
-    accroche: 'Base Vie',
-    texte: 'Installez vos bases vie complètes et modulaires sur vos chantiers.',
+    nom: 'Génie Sélect Construction',
+    // Le pôle ne fait pas que des bases vie : il bâtit aussi des villas, des
+    // duplex et des bâtiments publics, et il rénove. L'annoncer par la base
+    // vie seule faisait passer un constructeur pour un installateur de
+    // bungalows — et la carte d'accueil, elle, dit bien « projet de
+    // construction ».
+    accroche: 'Construction et rénovation',
+    texte: 'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché.',
     icon: Building2,
     couleur: ACIER,
-    points: ['Bungalows et sanitaires', 'Bureaux et salles de réunion', 'Solutions sur mesure'],
-    to: '/demande/location',
+    points: ['Bases vie de chantier', 'Villas et duplex', 'Bâtiments à usage public'],
+    to: '/demande/base-vie',
     // Le fonds n'a pas de base vie en photo. Un chantier en gros œuvre — grue à
     // tour, bâtiment en élévation — dit le métier faute de dire le produit :
     // c'est là que les bungalows s'installent. Mieux vaut cela que l'aplat de

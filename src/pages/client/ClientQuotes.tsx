@@ -63,17 +63,26 @@ export default function ClientQuotes() {
   const load = useCallback(async () => {
     if (!currentUser) return
     try {
-      setLoading(true)
       setError(null)
 
-      const requests = await quoteRequestsClient.listByClient(currentUser.id)
-      const results = await Promise.allSettled(requests.map((r) => quotesClient.listByRequest(r.id)))
+      /*
+       * Un appel pour les demandes, un pour les devis.
+       *
+       * La page en faisait un par demande : vingt dossiers, vingt-et-un
+       * appels. Le serveur sait déjà rendre d'un coup les offres qui
+       * répondent aux demandes du client connecté — il filtre lui-même, et
+       * c'est lui qui garantit qu'on ne voit pas celles d'un autre.
+       */
+      const [requests, mesDevis] = await Promise.all([
+        quoteRequestsClient.listByClient(currentUser.id),
+        quotesClient.listAll().catch(() => [] as Quote[]),
+      ])
 
+      const parDemande = new Map(requests.map((r) => [r.id, r]))
       const collected: Line[] = []
-      results.forEach((res, i) => {
-        if (res.status === 'fulfilled') {
-          res.value.forEach((q) => collected.push({ quote: q, request: requests[i] }))
-        }
+      mesDevis.forEach((q) => {
+        const request = parDemande.get(q.quoteRequestId)
+        if (request) collected.push({ quote: q, request })
       })
 
       // Les offres les plus récentes d'abord : ce sont celles qui appellent une
@@ -86,11 +95,15 @@ export default function ClientQuotes() {
     } finally {
       setLoading(false)
     }
+    // `loading` ne repasse pas à vrai aux tours suivants : la page clignoterait
+    // toutes les quinze secondes en revenant sur « Chargement… ».
   }, [currentUser])
+
+  const { lastSyncAt } = useStore()
 
   useEffect(() => {
     void load()
-  }, [load])
+  }, [load, lastSyncAt])
 
   const decide = async (quote: Quote, accept: boolean) => {
     setPending(quote.id)

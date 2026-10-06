@@ -51,7 +51,7 @@ const KIND_LABELS: Record<RequestKind, string> = {
   PURCHASE: 'Achat',
   TECHNICIAN: 'Technicien',
   EQUIPMENT_OFFER: 'Offre d’engin',
-  CONSTRUCTION: 'Construction base vie',
+  CONSTRUCTION: 'Construction',
   SUPPORT: 'Accompagnement',
   GOLD: 'Candidature GOLD',
 }

@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Package, Plus, ArrowRight } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
-import { quoteRequestsClient, quotesClient, type QuoteRequest } from '../../store/quotesClient'
+import { quoteRequestsClient, quotesClient, type Quote, type QuoteRequest } from '../../store/quotesClient'
 import { Card, CopyRef, EmptyState, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus, fmtPrice } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 import { quoteRequestRef } from '../../lib/references'
-import { listMyRequests, respondToRequest, type MyRequestView } from '../../services/requests'
+import { respondToRequest, type MyRequestView } from '../../services/requests'
+import { useLiveResource } from '../../store/useLiveResource'
 import { requestStatusLabel, type IntentId } from '../../types/domain'
 import { intentById } from '../../lib/intents'
 import { LinkButton } from '../../components/ui'
@@ -38,12 +39,33 @@ export default function ClientQuoteRequests() {
    * portent ni engin du catalogue ni décompte d'offres, et les sept colonnes
    * seraient à moitié vides.
    */
-  const [parcours, setParcours] = useState<MyRequestView[]>([])
+  const { data: parcoursVivants, patch: patchParcours } = useLiveResource<MyRequestView[]>(
+    '/requests/mine',
+  )
+  const parcours = parcoursVivants ?? []
   const [repondant, setRepondant] = useState<string | null>(null)
   const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' | 'DECLINED'>('all')
+
+  /*
+   * La page suivait la synchronisation du magasin ? Non : elle chargeait une
+   * fois, au montage, et ne rebougeait plus. Un client qui gardait l'onglet
+   * ouvert pendant que VOLTA chiffrait son dossier voyait « En traitement »
+   * indéfiniment, et une demande déposée dans un autre onglet n'apparaissait
+   * jamais. Le suivi d'une demande est précisément ce qu'on regarde sans
+   * recharger.
+   *
+   * `lastSyncAt` change à chaque tour du magasin : l'effet s'y accroche et
+   * repasse, comme le font déjà les écrans de l'administration.
+   *
+   * Le décompte des offres tenait en un appel par demande — vingt dossiers
+   * faisaient vingt-et-un appels, désormais toutes les quinze secondes. Le
+   * serveur sait rendre d'un coup les devis qui répondent aux demandes du
+   * client connecté : un seul appel, quel que soit le nombre de dossiers.
+   */
+  const { lastSyncAt } = useStore()
 
   useEffect(() => {
     if (!currentUser) return
@@ -51,28 +73,18 @@ export default function ClientQuoteRequests() {
 
     const load = async () => {
       try {
-        setLoading(true)
         setError(null)
 
-        // Les demandes de parcours ne font pas échouer la page : si cette
-        // liste manque, le tableau reste lisible.
-        void listMyRequests()
-          .then((d) => { if (!cancelled) setParcours(d) })
-          .catch(() => { if (!cancelled) setParcours([]) })
-
-        const list = await quoteRequestsClient.listByClient(currentUser.id)
+        const [list, mesDevis] = await Promise.all([
+          quoteRequestsClient.listByClient(currentUser.id),
+          quotesClient.listAll().catch(() => [] as Quote[]),
+        ])
         if (cancelled) return
+
         setRequests(list)
-
-        const results = await Promise.allSettled(
-          list.map((r) => quotesClient.listByRequest(r.id))
-        )
-        if (cancelled) return
-
         const counts: Record<string, number> = {}
-        results.forEach((res, i) => {
-          // Un décompte indisponible reste à zéro plutôt que de masquer la ligne.
-          counts[list[i].id] = res.status === 'fulfilled' ? res.value.length : 0
+        list.forEach((r) => {
+          counts[r.id] = mesDevis.filter((q) => q.quoteRequestId === r.id).length
         })
         setQuoteCounts(counts)
       } catch (e) {
@@ -84,7 +96,7 @@ export default function ClientQuoteRequests() {
 
     void load()
     return () => { cancelled = true }
-  }, [currentUser])
+  }, [currentUser, lastSyncAt])
 
   /**
    * Accepter ou refuser la proposition.
@@ -108,7 +120,7 @@ Indiquez brièvement pourquoi (facultatif).`,
     setRepondant(d.id)
     try {
       const maj = await respondToRequest(d.id, accepted, motif)
-      setParcours((liste) => liste.map((x) => (x.id === maj.id ? maj : x)))
+      patchParcours((liste) => (liste ?? []).map((x) => (x.id === maj.id ? maj : x)))
       if (accepted) {
         toast.success('Proposition acceptée', `${d.reference} — VOLTA prépare la suite.`)
       } else {
