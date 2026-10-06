@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   BadgeCheck, Calendar, CheckCircle2, Gauge, HardHat, MapPin, Wrench, XCircle,
 } from 'lucide-react'
@@ -11,6 +11,8 @@ import { useToast } from '../../components/feedback/Toaster'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { equipment, categories, users, currentUser } = useStore()
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
@@ -44,17 +46,23 @@ export default function EquipmentDetail() {
   const supplier = users.find((u) => u.id === eq.supplierId)
 
   /**
-   * Plus de mur de connexion.
+   * Un compte est exigé pour demander un prix.
    *
-   * Le bouton renvoyait vers « /connexion », puis refusait tout compte qui
-   * n'était pas client. Un chef de chantier qui vient de lire la fiche devait
-   * donc créer un compte avant de pouvoir demander un prix — alors que les huit
-   * parcours du site se déposent sans compte, et que c'est la promesse affichée
-   * partout ailleurs. Ses coordonnées suffisent ; un client connecté les trouve
-   * préremplies.
+   * Le formulaire a été ouvert sans compte un temps, par cohérence avec les
+   * huit parcours. VOLTA a tranché autrement : un devis engage une machine, une
+   * date et un propriétaire, et l'on veut savoir à qui l'on répond avant d'y
+   * passer du temps.
+   *
+   * La destination est mémorisée : après inscription, le visiteur revient sur
+   * la fiche qu'il regardait, pas sur une page d'accueil où il devrait
+   * retrouver l'engin.
    */
   const handleQuoteClick = () => {
-    if (currentUser) {
+    if (!currentUser) {
+      navigate('/inscription', { state: { from: pathname } })
+      return
+    }
+    {
       setForm((f) => ({
         ...f,
         contactName: f.contactName || currentUser.name,
@@ -122,7 +130,7 @@ export default function EquipmentDetail() {
       <Link to="/catalogue" className="text-sm font-medium text-blue-600 hover:underline">← Retour au catalogue</Link>
       <div className="mt-4 grid gap-6 lg:grid-cols-2">
         <div>
-          <img loading="lazy" src={eq.photos[0]} alt={eq.name} className="h-80 w-full rounded-xl object-cover" />
+          <img loading="lazy" src={eq.photos[0] || '/images/placeholders/equipment.svg'} alt={eq.name} className="h-80 w-full rounded-xl object-cover" />
           <div className="mt-2 flex gap-2">
             {eq.photos.map((p, i) => (
               <img loading="lazy" key={i} src={p} alt="" className="h-16 w-24 rounded-lg object-cover" />

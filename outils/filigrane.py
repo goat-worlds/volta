@@ -142,86 +142,89 @@ def couleur_opposee(image: Image.Image, boite: tuple[int, int, int, int]) -> tup
 
 
 def filigraner(source: Path, cible: Path, tel: str) -> None:
+    """
+    Incruste la marque au centre de la photo.
+
+    <h2>Pourquoi au centre</h2>
+
+    Elle vivait dans le coin bas droit. C'est l'endroit le plus discret, et
+    c'est tout le problème : on recadre un coin en deux gestes, et la photo
+    repart sans sa marque. Le but n'est pas de signer poliment, c'est de rendre
+    l'image inutilisable ailleurs — et seul le centre ne peut pas être enlevé
+    sans emporter l'engin avec lui.
+
+    <h2>Pourquoi on voit encore l'engin</h2>
+
+    Une marque opaque en plein milieu protégerait parfaitement une photo que
+    plus personne ne regarde. Le bloc est donc posé à faible opacité : assez
+    présent pour décourager la reprise, assez transparent pour qu'un loueur
+    juge la machine. C'est le compromis que fait tout catalogue en ligne.
+
+    La composition est celle des huit vignettes de l'accueil — symbole, VOLTA,
+    la maison, le numéro — pour que la marque soit la même partout.
+    """
     image = Image.open(source).convert("RGB")
     L, H = image.size
 
-    # Le filigrane se dimensionne sur la largeur : une taille en pixels fixe
-    # serait énorme sur une vignette et invisible sur une photo pleine page.
-    #
-    # Le mot VOLTA n'est plus écrit en texte : le logo le porte déjà, en plus
-    # grand et dans ses couleurs. L'écrire à côté le donnait deux fois, et le
-    # pavé occupait un quart de la photo. Restent la maison et le numéro —
-    # ce que le dessin ne dit pas.
-    taille_maison = max(9, int(L * 0.020))
+    # Le bloc occupe une fraction de la largeur, bornée par la hauteur : les
+    # photos vont du carré au bandeau 5:1, et un même pourcentage n'y veut pas
+    # dire la même chose.
+    largeur_cible = min(L * 0.46, H * 1.30)
 
-    f_maison = police(NORMALE, taille_maison)
+    hauteur_logo = max(24, int(largeur_cible * 0.26))
+    corps_marque = max(16, int(largeur_cible * 0.17))
+    corps_petit = max(9, int(corps_marque * 0.34))
 
-    calque = Image.new("RGBA", image.size, (0, 0, 0, 0))
-    dessin = ImageDraw.Draw(calque)
+    logo = logo_marque(hauteur_logo)
+    f_marque = police(GRAS, corps_marque)
+    f_petit = police(NORMALE, corps_petit)
 
-    l_maison = dessin.textlength(MAISON, font=f_maison)
-    l_tel = dessin.textlength(tel, font=f_maison)
-    largeur = max(l_maison, l_tel)
+    regle = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
+    b_marque = regle.textbbox((0, 0), MARQUE, font=f_marque)
+    b_maison = regle.textbbox((0, 0), MAISON, font=f_petit)
+    b_tel = regle.textbbox((0, 0), tel, font=f_petit)
 
-    interligne = max(2, int(taille_maison * 0.30))
-    hauteur = taille_maison * 2 + interligne
+    h_marque = b_marque[3] - b_marque[1]
+    h_maison = b_maison[3] - b_maison[1]
+    h_tel = b_tel[3] - b_tel[1]
+    interligne = max(3, corps_petit // 2)
 
-    marge = int(L * 0.025)
-    x = L - largeur - marge
-    y = H - hauteur - marge
+    l_bloc = max(logo.width, b_marque[2] - b_marque[0], b_maison[2] - b_maison[0], b_tel[2] - b_tel[0])
+    h_bloc = hauteur_logo + interligne + h_marque + interligne + h_maison + interligne + h_tel
 
-    # La teinte est mesurée sur le bloc entier : les deux lignes partagent le
-    # même fond, les séparer donnerait parfois deux couleurs sur deux lignes
-    # collées.
-    boite = (int(x), int(y), int(min(L, x + largeur)), int(min(H, y + hauteur)))
-    teinte = couleur_opposee(image, boite)
+    bloc = Image.new("RGBA", (l_bloc, h_bloc), (0, 0, 0, 0))
+    bloc.alpha_composite(logo, ((l_bloc - logo.width) // 2, 0))
 
-    # Un liseré de la couleur opposée, derrière chaque lettre.
-    #
-    # La teinte adaptative suffisait sur un fond uni : blanc sur sombre, gris
-    # très foncé sur clair. Elle échouait partout ailleurs — terre remuée,
-    # bitume, bardage tacheté — où la luminance moyenne tombe au milieu et où
-    # aucune des deux couleurs ne se détache. Quatre photos du catalogue
-    # portaient ainsi une marque qu'on devinait sans pouvoir la lire.
-    #
-    # Le liseré règle le cas général : la lettre et son contour ne peuvent pas
-    # disparaître en même temps, puisqu'ils sont opposés l'un à l'autre.
-    contour = (255, 255, 255) if teinte == (26, 26, 26) else (0, 0, 0)
-    epaisseur = max(1, taille_maison // 9)
+    plume = ImageDraw.Draw(bloc)
+    # Le liseré sombre tient sous le blanc quel que soit le fond : au centre
+    # d'une photo, la luminance change d'un bout à l'autre du bloc, et une
+    # teinte choisie sur la moyenne y échouerait une fois sur deux.
+    contour = (0, 0, 0, 170)
+    trait = max(1, corps_marque // 14)
 
-    # Les deux lignes sont alignées à droite : c'est le bord de l'image qui sert
-    # de repère, et « by GÉNIE SÉLECT » est plus court que le numéro sur
-    # certaines tailles, plus long sur d'autres.
-    dessin.text(
-        (x + largeur - l_maison, y),
-        MAISON,
-        font=f_maison,
-        fill=teinte + (255,),
-        stroke_width=epaisseur,
-        stroke_fill=contour + (190,),
-    )
-    dessin.text(
-        (x + largeur - l_tel, y + taille_maison + interligne),
-        tel,
-        font=f_maison,
-        fill=teinte + (255,),
-        stroke_width=epaisseur,
-        stroke_fill=contour + (190,),
-    )
+    y = hauteur_logo + interligne
+    for texte, fonte, boite, hauteur in (
+        (MARQUE, f_marque, b_marque, h_marque),
+        (MAISON, f_petit, b_maison, h_maison),
+        (tel, f_petit, b_tel, h_tel),
+    ):
+        largeur_texte = boite[2] - boite[0]
+        plume.text(
+            ((l_bloc - largeur_texte) // 2 - boite[0], y - boite[1]),
+            texte,
+            font=fonte,
+            fill=(255, 255, 255, 255),
+            stroke_width=trait,
+            stroke_fill=contour,
+        )
+        y += hauteur + interligne
 
-    image = Image.alpha_composite(image.convert("RGBA"), calque)
+    # L'opacité d'ensemble, appliquée en dernier : elle doit porter sur le bloc
+    # composé, liseré compris, sinon le contour reste net sous un texte pâli.
+    bloc.putalpha(bloc.getchannel("A").point(lambda a: int(a * 0.42)))
 
-    # Le logo à gauche du bloc de texte, centré sur sa hauteur. Il garde ses
-    # couleurs et son ombre : c'est lui qu'on reconnaît avant de lire.
-    hauteur_logo = max(18, min(int(L * 0.052), int(H * 0.125)))
-    logo = avec_ombre(logo_marque(hauteur_logo))
-    image.alpha_composite(
-        logo,
-        (
-            max(0, int(x) - logo.width + int(taille_maison * 0.4)),
-            int(y + (hauteur - logo.height) / 2),
-        ),
-    )
+    image = image.convert("RGBA")
+    image.alpha_composite(bloc, ((L - l_bloc) // 2, (H - h_bloc) // 2))
 
     image = image.convert("RGB")
     cible.parent.mkdir(parents=True, exist_ok=True)

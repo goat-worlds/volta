@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   BadgeCheck,
@@ -39,6 +39,7 @@ import { NotFound } from '../errors'
 export default function MarketListing() {
   const { id = '' } = useParams()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const { currentUser } = useStore()
 
   const [listing, setListing] = useState<PublicListing | null>(null)
@@ -103,6 +104,20 @@ export default function MarketListing() {
   }
 
   const submit = async () => {
+    /*
+     * Un compte est exigé pour commander.
+     *
+     * La commande a été ouverte sans compte un temps. VOLTA a tranché
+     * autrement : commander engage une machine et un prix, et l'on veut savoir
+     * à qui l'on répond. La destination est mémorisée pour que le visiteur
+     * revienne sur l'annonce qu'il regardait, et non sur une page d'accueil où
+     * il devrait la retrouver.
+     */
+    if (!currentUser) {
+      navigate('/inscription', { state: { from: pathname } })
+      return
+    }
+
     const found: Record<string, string> = {}
     for (const field of ['contactName', 'contactPhone', 'contactEmail'] as const) {
       if (!values[field].trim()) found[field] = 'Nécessaire pour vous répondre.'

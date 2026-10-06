@@ -55,7 +55,11 @@ public class WatermarkService {
     private static final Logger log = LoggerFactory.getLogger(WatermarkService.class);
 
     /** Le symbole seul, découpé du bloc de marque. */
-    private static final String MARQUE = "marque/logo-volta-mark.png";
+    private static final String CHEMIN_SYMBOLE = "marque/logo-volta-mark.png";
+
+    /** Les deux lignes de la marque, identiques à celles du catalogue. */
+    private static final String MARQUE = "VOLTA";
+    private static final String MAISON = "by GÉNIE SÉLECT DIGITAL";
 
     /** Hauteur du symbole, en fraction de la largeur de la photo. */
     private static final double PART_LARGEUR = 0.055;
@@ -82,11 +86,11 @@ public class WatermarkService {
      */
     @PostConstruct
     void chargerSymbole() {
-        try (InputStream flux = new ClassPathResource(MARQUE).getInputStream()) {
+        try (InputStream flux = new ClassPathResource(CHEMIN_SYMBOLE).getInputStream()) {
             symbole = ImageIO.read(flux);
         } catch (IOException | RuntimeException e) {
             log.warn("Symbole de marque illisible ({}) : les photos envoyées ne porteront "
-                    + "que le numéro.", MARQUE, e);
+                    + "que le texte.", CHEMIN_SYMBOLE, e);
         }
     }
 
@@ -132,74 +136,110 @@ public class WatermarkService {
         }
     }
 
+    /**
+     * Pose la marque au centre de l'image.
+     *
+     * Elle vivait dans le coin bas droit. C'est l'endroit le plus discret, et
+     * c'est tout le problème : on recadre un coin en deux gestes, et la photo
+     * repart sans sa marque. Le but n'est pas de signer poliment, c'est de
+     * rendre l'image inutilisable ailleurs — et seul le centre ne peut pas être
+     * enlevé sans emporter l'engin avec lui.
+     *
+     * Le bloc est posé à faible opacité : assez présent pour décourager la
+     * reprise, assez transparent pour qu'un loueur juge la machine. Une marque
+     * opaque protégerait parfaitement une photo que plus personne ne regarde.
+     *
+     * La composition est celle des photos du catalogue, que marque
+     * `outils/filigrane.py` : symbole, VOLTA, la maison, le numéro. Les deux
+     * chemins doivent donner la même image — celui-ci à l'envoi, l'autre à la
+     * livraison.
+     */
     private void dessinerMarque(Graphics2D g, BufferedImage image) {
         int largeur = image.getWidth();
         int hauteur = image.getHeight();
 
-        int hautSymbole = (int) Math.max(HAUTEUR_MINIMALE,
-                Math.min(Math.min(largeur * PART_LARGEUR, hauteur * PART_HAUTEUR), HAUTEUR_MAXIMALE));
-        int corps = Math.max(9, (int) (hautSymbole * 0.30));
-        int marge = Math.max(8, (int) (largeur * 0.018));
+        double cible = Math.min(largeur * 0.46, hauteur * 1.30);
+        int hautSymbole = (int) Math.max(24, cible * 0.26);
+        int corpsMarque = (int) Math.max(16, cible * 0.17);
+        int corpsPetit = Math.max(9, (int) (corpsMarque * 0.34));
 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        Font police = new Font(Font.SANS_SERIF, Font.BOLD, corps);
-        g.setFont(police);
+        Font fMarque = new Font(Font.SANS_SERIF, Font.BOLD, corpsMarque);
+        Font fPetit = new Font(Font.SANS_SERIF, Font.BOLD, corpsPetit);
         FontRenderContext regle = g.getFontRenderContext();
-        Rectangle2D boite = police.getStringBounds(telephone, regle);
+
+        String[] lignes = {MARQUE, MAISON, telephone};
+        Font[] fontes = {fMarque, fPetit, fPetit};
+        Rectangle2D[] boites = new Rectangle2D[3];
+        for (int i = 0; i < 3; i++) {
+            boites[i] = fontes[i].getStringBounds(lignes[i], regle);
+        }
 
         int largSymbole = symbole == null
                 ? 0
                 : (int) Math.round(symbole.getWidth() * (hautSymbole / (double) symbole.getHeight()));
-        int ecart = symbole == null ? 0 : Math.max(6, hautSymbole / 6);
+        int interligne = Math.max(3, corpsPetit / 2);
 
-        int largBloc = largSymbole + ecart + (int) Math.ceil(boite.getWidth());
-        int hautBloc = Math.max(hautSymbole, (int) Math.ceil(boite.getHeight()));
-
-        int x = largeur - largBloc - marge;
-        int y = hauteur - hautBloc - marge;
-
-        Color teinte = teinteLisible(image, x, y, largBloc, hautBloc);
-
-        if (symbole != null) {
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.92f));
-            g.drawImage(symbole, x, y + (hautBloc - hautSymbole) / 2, largSymbole, hautSymbole, null);
-            g.setComposite(AlphaComposite.SrcOver);
+        int largBloc = largSymbole;
+        int hautBloc = symbole == null ? 0 : hautSymbole + interligne;
+        for (int i = 0; i < 3; i++) {
+            largBloc = Math.max(largBloc, (int) Math.ceil(boites[i].getWidth()));
+            hautBloc += (int) Math.ceil(boites[i].getHeight()) + interligne;
         }
 
-        // `getAscent` et non le haut de la boîte : `drawString` place la ligne
-        // de base, pas le sommet du texte.
-        int yTexte = y + (hautBloc - (int) boite.getHeight()) / 2 + g.getFontMetrics().getAscent();
-        int xTexte = x + largSymbole + ecart;
+        int x0 = (largeur - largBloc) / 2;
+        int y0 = (hauteur - hautBloc) / 2;
 
         /*
-         * Un liseré de la couleur opposée, derrière le numéro.
+         * Le bloc est composé à part, puis posé à l'opacité voulue.
          *
-         * La teinte adaptative suffit sur un fond uni : blanc sur sombre, gris
-         * très foncé sur clair. Elle échoue partout ailleurs — terre remuée,
-         * bitume, bardage tacheté — où la luminance moyenne tombe au milieu et
-         * où aucune des deux couleurs ne se détache. La lettre et son contour
-         * étant opposés, ils ne peuvent pas disparaître ensemble.
-         *
-         * Dessiné en huit décalages plutôt qu'avec un trait : Graphics2D ne sait
-         * pas contourner un texte sans passer par son tracé vectoriel, et huit
-         * copies coûtent moins qu'un Shape pour une chaîne de treize caractères.
+         * Peindre directement sur la photo en baissant l'alpha laisserait le
+         * liseré transparaître sous le texte pâli : il faut que l'ensemble —
+         * lettres et contour — s'efface d'un seul mouvement.
          */
-        Color contour = teinte.equals(Color.WHITE) ? Color.BLACK : Color.WHITE;
-        int epaisseur = Math.max(1, corps / 9);
-        g.setColor(contour);
-        for (int dx = -epaisseur; dx <= epaisseur; dx++) {
-            for (int dy = -epaisseur; dy <= epaisseur; dy++) {
-                if (dx != 0 || dy != 0) {
-                    g.drawString(telephone, xTexte + dx, yTexte + dy);
-                }
-            }
+        BufferedImage calque = new BufferedImage(largBloc, hautBloc, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gb = calque.createGraphics();
+        gb.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gb.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        gb.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        if (symbole != null) {
+            gb.drawImage(symbole, (largBloc - largSymbole) / 2, 0, largSymbole, hautSymbole, null);
         }
 
-        g.setColor(teinte);
-        g.drawString(telephone, xTexte, yTexte);
+        int y = symbole == null ? 0 : hautSymbole + interligne;
+        int trait = Math.max(1, corpsMarque / 14);
+        for (int i = 0; i < 3; i++) {
+            gb.setFont(fontes[i]);
+            int largTexte = (int) Math.ceil(boites[i].getWidth());
+            int xTexte = (largBloc - largTexte) / 2;
+            int yTexte = y + gb.getFontMetrics().getAscent();
+
+            // Le liseré sombre tient sous le blanc quel que soit le fond : au
+            // centre d'une photo, la luminance change d'un bout à l'autre du
+            // bloc, et une teinte choisie sur la moyenne y échouerait une fois
+            // sur deux.
+            gb.setColor(new Color(0, 0, 0, 170));
+            for (int dx = -trait; dx <= trait; dx++) {
+                for (int dy = -trait; dy <= trait; dy++) {
+                    if (dx != 0 || dy != 0) {
+                        gb.drawString(lignes[i], xTexte + dx, yTexte + dy);
+                    }
+                }
+            }
+            gb.setColor(Color.WHITE);
+            gb.drawString(lignes[i], xTexte, yTexte);
+
+            y += (int) Math.ceil(boites[i].getHeight()) + interligne;
+        }
+        gb.dispose();
+
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.42f));
+        g.drawImage(calque, x0, y0, null);
+        g.setComposite(AlphaComposite.SrcOver);
     }
 
     /**

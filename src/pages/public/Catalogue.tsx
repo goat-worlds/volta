@@ -173,7 +173,7 @@ export default function Catalogue() {
                       >
                         <img
                           loading="lazy"
-                          src={e.photos[0]}
+                          src={e.photos[0] || '/images/placeholders/equipment.svg'}
                           alt={e.name}
                           className="h-40 w-full object-cover"
                         />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   Building2,
@@ -86,6 +86,17 @@ const EXIGENCES: { texte: string; verifie: (v: string) => boolean }[] = [
 export default function Register() {
   const { register } = useStore()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  /**
+   * D'où vient le visiteur, s'il a été renvoyé ici.
+   *
+   * Une fiche d'engin et une annonce du Market exigent un compte avant de
+   * laisser demander un prix. Elles passent leur adresse ; sans cette reprise,
+   * l'inscription déposerait le nouveau venu sur son tableau de bord et il
+   * devrait retrouver seul la machine qu'il regardait une minute plus tôt.
+   */
+  const retour = (location.state as { from?: string } | null)?.from ?? null
 
   const [role, setRole] = useState<Role>('CLIENT')
   const [name, setName] = useState('')
@@ -118,7 +129,7 @@ export default function Register() {
           ? { name, phone, password, role }
           : { name, email, phone, password, role, company, city },
       )
-      navigate(HOME_BY_ROLE[user.role] ?? '/')
+      navigate(retour ?? HOME_BY_ROLE[user.role] ?? '/')
     } catch {
       setError(
         estClient

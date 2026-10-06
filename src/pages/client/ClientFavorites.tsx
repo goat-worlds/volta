@@ -51,7 +51,7 @@ export default function ClientFavorites() {
               key={e.id}
               id={e.id}
               name={e.name}
-              image={e.photos[0]}
+              image={e.photos[0] || '/images/placeholders/equipment.svg'}
               location={e.location}
               price={e.pricePerDay}
               level={e.level ?? undefined}
