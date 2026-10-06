@@ -1,4 +1,4 @@
-import { ArrowRight, Check, MessageSquare } from 'lucide-react'
+import { ArrowRight, MessageSquare } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { CHIFFRES, EXPERTISES, type Expertise } from '../../lib/genieSelect'
 import { Reveal } from '../site/SiteKit'
@@ -15,8 +15,20 @@ import { Reveal } from '../site/SiteKit'
  * leurs interlocuteurs, leur couleur.
  *
  * Chaque carte porte donc sa teinte, une tête — photo quand elle existe,
- * aplat et pictogramme sinon — ce que le pôle couvre en phrases, et un bouton
- * plein qui nomme la marque où il mène.
+ * aplat et pictogramme sinon — ce que le pôle couvre en une phrase, et un lien
+ * qui nomme la marque où il mène.
+ *
+ * <h2>Ce que la carte ne porte plus</h2>
+ *
+ * Elle a listé trois à quatre arguments à cocher sous sa description, et son
+ * lien était un bouton plein de la couleur du pôle. Six cartes ainsi faites
+ * donnaient une section de 1 400 px, et six aplats de couleur vive — orange,
+ * marine, vert, rouge, violet, bleu — qui se disputaient le regard au point
+ * qu'aucun ne le retenait.
+ *
+ * Les arguments disaient d'ailleurs ce que la description dit déjà. Ils sont
+ * partis ; la teinte du pôle ne subsiste que sur le pictogramme, l'accroche et
+ * le lien — assez pour distinguer six marques, pas assez pour crier.
  *
  * <h2>Pourquoi la carte n'est pas elle-même un lien</h2>
  *
@@ -74,15 +86,6 @@ function CarteExpertise({ e }: { e: Expertise }) {
 
         <p className="mt-3 text-sm leading-relaxed text-papier-600">{e.texte}</p>
 
-        <ul className="mt-4 space-y-1.5">
-          {e.points.map((p) => (
-            <li key={p} className="flex items-start gap-2 text-sm text-acier-900">
-              <Check size={15} className={`mt-0.5 shrink-0 ${c.coche}`} aria-hidden />
-              {p}
-            </li>
-          ))}
-        </ul>
-
         {/* Les portes secondaires passent devant le lien étiré, sinon il les
             recouvrirait et les avalerait au clic. */}
         {e.portes && e.portes.length > 0 && (
@@ -102,10 +105,10 @@ function CarteExpertise({ e }: { e: Expertise }) {
 
         <Link
           to={e.to}
-          className={`mt-auto inline-flex items-center justify-between gap-2 rounded-lg px-4 py-3 pt-3 text-sm font-bold text-white transition ${c.bouton} after:absolute after:inset-0 after:content-[''] focus-visible:outline-none`}
+          className={`mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-bold transition group-hover:gap-2.5 ${c.texte} after:absolute after:inset-0 after:content-[''] focus-visible:outline-none`}
         >
           Découvrir {e.nom}
-          <ArrowRight size={16} />
+          <ArrowRight size={15} />
         </Link>
       </div>
     </article>

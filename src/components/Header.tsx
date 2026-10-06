@@ -1,15 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, Phone, Search, X } from 'lucide-react'
+import { LayoutDashboard, LogOut, Menu, Phone, Search, X } from 'lucide-react'
 import { useStore } from '../store/StoreContext'
 import { HOME_BY_ROLE, ROLE_LABEL } from '../lib/navigation'
-import {
-  JOURNEY_COLUMNS,
-  JOURNEYS_FEATURE,
-  PRIMARY_LINKS,
-  SECONDARY_LINKS,
-  TELEPHONE,
-} from '../lib/siteNav'
+import { PRIMARY_LINKS, SECONDARY_LINKS, TELEPHONE } from '../lib/siteNav'
 import InstallAppButton from './site/InstallAppButton'
 import Logo from './Logo'
 
@@ -17,60 +11,31 @@ import Logo from './Logo'
  * En-tête public.
  *
  * Sombre, comme le bandeau d'accueil qu'il surplombe : la barre blanche
- * coupait la page en deux à l'arrivée. Elle porte les quatre entrées
- * principales, un panneau « Parcours » qui déplie les huit intentions par
- * public — avec un encart qui dit le principe avant la liste — et, à droite,
- * le suivi de demande et les accès au compte.
+ * coupait la page en deux à l'arrivée. Elle porte les entrées principales et,
+ * à droite, le suivi de demande et les accès au compte.
  *
- * Le panneau s'ouvre au survol et au clic, se ferme à la sortie après un court
- * délai (le pointeur traverse un vide entre le bouton et le panneau), à la
- * touche Échap, et à chaque navigation.
+ * Un menu « Parcours » y dépliait les huit intentions. Il faisait double emploi
+ * avec l'accueil, qui les présente en grand dès l'arrivée et retient la page
+ * jusqu'à ce qu'on en choisisse une : la barre proposait en petit, derrière un
+ * survol, ce que la page offrait déjà en pleine largeur.
  */
-/** Le panneau dépliable des parcours. */
-type Panneau = 'parcours'
-
 export default function Header() {
   const { currentUser, logout } = useStore()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  // Les huit parcours tiennent dans un panneau, sans surcharger la barre.
-  const [panneau, setPanneau] = useState<Panneau | null>(null)
-  const closeTimer = useRef<number | null>(null)
-
-  const cancelClose = () => {
-    if (closeTimer.current !== null) {
-      window.clearTimeout(closeTimer.current)
-      closeTimer.current = null
-    }
-  }
-  const scheduleClose = () => {
-    cancelClose()
-    closeTimer.current = window.setTimeout(() => setPanneau(null), 200)
-  }
-  const openPanel = (p: Panneau) => {
-    cancelClose()
-    setPanneau(p)
-  }
-
   // Un menu resté ouvert masquerait la page vers laquelle on vient d'aller.
   useEffect(() => {
     setMenuOpen(false)
-    setPanneau(null)
   }, [location.pathname, location.hash])
 
-  useEffect(() => cancelClose, [])
-
   useEffect(() => {
-    if (!panneau && !menuOpen) return
+    if (!menuOpen) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPanneau(null)
-        setMenuOpen(false)
-      }
+      if (e.key === 'Escape') setMenuOpen(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [panneau, menuOpen])
+  }, [menuOpen])
 
   const space = currentUser ? HOME_BY_ROLE[currentUser.role] : null
   // `whitespace-nowrap` : sans lui, une barre trop chargée coupe les intitulés
@@ -84,8 +49,6 @@ export default function Header() {
   return (
     <header
       className="sticky top-0 z-50 bg-acier-900 shadow-lg shadow-acier-900/20"
-      onMouseLeave={scheduleClose}
-      onMouseEnter={cancelClose}
     >
       <div className="btp-hazard-stripe h-1 w-full" aria-hidden />
 
@@ -105,21 +68,6 @@ export default function Header() {
           className="hidden flex-1 items-center justify-center gap-0.5 lg:flex"
           aria-label="Navigation principale"
         >
-          {/* Le groupe en premier : VOLTA est sa vitrine, et le visiteur
-              doit pouvoir atteindre les six expertises depuis n'importe
-              quelle page. */}
-          <div className="relative" onMouseEnter={() => openPanel("parcours")}>
-            <button
-              type="button"
-              aria-expanded={panneau === "parcours"}
-              aria-haspopup="true"
-              onClick={() => setPanneau((p) => (p === "parcours" ? null : "parcours"))}
-              className={`flex items-center gap-1 ${linkClass(panneau === "parcours")}`}
-            >
-              Parcours
-              <ChevronDown size={14} className={`transition-transform ${panneau === "parcours" ? "rotate-180" : ""}`} />
-            </button>
-          </div>
           {PRIMARY_LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} className={({ isActive }) => linkClass(isActive)}>
               {l.label}
@@ -205,69 +153,6 @@ export default function Header() {
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
-
-      {/* Panneau « Parcours » : les huit intentions, groupées par situation.
-
-          Il listait les six expertises du groupe, alors que le bouton annonce
-          les parcours et que la documentation de ce composant décrit déjà ce
-          panneau-ci : le code et son intention avaient divergé. Les expertises
-          restent accessibles par « Collaborons », qui est fait pour elles. */}
-      {panneau === "parcours" && (
-        <div
-          className="absolute inset-x-0 top-full z-40 hidden border-t border-white/10 bg-acier-900/98 shadow-2xl backdrop-blur lg:block"
-          onMouseEnter={() => openPanel("parcours")}
-        >
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[1fr_2.2fr]">
-            {/* L'encart dit le principe avant la liste : sans lui, huit liens
-                se lisent comme un sommaire et non comme une offre. */}
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-btp-400">
-                {JOURNEYS_FEATURE.eyebrow}
-              </p>
-              <h3 className="mt-2 text-lg font-bold leading-snug text-white">
-                {JOURNEYS_FEATURE.title}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-acier-300">
-                {JOURNEYS_FEATURE.description}
-              </p>
-              <Link
-                to={JOURNEYS_FEATURE.to}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-btp-400"
-              >
-                {JOURNEYS_FEATURE.ctaLabel}
-                <ArrowRight size={15} />
-              </Link>
-            </div>
-
-            <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-              {JOURNEY_COLUMNS.map((colonne) => (
-                <div key={colonne.heading}>
-                  <p className="text-xs font-bold uppercase tracking-wider text-acier-400">
-                    {colonne.heading}
-                  </p>
-                  <ul className="mt-2 space-y-0.5">
-                    {colonne.intents.map((intent) => (
-                      <li key={intent.id}>
-                        <Link
-                          to={intent.to}
-                          className="group flex items-start gap-2.5 rounded-lg p-2 transition hover:bg-white/5"
-                        >
-                          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-btp-500/15 text-btp-400 transition group-hover:bg-btp-500 group-hover:text-white">
-                            <intent.icon size={14} />
-                          </span>
-                          <span className="text-sm font-medium leading-snug text-white">
-                            {intent.title}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Menu mobile : mêmes entrées, à plat. */}
       {menuOpen && (
