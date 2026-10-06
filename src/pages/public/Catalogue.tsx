@@ -27,7 +27,6 @@ export default function Catalogue() {
   const [level, setLevel] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [availableOnly, setAvailableOnly] = useState(false)
-  const [operatorOnly, setOperatorOnly] = useState(false)
 
   const published = equipment.filter((e) => e.status === 'PUBLISHED')
 
@@ -42,8 +41,7 @@ export default function Catalogue() {
       (!category || e.categoryId === category) &&
       (!level || e.level === level) &&
       (!maxPrice || e.pricePerDay <= Number(maxPrice)) &&
-      (!availableOnly || e.available) &&
-      (!operatorOnly || e.withOperator),
+      (!availableOnly || e.available),
   )
 
   return (
@@ -124,15 +122,6 @@ export default function Catalogue() {
               />
               Disponible uniquement
             </label>
-            <label className="flex items-center gap-2 text-sm text-acier-900">
-              <input
-                type="checkbox"
-                checked={operatorOnly}
-                onChange={(e) => setOperatorOnly(e.target.checked)}
-                className="accent-btp-500"
-              />
-              Avec opérateur
-            </label>
           </aside>
 
           <div className="flex-1">
@@ -181,7 +170,7 @@ export default function Catalogue() {
                             </span>
                           </div>
                           <div className="mt-1 text-xs text-papier-600">
-                            {e.withOperator ? 'Avec opérateur' : 'Sans opérateur'}
+                            Avec opérateur
                           </div>
                         </div>
                       </Link>

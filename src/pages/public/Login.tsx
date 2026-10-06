@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, Search, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import Logo from '../../components/Logo'
 import { useStore } from '../../store/StoreContext'
 import { HOME_BY_ROLE } from '../../components/RequireRole'
 import { Card } from '../../components/ui'
@@ -127,11 +128,14 @@ export default function Login() {
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <Card className="p-8">
-        <div className="mb-6 text-center">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-xl font-black text-acier-900">
-            V
-          </span>
-          <h1 className="mt-3 text-2xl font-bold text-acier-900">Connexion</h1>
+        {/* Le logo, et non la pastille « V » qui tenait sa place : c'est la page
+            où l'on confie un mot de passe, donc celle où la marque doit être
+            reconnaissable du premier coup d'œil. `tone="light"` parce que la
+            carte est blanche — le composant compose le nom dans la teinte que
+            le fond autorise. */}
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Logo tone="light" />
+          <h1 className="mt-5 text-2xl font-bold text-acier-900">Connexion</h1>
           <p className="mt-1 text-sm text-papier-600">Accédez à votre espace VOLTA</p>
         </div>
 

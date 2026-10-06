@@ -207,13 +207,9 @@ const RENT: Journey = {
     v.startDate
       ? `J’en ai besoin à partir du ${frenchDate(v.startDate)}${v.duration ? `, pour ${v.duration}` : ''}.`
       : null,
-    v.needsTransport === 'oui' && v.needsOperator === 'oui'
-      ? 'Il me faut aussi le transport et un opérateur.'
-      : v.needsTransport === 'oui'
-        ? 'Il me faut aussi le transport jusqu’au chantier.'
-        : v.needsOperator === 'oui'
-          ? 'Il me faut aussi un opérateur.'
-          : null,
+    // L'opérateur n'est plus mentionné : toutes les locations VOLTA se font
+    // avec, il n'y a donc rien à demander ni à répéter au client.
+    v.needsTransport === 'oui' ? 'Il me faut aussi le transport jusqu’au chantier.' : null,
     v.constraints ? `À savoir : ${v.constraints}` : null,
   ],
   steps: [
@@ -295,11 +291,6 @@ const RENT: Journey = {
         {
           name: 'needsTransport',
           label: 'J’ai besoin du transport ou de la livraison',
-          kind: 'checkbox',
-        },
-        {
-          name: 'needsOperator',
-          label: 'J’ai besoin d’un opérateur ou d’un technicien',
           kind: 'checkbox',
         },
       ],
@@ -431,13 +422,7 @@ const OFFER_EQUIPMENT: Journey = {
     v.city ? `Il est basé à ${v.city}${v.zone ? ` et je peux couvrir ${v.zone}` : ''}.` : null,
     v.availability ? `Disponibilité : ${v.availability.toLowerCase()}.` : null,
     v.dailyRate ? `Mon tarif indicatif : ${v.dailyRate}.` : null,
-    v.transport === 'oui' && v.operator === 'oui'
-      ? 'Je peux fournir le transport et un opérateur.'
-      : v.transport === 'oui'
-        ? 'Je peux assurer le transport.'
-        : v.operator === 'oui'
-          ? 'Je peux fournir un opérateur.'
-          : null,
+    v.transport === 'oui' ? 'Je peux assurer le transport.' : null,
   ],
   steps: [
     {
@@ -507,7 +492,6 @@ const OFFER_EQUIPMENT: Journey = {
         { name: 'minDuration', label: 'Durée minimale', kind: 'text' },
         { name: 'terms', label: 'Conditions', kind: 'textarea', full: true },
         { name: 'transport', label: 'Le transport peut être assuré', kind: 'checkbox' },
-        { name: 'operator', label: 'Un opérateur peut être fourni', kind: 'checkbox' },
         {
           name: 'documents',
           label: 'Documents disponibles',

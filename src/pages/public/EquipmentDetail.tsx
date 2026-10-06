@@ -123,7 +123,7 @@ export default function EquipmentDetail() {
             </Card>
             <Card className="flex items-center gap-2 p-3">
               <HardHat size={15} className="shrink-0 text-papier-600" />
-              {eq.withOperator ? 'Avec opérateur' : 'Sans opérateur'}
+              Avec opérateur
             </Card>
           </div>
           <p className="mt-4 text-sm text-papier-600">{eq.description}</p>

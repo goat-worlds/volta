@@ -137,6 +137,29 @@ export default function IntentGrid({
                   loading="lazy"
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
+
+                {/* La marque, posée par la carte et non par le fichier.
+                    
+                    Les photos portent déjà un filigrane incrusté, mais il vit en
+                    bas à droite et ces vignettes font 303 x 112 : `object-cover`
+                    rogne une photo en 1,5:1 pour la faire entrer dans du 2,7:1,
+                    et ce coin-là est le premier à partir. Sur les huit cartes,
+                    on n'en voyait qu'un éclat tronqué, ou rien.
+                    
+                    Aucun placement dans le fichier ne survit à la fois au plein
+                    format et à ce recadrage : l'un garde les bords, l'autre le
+                    centre. La vignette pose donc sa propre marque, à une taille
+                    qu'elle maîtrise. Le filigrane du fichier continue de
+                    protéger l'image là où elle circule. */}
+                <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-md bg-acier-900/70 px-1.5 py-1 backdrop-blur-[2px]">
+                  <img src="/images/logo-volta-mark.png" alt="" aria-hidden className="h-3.5 w-auto" />
+                  <span className="text-[8px] font-bold uppercase leading-none tracking-wider text-white">
+                    Volta
+                    <span className="mt-px block text-[6px] font-semibold tracking-normal text-acier-200">
+                      by Génie Sélect Digital
+                    </span>
+                  </span>
+                </span>
               </span>
 
               <span className="relative flex flex-1 flex-col p-3 pt-6 sm:p-4 sm:pt-7">

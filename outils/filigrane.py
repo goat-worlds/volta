@@ -60,7 +60,7 @@ LOGO = RACINE / "public" / "images" / "logo-volta.png"
 SITE_NAV = RACINE / "src" / "lib" / "siteNav.ts"
 
 MARQUE = "VOLTA"
-MAISON = "by GÉNIE SÉLECT"
+MAISON = "by GÉNIE SÉLECT DIGITAL"
 
 # Polices : une gras pour la marque, une normale pour la maison.
 GRAS = Path(r"C:\Windows\Fonts\arialbd.ttf")

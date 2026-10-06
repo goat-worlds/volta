@@ -180,7 +180,7 @@ export default function AdminRequests() {
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-600">
                       {r.startDate} → {r.endDate}
                       <div className="text-slate-400">
-                        {r.withOperator ? 'Opérateur' : 'Sans opérateur'} · {r.transport ? 'Transport' : 'Sans transport'}
+                        Avec opérateur · {r.transport ? 'Transport' : 'Sans transport'}
                       </div>
                     </td>
                     <td className="px-4 py-3">
