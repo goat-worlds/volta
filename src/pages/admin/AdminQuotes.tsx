@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { CheckCircle2, Clock, Phone, XCircle } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { useLiveResource } from '../../store/useLiveResource'
@@ -6,6 +7,7 @@ import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, CopyRef, EmptyState, Modal, PageTitle, QuoteStatusBadge, StatCard, fmtPrice } from '../../components/ui'
 import { quoteRequestsClient, type Quote, type QuoteRequest } from '../../store/quotesClient'
 import { quoteRef, quoteRequestRef } from '../../lib/references'
+import type { AdminRequestView } from '../../services/requests'
 
 /**
  * Administration — Devis.
@@ -25,12 +27,37 @@ export default function AdminQuotes() {
   const toast = useToast()
   const requests = useLiveResource<QuoteRequest[]>('/quote-requests')
   const quotes = useLiveResource<Quote[]>('/quotes')
+  /**
+   * Les demandes du moteur commun.
+   *
+   * Un devis demandé depuis une fiche d'engin passait par « /quote-requests »,
+   * la table que lit cet écran. Il emprunte désormais le circuit commun des
+   * demandes — même référence, même suivi — et cet écran, resté sur l'ancienne
+   * table, s'est tu : les demandes arrivaient bien, sur une autre page, et
+   * celle-ci donnait à croire qu'il n'en venait plus.
+   *
+   * Elle les montre donc, en tête, avant la file héritée.
+   */
+  const demandes = useLiveResource<AdminRequestView[]>('/admin/requests')
   const [pendingReject, setPendingReject] = useState<QuoteRequest | null>(null)
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
 
   const all = useMemo(() => requests.data ?? [], [requests.data])
   const allQuotes = useMemo(() => quotes.data ?? [], [quotes.data])
+
+  /**
+   * Ce qui attend un prix : une location ou un achat qui n'a pas dépassé
+   * l'envoi du devis. Au-delà, la demande est suivie au centre, pas ici.
+   */
+  const aChiffrer = useMemo(
+    () =>
+      (demandes.data ?? [])
+        .filter((d) => d.kind === 'RENTAL' || d.kind === 'PURCHASE')
+        .filter((d) => ['RECEIVED', 'QUALIFYING', 'SEARCHING', 'QUOTE_DRAFT'].includes(d.status))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [demandes.data],
+  )
 
   // FIFO : la plus ancienne d'abord. createdAt est un horodatage ISO, qui se
   // compare comme du texte.
@@ -84,10 +111,48 @@ export default function AdminQuotes() {
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="À valider" value={toValidate.length} icon={Clock} accent={toValidate.length > 0 ? 'text-btp-600' : undefined} />
+        <StatCard label="À chiffrer" value={aChiffrer.length} icon={Clock} accent={aChiffrer.length > 0 ? 'text-btp-600' : undefined} />
         <StatCard label="Transmises au fournisseur" value={all.filter((r) => r.status === 'PENDING').length} />
         <StatCard label="Devis reçus" value={allQuotes.length} />
       </div>
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Demandes à chiffrer — dans l'ordre d'arrivée
+        </h2>
+        {aChiffrer.length === 0 ? (
+          <EmptyState
+            title="Aucune demande à chiffrer"
+            subtitle="Les demandes de devis déposées sur le site apparaîtront ici, la plus ancienne en tête."
+          />
+        ) : (
+          <div className="grid gap-3">
+            {aChiffrer.map((d) => (
+              <Card key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-slate-500">{d.reference}</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                      {d.kind === 'PURCHASE' ? 'Achat' : 'Location'}
+                    </span>
+                  </div>
+                  <div className="mt-1 font-semibold text-acier-900">{d.subject}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">
+                    {d.contact.name} · {d.contact.phone}
+                    {d.location ? ` · ${d.location}` : ''}
+                  </div>
+                </div>
+                <Link
+                  to="/admin/demandes"
+                  className="shrink-0 rounded-lg bg-acier-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-acier-800"
+                >
+                  Ouvrir le dossier
+                </Link>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
