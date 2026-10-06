@@ -215,8 +215,13 @@ export const EXPERTISES: readonly Expertise[] = [
   {
     id: '05',
     nom: 'Génie Sélect Digital',
-    accroche: 'Smart Fleet',
-    texte: 'Suivez et optimisez votre flotte en temps réel grâce à nos solutions digitales.',
+    accroche: 'SMART FLEET et VOLTA',
+    // Le pôle qui édite les deux plateformes du groupe. Le dire ici répond à la
+    // question que pose la page : d'où vient le site qu'on est en train de
+    // lire ? Sans cette ligne, VOLTA se présentait comme la vitrine d'un groupe
+    // dont aucun des six pôles ne la revendiquait.
+    texte:
+        'Le pôle numérique du groupe, éditeur de SMART FLEET — suivi de flotte en temps réel — et de VOLTA, la plateforme que vous consultez.',
     icon: Radio,
     couleur: VIOLET,
     points: ['Géolocalisation', 'Suivi d’activité', 'Tableaux de bord', 'Alertes et reporting'],

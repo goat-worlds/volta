@@ -135,7 +135,11 @@ export function canTransition(from: RequestStatus, to: RequestStatus): boolean {
   if (to === 'CLOSED') return true
   const current = REQUEST_FLOW.indexOf(from)
   const next = REQUEST_FLOW.indexOf(to)
-  return next === current + 1 || next === current - 1
+  // En avant, aussi loin qu'on veut ; en arrière, d'un cran seulement. Un
+  // dossier peut sauter des étapes — VOLTA prend parfois en charge et répond
+  // dans la minute — mais revenir de « terminée » à « reçue » serait réécrire
+  // l'histoire, pas la corriger.
+  return current >= 0 && next !== current && next >= current - 1
 }
 
 /**

@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { REQUEST_FLOW, requestStatusLabel, type RequestStatus } from '../../types/domain'
+import { flowFor, requestStatusLabel, type RequestStatus } from '../../types/domain'
 
 /**
  * Frise de suivi d'une demande.
@@ -24,7 +24,10 @@ export default function RequestTimeline({
   /** Une candidature porte les mots du recrutement, pas ceux du devis. */
   intent?: string | null
 }) {
-  const current = REQUEST_FLOW.indexOf(status)
+  // Les étapes montrées dépendent de ce que la demande est : une candidature
+  // en connaît dix, un devis six. Le statut stocké reste le même.
+  const etapes = flowFor(intent)
+  const current = etapes.indexOf(status)
   // Une demande clôturée l'est quel qu'ait été son chemin : toutes les étapes
   // se lisent alors comme derrière soi.
   const reached = (index: number) => (status === 'CLOSED' ? true : index <= current)
@@ -32,7 +35,7 @@ export default function RequestTimeline({
   if (compact) {
     return (
       <ol className="flex flex-wrap items-center gap-1.5" aria-label="Avancement de la demande">
-        {REQUEST_FLOW.map((step, index) => (
+        {etapes.map((step, index) => (
           <li
             key={step}
             title={requestStatusLabel(step, intent)}
@@ -51,10 +54,10 @@ export default function RequestTimeline({
 
   return (
     <ol className="space-y-0" aria-label="Avancement de la demande">
-      {REQUEST_FLOW.map((step, index) => {
+      {etapes.map((step, index) => {
         const done = reached(index) && step !== status
         const active = step === status
-        const last = index === REQUEST_FLOW.length - 1
+        const last = index === etapes.length - 1
 
         return (
           <li key={step} className="flex gap-3">

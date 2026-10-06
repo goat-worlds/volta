@@ -44,9 +44,22 @@ public final class RequestWorkflow {
         if (CLOSED.equals(to)) {
             return;
         }
+        /*
+         * En avant, aussi loin qu'on veut ; en arrière, d'un cran seulement.
+         *
+         * La règle n'autorisait qu'un pas dans chaque sens. Pour chiffrer une
+         * demande reçue, l'équipe cliquait quatre fois en traversant des états
+         * qu'elle n'avait pas vécus — et le client lisait ces quatre mensonges
+         * dans son suivi. Un dossier peut sauter des étapes : VOLTA prend
+         * parfois en charge et répond dans la minute.
+         *
+         * Le retour reste limité à un cran : revenir de « terminée » à
+         * « reçue » n'est pas une correction, c'est une réécriture de
+         * l'histoire.
+         */
         int current = FLOW.indexOf(from);
         int next = FLOW.indexOf(to);
-        if (current < 0 || Math.abs(next - current) != 1) {
+        if (current < 0 || next <= current - 2 || next == current) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Passage de « " + from + " » à « " + to + " » non autorisé");
         }

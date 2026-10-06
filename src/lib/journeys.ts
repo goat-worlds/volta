@@ -913,8 +913,104 @@ const BASE_VIE: Journey = {
   ],
 }
 
+/**
+ * Besoin d'une flotte.
+ *
+ * Le parcours renvoyait vers la demande de location, taillée pour une machine :
+ * un chef de projet qui a besoin de six engins y décrivait le premier et
+ * ajoutait les autres en commentaire — VOLTA recevait une phrase à relire au
+ * lieu d'une liste à chiffrer.
+ *
+ * Il coche donc ce qu'il lui faut, et dit en une ligne ce que la liste ne
+ * contient pas. « Autres » ouvre un champ plutôt que de l'obliger à ranger un
+ * matériel dans une famille qui n'est pas la sienne.
+ */
+const FLEET: Journey = {
+  intent: 'FLEET_NEED',
+  kind: 'RENTAL',
+  title: 'Besoin d’une flotte pour votre projet ?',
+  subtitle: 'Listez les engins dont vous avez besoin pour votre projet.',
+  promise:
+    'VOLTA compose la flotte et vous revient avec une proposition d’ensemble.',
+  subject: (v) => `Flotte — ${v.siteLocation || 'chantier à préciser'}`,
+  recap: (v) => [
+    v.engins ? `Il me faut : ${v.engins.split(';').join(', ')}.` : null,
+    v.autresEngins ? `Et aussi : ${v.autresEngins}.` : null,
+    v.siteLocation ? `Le chantier se trouve à ${v.siteLocation}.` : null,
+    v.duration ? `Pour ${v.duration}.` : null,
+  ],
+  steps: [
+    {
+      title: 'Les engins',
+      intro: 'Cochez ce dont vous avez besoin. Les quantités se précisent juste après.',
+      fields: [
+        {
+          name: 'engins',
+          label: 'Engins nécessaires',
+          kind: 'tags',
+          required: true,
+          full: true,
+          options: opts(
+            'Pelle hydraulique',
+            'Chargeuse',
+            'Bulldozer',
+            'Niveleuse',
+            'Compacteur',
+            'Camion benne',
+            'Grue',
+            'Foreuse',
+            'Groupe électrogène',
+            'Autres équipements',
+          ),
+        },
+        {
+          name: 'autresEngins',
+          label: 'Précisez les autres équipements',
+          kind: 'text',
+          required: true,
+          full: true,
+          placeholder: 'Compresseur, pompe, nacelle…',
+          showIf: (v) => (v.engins ?? '').split(';').includes('Autres équipements'),
+        },
+        {
+          name: 'quantites',
+          label: 'Quantités souhaitées',
+          kind: 'textarea',
+          full: true,
+          placeholder: '2 pelles, 3 camions bennes, 1 grue…',
+          help: 'Une ligne par engin suffit.',
+        },
+      ],
+    },
+    {
+      title: 'Votre chantier',
+      fields: [
+        {
+          name: 'siteLocation',
+          label: 'Lieu du chantier',
+          kind: 'text',
+          required: true,
+          full: true,
+          placeholder: 'Ville, zone, accès',
+        },
+        { name: 'duration', label: 'Durée du besoin', kind: 'text', required: true, placeholder: '4 mois' },
+        { name: 'startDate', label: 'Date de début', kind: 'date' },
+        {
+          name: 'description',
+          label: 'Le projet en quelques mots',
+          kind: 'textarea',
+          full: true,
+          placeholder: 'Nature des travaux, contraintes d’accès, phasage…',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
 export const JOURNEYS: Journey[] = [
   RENT,
+  FLEET,
   BASE_VIE,
   BUY,
   TECHNICIAN,

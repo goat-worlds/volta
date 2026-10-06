@@ -101,6 +101,46 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
  * n'a aucun sens, ni pour l'équipe qui la traite ni pour la personne qui suit
  * son dossier. Les mêmes étapes portent donc les mots du recrutement.
  */
+/**
+ * Les étapes montrées, selon ce que la demande est.
+ *
+ * Le parcours en dix temps a été écrit pour une candidature : on examine, on
+ * étudie le profil, on programme un entretien, on intègre. Une demande de devis
+ * ne connaît rien de tout cela — elle est reçue, prise en charge ou transmise,
+ * chiffrée, acceptée, puis exécutée. Lui imposer les dix rendait l'écran
+ * illisible et le travail interminable : quatre clics pour arriver à une
+ * proposition, et un client qui lisait « Devis en préparation » sur une demande
+ * de construction.
+ *
+ * Les statuts stockés ne changent pas — c'est leur affichage qui se resserre.
+ */
+export const REQUEST_FLOW_COURT: RequestStatus[] = [
+  'RECEIVED',
+  'QUALIFYING',
+  'QUOTE_SENT',
+  'VALIDATED',
+  'MISSION',
+  'DONE',
+]
+
+export const SHORT_STATUS_LABELS: Record<RequestStatus, string> = {
+  RECEIVED: 'Reçue',
+  QUALIFYING: 'En traitement',
+  SEARCHING: 'En traitement',
+  QUOTE_DRAFT: 'En traitement',
+  QUOTE_SENT: 'Proposition envoyée',
+  VALIDATED: 'Acceptée',
+  MATCHED: 'Acceptée',
+  MISSION: 'En cours',
+  DONE: 'Terminée',
+  CLOSED: 'Clôturée',
+}
+
+/** Les étapes à montrer pour cette demande. */
+export function flowFor(intent?: string | null): readonly RequestStatus[] {
+  return intent === 'JOIN_TECHNICAL_TEAM' ? REQUEST_FLOW : REQUEST_FLOW_COURT
+}
+
 export const APPLICATION_STATUS_LABELS: Record<RequestStatus, string> = {
   RECEIVED: 'Candidature reçue',
   QUALIFYING: 'En examen',
@@ -118,7 +158,7 @@ export const APPLICATION_STATUS_LABELS: Record<RequestStatus, string> = {
 export function requestStatusLabel(status: RequestStatus, intent?: string | null): string {
   return intent === 'JOIN_TECHNICAL_TEAM'
     ? APPLICATION_STATUS_LABELS[status] ?? status
-    : REQUEST_STATUS_LABELS[status] ?? status
+    : SHORT_STATUS_LABELS[status] ?? status
 }
 
 /** Priorité de traitement (CDC §26). */

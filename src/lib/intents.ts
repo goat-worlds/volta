@@ -84,9 +84,9 @@ export const INTENTS: Intent[] = [
   {
     id: 'FLEET_NEED',
     title: 'Besoin d’une flotte pour votre projet ?',
-    description: 'Listez les engins de votre projet.',
+    description: 'Listez les engins dont vous avez besoin pour votre projet.',
     cta: 'Expliquer mon projet',
-    to: '/demande/location',
+    to: '/demande/flotte',
     icon: Truck,
     image: '/engins/camion-kamaz.jpeg',
     audience: 'CLIENT',

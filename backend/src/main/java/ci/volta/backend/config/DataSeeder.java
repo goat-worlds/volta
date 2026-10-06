@@ -153,12 +153,14 @@ public class DataSeeder {
                 // groupes de soudage, matériel de première installation. Elle
                 // ferme la liste parce qu'elle recueille ce que les autres ne
                 // nomment pas.
-                category("c-equipement", "Équipement", "🧰"),
-                // Toujours en dernier : elle recueille ce que la taxonomie ne
-                // nomme pas. Sans elle, un fournisseur dont la machine n'entre
-                // dans aucune case renonce à la déclarer, et un client qui la
-                // cherche conclut qu'elle n'existe pas.
-                category("c-autres", "Autres", "➕"));
+                // Une seule case de fin, et non deux.
+                //
+                // « Équipement » et « Autres » coexistaient : le fournisseur
+                // devait deviner si un compresseur était l'un ou l'autre, et le
+                // client chercher dans les deux. Elles recouvraient la même
+                // chose — ce que la taxonomie ne nomme pas — et les dissocier
+                // n'ajoutait qu'une hésitation.
+                category("c-equipement", "Autres équipements", "🧰"));
     }
 
     /**
