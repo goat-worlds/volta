@@ -224,6 +224,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [sessionExpired, setSessionExpired] = useState(false)
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+
+  /**
+   * Le rôle, doublé dans une référence.
+   *
+   * `sync` est un `useCallback` sans dépendances : c'est ce qui lui donne une
+   * identité stable, dont dépendent `reload` puis la minuterie. Y faire entrer
+   * `currentUser` relancerait cette chaîne à chaque changement de compte, et
+   * l'effet de montage rappellerait `/auth/me`, qui reposerait un objet neuf,
+   * qui relancerait la chaîne — une boucle.
+   *
+   * La référence donne le rôle à `sync` sans entrer dans ses dépendances. Elle
+   * est écrite partout où l'utilisateur change, avant toute synchronisation :
+   * l'effet qui la suivrait ne s'exécuterait qu'après le rendu, trop tard pour
+   * le `reload()` que la connexion enchaîne.
+   */
+  const roleRef = useRef<string | null>(null)
+  const retenirUtilisateur = useCallback((user: User | null) => {
+    roleRef.current = user?.role ?? null
+    setCurrentUser(user)
+  }, [])
   const [favorites, setFavorites] = useState<string[]>([])
   const [readNotificationIds, setReadNotificationIds] = useState<string[]>([])
   const [myQuoteRequests, setMyQuoteRequests] = useState<QuoteRequest[]>([])
@@ -251,6 +271,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const onReachable = () => setApiUnavailable(false)
     const onUnauthorized = () => {
       clearToken()
+      roleRef.current = null
       setCurrentUser((user) => {
         if (user) setSessionExpired(true)
         return null
@@ -390,9 +411,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setEquipment((prev) => keepIfSame(prev, e ?? []))
 
     if (getToken()) {
+      /*
+       * Les inspections sont le métier du technicien : le serveur les réserve
+       * à lui et à l'administration. Elles étaient pourtant demandées pour
+       * tout compte identifié, et un client en recevait un 403 toutes les
+       * quinze secondes — une requête interdite, répétée, qui noircissait la
+       * console et le journal du serveur sans jamais rien rapporter.
+       *
+       * Les autres collections restent demandées pour tous : le serveur les
+       * filtre selon qui les lit plutôt que de les refuser.
+       */
+      const role = roleRef.current
+      const voitLesInspections = role === 'TECHNICAL' || role === 'ADMIN'
+
       const [u, i, rep, req, n] = await Promise.all([
         apiGet<User[]>('/users').catch(() => null),
-        apiGet<Inspection[]>('/inspections').catch(() => null),
+        voitLesInspections
+          ? apiGet<Inspection[]>('/inspections').catch(() => null)
+          : Promise.resolve(null),
         apiGet<Report[]>('/reports').catch(() => null),
         apiGet<RentalRequest[]>('/rental-requests').catch(() => null),
         apiGet<Notification[]>('/notifications').catch(() => null),
@@ -431,10 +467,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void reload()
     if (getToken()) {
       apiGet<User>('/auth/me')
-        .then(setCurrentUser)
+        .then((me) => {
+          retenirUtilisateur(me)
+          // La première passe a eu lieu sans savoir qui parlait : les
+          // collections réservées ont été sautées. Un technicien aurait
+          // attendu le prochain battement — quinze secondes — pour voir ses
+          // missions. On repasse maintenant que le rôle est connu.
+          void reload()
+        })
         .catch(() => clearToken())
     }
-  }, [reload])
+  }, [reload, retenirUtilisateur])
 
   /**
    * Le site bouge seul.
@@ -538,7 +581,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const res = await apiPost<{ token: string; user: User }>('/auth/login', { email, password })
         setToken(res.token)
         setSessionExpired(false)
-        setCurrentUser(res.user)
+        retenirUtilisateur(res.user)
         // Les données réservées aux comptes identifiés — missions, rapports,
         // demandes, notifications — ne sont chargées que si un jeton existe.
         // À l'ouverture de la page il n'y en avait pas : sans ce rechargement,
@@ -563,7 +606,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const res = await apiPost<{ token: string; user: User }>('/auth/register', input)
         setToken(res.token)
         setSessionExpired(false)
-        setCurrentUser(res.user)
+        retenirUtilisateur(res.user)
         await reload()
         return res.user
       },
@@ -576,7 +619,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           // session locale se ferme quand même.
         } finally {
           clearToken()
-          setCurrentUser(null)
+          retenirUtilisateur(null)
           setSessionExpired(false)
         }
       },

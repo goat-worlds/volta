@@ -5,6 +5,10 @@ import { useStore } from '../../store/StoreContext'
 import { quoteRequestsClient, quotesClient, type QuoteRequest } from '../../store/quotesClient'
 import { Card, CopyRef, EmptyState, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus } from '../../components/ui'
 import { quoteRequestRef } from '../../lib/references'
+import { listMyRequests, type MyRequestView } from '../../services/requests'
+import { requestStatusLabel, type IntentId } from '../../types/domain'
+import { intentById } from '../../lib/intents'
+import { LinkButton } from '../../components/ui'
 
 /**
  * Liste des demandes de devis du client.
@@ -18,6 +22,22 @@ export default function ClientQuoteRequests() {
 
   const [requests, setRequests] = useState<QuoteRequest[]>([])
   const [quoteCounts, setQuoteCounts] = useState<Record<string, number>>({})
+  /**
+   * Les demandes déposées par les parcours.
+   *
+   * Deux chemins mènent ici : la demande de devis portée sur un engin précis
+   * du catalogue, et la demande libre d'un parcours — louer sans engin choisi,
+   * composer une flotte, bâtir, chercher un technicien, acheter des pièces.
+   * La seconde ne vivait que dans la console d'administration : le client
+   * recevait sa référence, puis ne retrouvait plus rien sur la page qui
+   * s'appelle pourtant « Mes demandes de devis ». Il lui restait le suivi
+   * public, à condition d'avoir gardé le code de son accusé.
+   *
+   * Elles sont listées à part du tableau plutôt que fondues dedans : elles ne
+   * portent ni engin du catalogue ni décompte d'offres, et les sept colonnes
+   * seraient à moitié vides.
+   */
+  const [parcours, setParcours] = useState<MyRequestView[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' | 'DECLINED'>('all')
@@ -30,6 +50,12 @@ export default function ClientQuoteRequests() {
       try {
         setLoading(true)
         setError(null)
+
+        // Les demandes de parcours ne font pas échouer la page : si cette
+        // liste manque, le tableau reste lisible.
+        void listMyRequests()
+          .then((d) => { if (!cancelled) setParcours(d) })
+          .catch(() => { if (!cancelled) setParcours([]) })
 
         const list = await quoteRequestsClient.listByClient(currentUser.id)
         if (cancelled) return
@@ -84,6 +110,52 @@ export default function ClientQuoteRequests() {
           </Link>
         }
       />
+
+      {/* Les demandes parties d'un parcours.
+          
+          Avant le tableau, et hors des onglets : ceux-ci filtrent sur les
+          statuts de la table des devis, que ces demandes-là n'ont pas. Les y
+          soumettre les aurait fait disparaître au premier filtre. */}
+      {parcours.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+            Mes demandes déposées
+          </h2>
+          <div className="grid gap-3">
+            {parcours.map((d) => {
+              const origine = intentById(d.intent as IntentId)
+              return (
+                <Card
+                  key={d.reference}
+                  className="flex flex-wrap items-center justify-between gap-3 p-4"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CopyRef value={d.reference} />
+                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                        {requestStatusLabel(d.status, d.intent)}
+                      </span>
+                    </div>
+                    <div className="mt-1 font-semibold text-acier-900">{d.subject}</div>
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      {origine ? `${origine.title} · ` : ''}
+                      Déposée le {new Date(d.createdAt).toLocaleDateString('fr-FR')}
+                      {d.location ? ` · ${d.location}` : ''}
+                    </div>
+                  </div>
+                  <LinkButton
+                    to={`/suivi?ref=${encodeURIComponent(d.reference)}&token=${encodeURIComponent(d.trackingToken)}`}
+                    tone="secondary"
+                    size="sm"
+                  >
+                    Suivre
+                  </LinkButton>
+                </Card>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {tabs.map((t) => {

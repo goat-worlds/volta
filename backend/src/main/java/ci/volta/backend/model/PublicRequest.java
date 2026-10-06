@@ -62,6 +62,20 @@ public class PublicRequest {
     public String ownerId;
 
     /**
+     * Le compte qui a déposé la demande, s'il y en avait un.
+     *
+     * La demande ne portait que des coordonnées : nom, téléphone, courriel.
+     * C'était suffisant pour rappeler le déposant, pas pour lui rendre son
+     * dossier — un client connecté remplissait un parcours, recevait sa
+     * référence, et ne retrouvait plus rien dans son espace. Seule
+     * l'administration voyait ce qu'il avait écrit.
+     *
+     * Nul pour un visiteur sans compte : le dépôt reste ouvert à tous, et ce
+     * sont les coordonnées qui le rattachent alors à son auteur.
+     */
+    public String clientId;
+
+    /**
      * Compte créé pour le déposant à la validation de sa candidature (voir
      * PublicRequestService.provisionAccount). Nul tant qu'aucun compte n'a été
      * créé ; garde l'idempotence si la demande repasse par « VALIDATED ».

@@ -125,6 +125,36 @@ export interface RequestDetail {
 /** Toutes les demandes, du plus récent au plus ancien — réservé à l'administration. */
 export const listRequests = () => apiGet<AdminRequestView[]>('/admin/requests')
 
+/**
+ * Ce que le client voit de ses propres demandes.
+ *
+ * Volontairement plus pauvre que la vue d'administration : ni notes internes,
+ * ni orientation, ni administrateur en charge. Le déposant a droit à son
+ * dossier, pas au carnet de l'équipe.
+ */
+export interface MyRequestView {
+  reference: string
+  kind: RequestKind
+  intent: string
+  subject: string
+  location: string
+  status: RequestStatus
+  createdAt: string
+  updatedAt: string
+  /** Ouvre la page de suivi public sans ressortir l'accusé de dépôt. */
+  trackingToken: string
+}
+
+/**
+ * Les demandes déposées par le compte connecté.
+ *
+ * Une demande partie d'un parcours ou d'une fiche d'engin ne vivait que dans
+ * la console d'administration : le client recevait sa référence puis ne
+ * retrouvait plus rien chez lui, alors que l'écran de ses devis s'appelle
+ * « Mes demandes de devis ».
+ */
+export const listMyRequests = () => apiGet<MyRequestView[]>('/requests/mine')
+
 export const getRequestDetail = (id: string) => apiGet<RequestDetail>(`/admin/requests/${id}`)
 
 /**

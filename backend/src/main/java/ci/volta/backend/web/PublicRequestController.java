@@ -54,6 +54,12 @@ public class PublicRequestController {
         return service.track(reference, token);
     }
 
+    /** Les demandes du compte connecté — son espace, pas la console. */
+    @GetMapping("/requests/mine")
+    public List<PublicRequestService.MyRequestView> mine() {
+        return service.listMine();
+    }
+
     // --- Console d'administration ---
 
     @GetMapping("/admin/requests")

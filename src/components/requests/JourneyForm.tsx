@@ -321,7 +321,9 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
       <header>
         {known && <p className="volta-display text-xl text-btp-600">Bonjour {known}.</p>}
         <h1 className="volta-display mt-1 text-4xl text-acier-900 md:text-5xl">{journey.title}</h1>
-        <p className="mt-3 max-w-2xl text-lg leading-relaxed text-papier-700">{journey.subtitle}</p>
+        <p className="mt-3 max-w-2xl whitespace-pre-line text-lg leading-relaxed text-papier-700">
+          {journey.subtitle}
+        </p>
       </header>
 
       {/* Frise d'étapes : numéro, titre, et le lien qui les relie. On sait où

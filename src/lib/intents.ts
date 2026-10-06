@@ -81,7 +81,7 @@ export const INTENTS: Intent[] = [
     id: 'MAINTAIN_EQUIPMENT',
     title: 'Je veux faire la maintenance de mon engin',
     description:
-      'Entretien courant, panne ou révision : un technicien VOLTA intervient sur votre machine.',
+      'Entretien courant, panne ou révision : un technicien intervient sur votre machine.',
     cta: 'Ne perdez plus de temps : demandez votre intervention de maintenance.',
     to: '/demande/technicien',
     icon: Wrench,

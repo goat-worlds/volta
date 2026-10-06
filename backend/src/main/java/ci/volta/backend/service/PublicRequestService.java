@@ -299,6 +299,9 @@ public class PublicRequestService {
         r.contactEmail = contact.email().trim();
         r.contactCity = contact.city() == null ? "" : contact.city().trim();
         r.status = RequestWorkflow.RECEIVED;
+        // Le dépôt reste ouvert aux visiteurs : on note le compte s'il y en a
+        // un, sans jamais l'exiger.
+        r.clientId = currentUser.optional().map(u -> u.id).orElse(null);
         r.priority = priority;
         r.payload = in.payload() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(in.payload());
         String now = Instant.now().toString();
@@ -374,6 +377,44 @@ public class PublicRequestService {
     // ------------------------------------------------------------------
     // Administration
     // ------------------------------------------------------------------
+
+    /**
+     * Ce que le client voit de sa propre demande.
+     *
+     * Pas l'{@link AdminView} : celle-ci porte les notes internes, l'orientation
+     * décidée après les rencontres et l'administrateur qui a le dossier en
+     * charge. Rien de tout cela n'appartient au déposant, et le lui servir
+     * reviendrait à publier le carnet de l'équipe.
+     *
+     * Le secret de suivi est inclus : c'est lui qui ouvre la page /suivi, et le
+     * client l'a déjà reçu à son dépôt — le lui redonner dans son espace lui
+     * évite de retrouver l'accusé. Il n'est servi qu'à son propriétaire, qui
+     * pourrait de toute façon le relire sur son accusé.
+     */
+    public record MyRequestView(String reference, String kind, String intent, String subject,
+                                String location, String status, String createdAt, String updatedAt,
+                                String trackingToken) {
+        static MyRequestView of(PublicRequest r) {
+            return new MyRequestView(r.reference, r.kind, r.intent, r.subject, r.location,
+                    r.status, r.createdAt, r.updatedAt, r.trackingToken);
+        }
+    }
+
+    /**
+     * Les demandes du compte connecté.
+     *
+     * Une demande déposée depuis un parcours ou une fiche d'engin n'était
+     * visible que de l'administration : le client recevait sa référence puis
+     * ne retrouvait plus rien chez lui. Il lui restait la page de suivi
+     * publique — à condition d'avoir gardé le code.
+     */
+    @Transactional(readOnly = true)
+    public List<MyRequestView> listMine() {
+        UserAccount me = currentUser.require();
+        String email = blank(me.email) ? null : me.email.trim().toLowerCase();
+        String phone = blank(me.phone) ? null : me.phone.trim();
+        return requests.findMine(me.id, email, phone).stream().map(MyRequestView::of).toList();
+    }
 
     @Transactional(readOnly = true)
     public List<AdminView> listAll() {

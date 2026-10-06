@@ -1,6 +1,7 @@
 package ci.volta.backend.security;
 
 import ci.volta.backend.model.UserAccount;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +39,23 @@ public class CurrentUser {
 
     public String requireId() {
         return require().id;
+    }
+
+    /**
+     * Utilisateur courant s'il y en a un, sans exiger qu'il y en ait.
+     *
+     * Les écrans ouverts aux visiteurs — dépôt d'une demande, consultation du
+     * Market — ont besoin de savoir qui parle quand quelqu'un parle, et de ne
+     * pas échouer quand personne ne s'est annoncé. {@link #require()} lève un
+     * 401 : s'en servir ici obligerait chaque appelant à attraper une
+     * exception pour un cas qui n'est pas une erreur.
+     */
+    public Optional<UserAccount> optional() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserAccount user)) {
+            return Optional.empty();
+        }
+        return Optional.of(user);
     }
 
     public String role() {

@@ -809,9 +809,14 @@ const JOIN_TEAM: Journey = {
 const BASE_VIE: Journey = {
   intent: 'BUILD_BASE_LIFE',
   kind: 'CONSTRUCTION',
-  title: 'Construction de base vie',
+  title: 'J’ai un projet de construction',
+  // Le sous-titre tient en deux temps : ce qu'on construit, puis l'invitation.
+  // La coupure est portée par la chaîne et rendue par `whitespace-pre-line` —
+  // en un seul bloc, l'invitation se perdait au bout de l'énumération.
   subtitle:
-    'Nous construisons un cadre de vie. Confiez-nous votre projet de construction.',
+    'Base vie, villa, duplex, bâtiment à usage public (hôpital, école, marché).' +
+    "\n" +
+    'Confiez-nous votre projet de construction et de rénovation.',
   promise:
     'Génie Sélect Construction étudie votre site et vous propose une installation adaptée.',
   subject: (v) => {
