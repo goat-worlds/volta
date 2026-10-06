@@ -85,7 +85,7 @@ export default function ListingCard({
         </div>
 
         <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-btp-600 transition group-hover:gap-2.5">
-          Commander
+          Voir la fiche et commander
           <ArrowRight size={15} />
         </span>
       </div>

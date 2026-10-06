@@ -312,6 +312,31 @@ export default function Market() {
           }
         />
 
+        {/* La marche à suivre, comme au catalogue : la grille montrait des
+            engins sans dire ce qu'on en fait. Ceux qui viennent ici conduisent
+            des machines, ils n'ont pas à deviner le parcours. */}
+        <Reveal className="mt-6">
+          <ol className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-sm text-acier-200">
+            {['Choisissez une annonce', 'Ouvrez la fiche', 'Commandez : VOLTA vous rappelle'].map(
+              (etape, i) => (
+                <li key={etape} className="flex items-center gap-2">
+                  {i > 0 && (
+                    <span aria-hidden className="text-white/25">
+                      →
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 ring-1 ring-white/15">
+                    <span className="grid size-4 place-items-center rounded-full bg-btp-500 text-[10px] font-bold text-white">
+                      {i + 1}
+                    </span>
+                    {etape}
+                  </span>
+                </li>
+              ),
+            )}
+          </ol>
+        </Reveal>
+
         {hasFilter && (
           <div className="mt-6 text-center">
             <button

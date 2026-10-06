@@ -51,7 +51,37 @@ export default function Catalogue() {
         label="À louer"
         title="Des équipements disponibles."
         subtitle={`${filtered.length} équipement${filtered.length > 1 ? 's' : ''} en ligne.`}
-      />
+      >
+        {/* La marche à suivre, dite en une phrase.
+            
+            La page listait des engins sans dire quoi en faire : on cliquait une
+            carte pour découvrir qu'elle menait à une fiche, et la fiche pour
+            découvrir qu'on pouvait y demander un prix. Ceux qui viennent ici
+            conduisent des engins, ils ne devinent pas une interface. */}
+        <ol className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-papier-700">
+          {['Choisissez un engin dans la liste', 'Ouvrez sa fiche', 'Demandez votre devis'].map(
+            (etape, i) => (
+              <li key={etape} className="flex items-center gap-2">
+                {i > 0 && (
+                  <span aria-hidden className="text-papier-300">
+                    →
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 ring-1 ring-papier-200">
+                  <span className="grid size-4 place-items-center rounded-full bg-btp-500 text-[10px] font-bold text-white">
+                    {i + 1}
+                  </span>
+                  {etape}
+                </span>
+              </li>
+            ),
+          )}
+        </ol>
+        <p className="mt-3 text-sm text-papier-600">
+          VOLTA s’occupe du reste : nous contactons le propriétaire et revenons vers vous. Pas
+          besoin de compte.
+        </p>
+      </PageHero>
 
       <Section tone="light" className="pt-12">
         <div className="flex flex-col gap-6 lg:flex-row">
@@ -171,6 +201,21 @@ export default function Catalogue() {
                           </div>
                           <div className="mt-1 text-xs text-papier-600">
                             Avec opérateur
+                          </div>
+
+                          {/* L'action, écrite noir sur blanc sur chaque carte :
+                              une vignette cliquable ne dit pas d'elle-même
+                              qu'elle est cliquable, ni ce qu'elle ouvre. */}
+                          <div className="mt-3 flex items-center justify-between border-t border-papier-100 pt-3">
+                            <span className="text-sm font-bold text-btp-600">
+                              Sélectionner cet engin
+                            </span>
+                            <span
+                              aria-hidden
+                              className="grid size-7 place-items-center rounded-full bg-btp-500 text-white"
+                            >
+                              <ArrowRight size={14} />
+                            </span>
                           </div>
                         </div>
                       </Link>

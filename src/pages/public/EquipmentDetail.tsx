@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   BadgeCheck, Calendar, CheckCircle2, Gauge, HardHat, MapPin, Wrench, XCircle,
 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
+import { createRequest, type RequestReceipt } from '../../services/requests'
+import { equipmentRef } from '../../lib/references'
 import { Card, EmptyState, LevelBadge, Modal, fmtPrice } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const { equipment, categories, users, currentUser, createQuoteRequest } = useStore()
+  const { equipment, categories, users, currentUser } = useStore()
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
   const toast = useToast()
@@ -20,7 +21,13 @@ export default function EquipmentDetail() {
     endDate: '',
     quantity: 1,
     message: '',
+    contactName: '',
+    contactPhone: '',
+    contactEmail: '',
+    contactCity: '',
   })
+  /** Ce que le déposant garde : sans la référence, il perd son dossier. */
+  const [recu, setRecu] = useState<RequestReceipt | null>(null)
 
   if (!eq || eq.status !== 'PUBLISHED') {
     return (
@@ -36,36 +43,71 @@ export default function EquipmentDetail() {
   const cat = categories.find((c) => c.id === eq.categoryId)
   const supplier = users.find((u) => u.id === eq.supplierId)
 
+  /**
+   * Plus de mur de connexion.
+   *
+   * Le bouton renvoyait vers « /connexion », puis refusait tout compte qui
+   * n'était pas client. Un chef de chantier qui vient de lire la fiche devait
+   * donc créer un compte avant de pouvoir demander un prix — alors que les huit
+   * parcours du site se déposent sans compte, et que c'est la promesse affichée
+   * partout ailleurs. Ses coordonnées suffisent ; un client connecté les trouve
+   * préremplies.
+   */
   const handleQuoteClick = () => {
-    if (!currentUser) {
-      navigate('/connexion')
-      return
-    }
-    if (currentUser.role !== 'CLIENT') {
-      toast.warning('Action réservée aux clients', 'Seul un compte client peut demander un devis.')
-      return
+    if (currentUser) {
+      setForm((f) => ({
+        ...f,
+        contactName: f.contactName || currentUser.name,
+        contactPhone: f.contactPhone || currentUser.phone,
+        contactEmail: f.contactEmail || currentUser.email,
+        contactCity: f.contactCity || currentUser.city,
+      }))
     }
     setModalOpen(true)
   }
 
+  /**
+   * La demande rejoint le moteur commun.
+   *
+   * Elle partait vers « /quote-requests », sa propre table et sa propre console :
+   * un devis demandé depuis une fiche n'apparaissait pas dans le centre des
+   * demandes, et l'administration devait surveiller deux écrans pour ne rien
+   * laisser passer. Elle emprunte désormais le même circuit que les huit
+   * parcours — même référence, même suivi, même console.
+   *
+   * L'engin voyage dans le `payload` : c'est ce qui distingue cette demande
+   * d'une location décrite de zéro, et ce que l'administration lit en premier.
+   */
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser) return
     setSending(true)
     try {
-      await createQuoteRequest({
-        equipmentId: eq.id,
-        clientId: currentUser.id,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        quantity: form.quantity,
-        message: form.message,
-        clientName: currentUser.name,
-        clientPhone: currentUser.phone,
-        clientEmail: currentUser.email,
+      const receipt = await createRequest({
+        kind: 'RENTAL',
+        intent: 'RENT_EQUIPMENT',
+        subject: `Devis location — ${eq.name}`,
+        location: eq.location,
+        contact: {
+          name: form.contactName,
+          phone: form.contactPhone,
+          email: form.contactEmail,
+          city: form.contactCity,
+        },
+        payload: {
+          equipmentRef: equipmentRef(eq.id),
+          equipmentName: eq.name,
+          brandModel: `${eq.brand} ${eq.model}`,
+          quantity: String(form.quantity),
+          startDate: form.startDate,
+          endDate: form.endDate,
+          description: form.message,
+        },
       })
-      setModalOpen(false)
-      toast.success('Demande de devis envoyée', 'VOLTA qualifie votre demande et revient vers vous avec une proposition.')
+      setRecu(receipt)
+      toast.success(
+        'Demande de devis envoyée',
+        `Votre référence : ${receipt.reference}. VOLTA qualifie votre demande et revient vers vous.`,
+      )
     } catch (err) {
       toast.fromError(err, 'Demande non envoyée')
     } finally {
@@ -154,10 +196,44 @@ export default function EquipmentDetail() {
         </div>
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={`Demande de devis — ${eq.name}`}>
+      <Modal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false)
+          setRecu(null)
+        }}
+        title={recu ? 'Demande transmise' : `Demande de devis — ${eq.name}`}
+      >
+        {recu ? (
+          /* L'accusé, et pas un simple « c'est envoyé ».
+             Le suivi se fait par référence et jeton : les afficher ailleurs
+             qu'ici serait les perdre, car le serveur ne les redonne jamais. */
+          <div className="grid gap-4 text-center">
+            <p className="text-sm text-papier-700">
+              VOLTA qualifie votre demande et revient vers vous avec une proposition.
+            </p>
+            <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-5 py-4">
+              <span className="text-xs font-semibold uppercase tracking-widest text-papier-600">
+                Votre référence
+              </span>
+              <span className="mt-1 block font-mono text-lg font-bold text-acier-900">
+                {recu.trackingCode}
+              </span>
+            </div>
+            <p className="text-xs text-papier-600">
+              Conservez-la : elle seule ouvre le suivi de votre demande.
+            </p>
+            <Link
+              to={`/suivi?ref=${encodeURIComponent(recu.reference)}&code=${encodeURIComponent(recu.trackingToken)}`}
+              className="rounded-lg bg-acier-900 py-2.5 font-semibold text-white transition hover:bg-acier-800"
+            >
+              Suivre ma demande
+            </Link>
+          </div>
+        ) : (
         <form onSubmit={submit} className="grid gap-3">
           <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">
-            Votre demande est traitée par VOLTA. Vous consulterez la réponse dans votre espace, rubrique Devis.
+            Votre demande est traitée par VOLTA. Pas besoin de compte : vos coordonnées suffisent.
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -177,14 +253,51 @@ export default function EquipmentDetail() {
             <label className="mb-1 block text-xs font-medium text-papier-600">Message ou détails supplémentaires</label>
             <textarea className={input} rows={2} placeholder="Ex: conditions d'accès, contraintes spéciales..." value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
           </div>
+          <div className="mt-1 border-t border-papier-200 pt-3">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-papier-600">
+              Vos coordonnées
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-nom">
+                  Nom complet *
+                </label>
+                <input id="devis-nom" required className={input} value={form.contactName}
+                  onChange={(e) => setForm({ ...form, contactName: e.target.value })} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-tel">
+                  Téléphone *
+                </label>
+                <input id="devis-tel" required type="tel" className={input} value={form.contactPhone}
+                  onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-mail">
+                  Email
+                </label>
+                <input id="devis-mail" type="email" className={input} value={form.contactEmail}
+                  onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-ville">
+                  Ville *
+                </label>
+                <input id="devis-ville" required className={input} value={form.contactCity}
+                  onChange={(e) => setForm({ ...form, contactCity: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={sending}
-            className="mt-2 rounded-lg bg-amber-500 py-2.5 font-semibold text-white hover:bg-amber-600 disabled:opacity-60"
+            className="mt-2 rounded-lg bg-btp-500 py-2.5 font-semibold text-white transition hover:bg-btp-600 disabled:opacity-60"
           >
             {sending ? 'Envoi en cours…' : 'Envoyer la demande de devis'}
           </button>
         </form>
+        )}
       </Modal>
     </div>
   )
