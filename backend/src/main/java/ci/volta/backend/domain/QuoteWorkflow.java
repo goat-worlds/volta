@@ -110,6 +110,15 @@ public final class QuoteWorkflow {
                 && !REQUEST_HANDLED_BY_ADMIN.equals(current);
     }
 
+    /** Vrai si la demande ne bougera plus : le client peut la ranger. */
+    public static boolean isRequestSettled(String requestStatus) {
+        String current = normalize(requestStatus, REQUEST_PENDING);
+        return REQUEST_ACCEPTED.equals(current)
+                || REQUEST_DECLINED.equals(current)
+                || REQUEST_REJECTED.equals(current)
+                || REQUEST_CLOSED.equals(current);
+    }
+
     private QuoteWorkflow() {
     }
 

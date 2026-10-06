@@ -122,6 +122,9 @@ public class SecurityConfig {
                                  "/api/quote-requests/*/handle",
                                  "/api/quote-requests/*/close",
                                  "/api/quote-requests/*/reject").hasRole("ADMIN")
+                // Ranger une demande est un geste de son auteur : le service
+                // vérifie qu'il en est bien le propriétaire.
+                .requestMatchers("/api/quote-requests/*/hidden").hasAnyRole("CLIENT", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/quote-requests").hasAnyRole("CLIENT", "ADMIN")
 
                 // --- Devis : rédigés par le fournisseur, tranchés par le client ---

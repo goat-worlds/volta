@@ -1041,6 +1041,27 @@ public class VoltaService {
     }
 
     /**
+     * Le client range une demande terminée, ou la ressort.
+     *
+     * Seules les demandes tranchées se rangent : une demande en cours mise de
+     * côté disparaîtrait de l'espace de son auteur pendant qu'elle avance, et
+     * il ne saurait plus où la retrouver quand un prix arrive.
+     */
+    public QuoteRequest setQuoteRequestHidden(String quoteRequestId, boolean hidden) {
+        QuoteRequest qreq = quoteRequestRepository.findById(quoteRequestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote request not found: " + quoteRequestId));
+        currentUser.requireOwnership(qreq.clientId, "cette demande de devis");
+
+        if (hidden && !QuoteWorkflow.isRequestSettled(qreq.status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette demande est encore en cours : elle ne peut pas être rangée");
+        }
+
+        qreq.hiddenByClient = hidden;
+        return quoteRequestRepository.save(qreq);
+    }
+
+    /**
      * VOLTA prend la demande à son compte.
      *
      * Le circuit n'offrait qu'une sortie : transmettre au fournisseur. Pour

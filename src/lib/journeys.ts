@@ -814,8 +814,14 @@ const BASE_VIE: Journey = {
     'Nous construisons un cadre de vie. Confiez-nous votre projet de construction.',
   promise:
     'Génie Sélect Construction étudie votre site et vous propose une installation adaptée.',
-  subject: (v) => `Base vie — ${v.siteLocation || 'site à préciser'}`,
+  subject: (v) => {
+    const type = v.projectType === 'Autre' ? v.projectTypeAutre || 'Autre' : v.projectType
+    return `${type || 'Construction'} — ${v.siteLocation || 'site à préciser'}`
+  },
   recap: (v) => [
+    v.projectType
+      ? `Mon projet : ${v.projectType === 'Autre' ? v.projectTypeAutre || 'autre' : v.projectType}.`
+      : null,
     v.siteLocation ? `Le chantier se trouve à ${v.siteLocation}.` : null,
     v.headcount ? `Nous serons ${v.headcount} personnes sur place.` : null,
     v.duration ? `L'installation doit tenir ${v.duration}.` : null,
@@ -827,6 +833,33 @@ const BASE_VIE: Journey = {
       title: 'Votre chantier',
       intro: 'Où s’installe la base, pour combien de personnes et combien de temps.',
       fields: [
+        {
+          name: 'projectType',
+          label: 'Type de projet',
+          kind: 'select',
+          required: true,
+          full: true,
+          options: opts(
+            'Base vie',
+            'Villa',
+            'Duplex',
+            'Bâtiment à usage public (hôpital, école, marché)',
+            'Autre',
+          ),
+        },
+        {
+          // La liste fermée range les projets connus ; « Autre » ouvre un champ
+          // plutôt que de forcer un maître d'ouvrage à ranger son entrepôt ou
+          // son atelier dans une case qui n'est pas la sienne — et de nous
+          // priver de ce qu'il voulait bâtir.
+          name: 'projectTypeAutre',
+          label: 'Précisez le type de projet',
+          kind: 'text',
+          required: true,
+          full: true,
+          placeholder: 'Entrepôt, atelier, logement de fonction…',
+          showIf: (v) => v.projectType === 'Autre',
+        },
         {
           name: 'siteLocation',
           label: 'Lieu du chantier',

@@ -182,7 +182,8 @@ export const INTENTS: Intent[] = [
     id: 'BUILD_BASE_LIFE',
     title: 'J’ai un projet de construction',
     description:
-      'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché.',
+      'Base vie, villa, duplex, bâtiment à usage public : hôpital, école, marché. ' +
+      'Confiez-nous votre projet de construction.',
     cta: 'Décrire mon projet',
     to: '/demande/base-vie',
     icon: Building2,
@@ -255,19 +256,19 @@ export const FALLBACK_INTENT_ICON = ClipboardList
  * ne se deduit d'aucun champ.
  */
 export const PARCOURS_ACCUEIL: IntentId[] = [
-  // Louer et mettre en location voisinent : ce sont les deux faces d'un même
-  // parc, et le détenteur d'engins se reconnaît aussitôt plutôt qu'au bas de la
-  // grille, où il ne descendait pas.
+  // Louer et mettre en location se touchent : ce sont les deux faces d'un même
+  // parc, et le détenteur d'engins se reconnaît dès la deuxième carte au lieu
+  // de descendre jusqu'à la dernière, ce qu'il ne faisait pas.
   'RENT_EQUIPMENT',
   'BUY_EQUIPMENT',
   'FIND_TECHNICIAN',
   'TRAIN_TEAM',
-  // La flotte et la maintenance voisinent à leur tour : l'une compose un parc,
-  // l'autre le garde en état.
-  'FLEET_NEED',
-  'MAINTAIN_EQUIPMENT',
   'BUY_PARTS',
-  // En dernier : un projet de construction n'est pas un besoin de chantier
-  // courant, c'est un chantier en soi.
+  // La fin de la grille va du plus ponctuel au plus engageant : entretenir une
+  // machine, composer une flotte, bâtir. La flotte est entre les deux parce
+  // qu'elle tient des deux — c'est déjà un projet, ce n'est pas encore un
+  // chantier.
+  'MAINTAIN_EQUIPMENT',
+  'FLEET_NEED',
   'BUILD_BASE_LIFE',
 ]

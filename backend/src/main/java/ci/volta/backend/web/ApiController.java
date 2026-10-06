@@ -317,6 +317,18 @@ public class ApiController {
      * VOLTA s'en charge : elle chiffrera elle-même, sans fournisseur. Réservé au
      * rôle ADMIN (SecurityConfig).
      */
+    public record HiddenBody(boolean hidden) {
+    }
+
+    /**
+     * Le client range une demande terminée, ou la ressort. Rien n'est effacé :
+     * l'administration continue de voir le dossier.
+     */
+    @PostMapping("/quote-requests/{id}/hidden")
+    public QuoteRequest setQuoteRequestHidden(@PathVariable String id, @RequestBody HiddenBody body) {
+        return service.setQuoteRequestHidden(id, body.hidden());
+    }
+
     @PostMapping("/quote-requests/{id}/handle")
     public QuoteRequest handleQuoteRequest(@PathVariable String id) {
         return service.handleQuoteRequest(id);

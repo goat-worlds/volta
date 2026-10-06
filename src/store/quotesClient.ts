@@ -33,6 +33,8 @@ export interface QuoteRequest {
   createdAt: string
   /** Motif de clôture écrit par VOLTA, s'il y en a un. */
   adminNote?: string | null
+  /** Rangée par le client : elle sort de sa liste, pas de la base. */
+  hiddenByClient?: boolean
 }
 
 export interface Quote {
@@ -98,6 +100,14 @@ export const quoteRequestsClient = {
    * Avant ce geste elle n'existe que pour l'administration et le client.
    */
   approve: (id: string) => apiPost<QuoteRequest>(`/quote-requests/${id}/approve`),
+  /**
+   * Le client range une demande terminée, ou la ressort.
+   *
+   * Rien n'est effacé : un devis accepté est un engagement, une demande
+   * clôturée garde son motif. Seule la liste du client s'allège.
+   */
+  setHidden: (id: string, hidden: boolean) =>
+    apiPost<QuoteRequest>(`/quote-requests/${id}/hidden`, { hidden }),
   /** VOLTA s'en charge : elle chiffrera sans passer par un fournisseur. */
   handle: (id: string) => apiPost<QuoteRequest>(`/quote-requests/${id}/handle`),
   /** Clôture sans suite : la demande reste dans l'espace du client. */

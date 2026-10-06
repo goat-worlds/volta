@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, Calendar, Check, Clock, Package, Receipt, ShoppingCart, Truck, X,
+  Archive, ArrowRight, Calendar, Check, Clock, Package, Receipt, ShoppingCart, Truck, Undo2, X,
 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import {
@@ -12,6 +12,14 @@ import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, Copy
 import { useToast } from '../../components/feedback/Toaster'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
 import { quoteRef, quoteRequestRef } from '../../lib/references'
+
+/**
+ * Les statuts d'une demande qui ne bougera plus.
+ *
+ * Seules celles-là se rangent. Le serveur applique la même règle : l'écran ne
+ * décide pas seul de ce qu'on peut mettre de côté.
+ */
+const TERMINEES = new Set(['ACCEPTED', 'DECLINED', 'REJECTED', 'CLOSED'])
 
 interface Line {
   quote: Quote
@@ -48,6 +56,8 @@ export default function ClientQuotes() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'SENT' | 'ACCEPTED' | 'REJECTED'>('all')
   const [pending, setPending] = useState<string | null>(null)
+  /** Afficher aussi ce que le client a rangé. */
+  const [voirRangees, setVoirRangees] = useState(false)
   const toast = useToast()
 
   const load = useCallback(async () => {
@@ -100,11 +110,40 @@ export default function ClientQuotes() {
     }
   }
 
+  /**
+   * Ranger une demande terminée, ou la ressortir.
+   *
+   * « Supprimer » serait abusif : un devis accepté est un engagement commercial
+   * et une demande clôturée garde le motif de sa clôture. L'effacer priverait
+   * VOLTA de sa trace et le client de son recours. Sa liste s'allège, le dossier
+   * reste.
+   */
+  const ranger = async (d: QuoteRequest, hidden: boolean) => {
+    setPending(d.id)
+    try {
+      await quoteRequestsClient.setHidden(d.id, hidden)
+      setDemandes((c) => c.map((x) => (x.id === d.id ? { ...x, hiddenByClient: hidden } : x)))
+      toast.info(
+        hidden ? 'Demande rangée' : 'Demande ressortie',
+        hidden ? 'Elle reste consultable en affichant les demandes rangées.' : '',
+      )
+    } catch (e) {
+      toast.fromError(e)
+    } finally {
+      setPending(null)
+    }
+  }
+
   const equipmentOf = (id: string) => equipment.find((e) => e.id === id)
   const supplierOf = (id: string) => users.find((u) => u.id === id)
 
   /** Les demandes auxquelles aucun devis ne répond encore — ou plus jamais. */
-  const sansDevis = demandes.filter((d) => !rows.some((r) => r.request.id === d.id))
+  const sansDevis = demandes
+    .filter((d) => !rows.some((r) => r.request.id === d.id))
+    .filter((d) => voirRangees || !d.hiddenByClient)
+
+  /** Ce qui est rangé : seules les demandes tranchées peuvent l'être. */
+  const rangees = demandes.filter((d) => d.hiddenByClient).length
 
   const visible = filter === 'all' ? rows : rows.filter((r) => r.quote.status === filter)
   const waiting = rows.filter((r) => r.quote.status === 'SENT')
@@ -135,9 +174,22 @@ export default function ClientQuotes() {
           client voyait son dossier s'évanouir sans savoir pourquoi. */}
       {sansDevis.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-            En cours de traitement
-          </h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+              {voirRangees ? 'Mes demandes' : 'En cours de traitement'}
+            </h2>
+            {rangees > 0 && (
+              <button
+                type="button"
+                onClick={() => setVoirRangees((v) => !v)}
+                className="text-xs font-semibold text-btp-600 hover:text-btp-700"
+              >
+                {voirRangees
+                  ? 'Masquer les demandes rangées'
+                  : `Afficher les ${rangees} demande${rangees > 1 ? 's' : ''} rangée${rangees > 1 ? 's' : ''}`}
+              </button>
+            )}
+          </div>
           <div className="grid gap-3">
             {sansDevis.map((d) => {
               const eq = equipmentOf(d.equipmentId)
@@ -167,9 +219,25 @@ export default function ClientQuotes() {
                       )}
                     </div>
                   </div>
-                  <LinkButton to={`/client/demandes/${d.id}`} tone="secondary" size="sm">
-                    Voir les détails
-                  </LinkButton>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <LinkButton to={`/client/demandes/${d.id}`} tone="secondary" size="sm">
+                      Voir les détails
+                    </LinkButton>
+                    {/* Ranger n'est offert que sur une demande tranchée : en
+                        cours, elle disparaîtrait pendant qu'elle avance et le
+                        client ne saurait plus où la retrouver. */}
+                    {TERMINEES.has(d.status) && (
+                      <Button
+                        tone="ghost"
+                        size="sm"
+                        disabled={pending === d.id}
+                        onClick={() => ranger(d, !d.hiddenByClient)}
+                        title={d.hiddenByClient ? 'Remettre dans ma liste' : 'Ranger cette demande'}
+                      >
+                        {d.hiddenByClient ? <Undo2 size={15} /> : <Archive size={15} />}
+                      </Button>
+                    )}
+                  </div>
                 </Card>
               )
             })}

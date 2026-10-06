@@ -32,4 +32,15 @@ public class QuoteRequest {
      * la demande, qui reste dans son espace.
      */
     public String adminNote;
+
+    /**
+     * Rangée par le client, qui ne veut plus la voir.
+     *
+     * Et non supprimée. Un devis accepté est un engagement commercial, une
+     * demande clôturée garde le motif de sa clôture : les effacer priverait
+     * VOLTA de sa trace et le client de son recours. Le drapeau ne vide que sa
+     * liste — l'administration continue de tout voir, et lui-même peut revenir
+     * sur sa décision.
+     */
+    public boolean hiddenByClient;
 }
