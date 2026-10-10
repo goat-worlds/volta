@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   Eye,
   EyeOff,
+  FileText,
   HardHat,
   Lock,
   Mail,
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { HOME_BY_ROLE } from '../../components/RequireRole'
-import type { Role } from '../../store/types'
+import type { ClientType, Role } from '../../store/types'
 
 /**
  * Création de compte.
@@ -63,6 +64,26 @@ const ROLES: { value: Role; label: string; pitch: string; icon: LucideIcon }[] =
   },
 ]
 
+/**
+ * Les deux profils de client.
+ *
+ * Le libellé dit ce qu'on est, pas ce qu'on obtient : un dirigeant se
+ * reconnaît dans « au nom d'une entreprise » sans avoir à deviner ce qu'un
+ * « compte professionnel » lui donnerait de plus.
+ */
+const TYPES_CLIENT: { value: ClientType; label: string; pitch: string }[] = [
+  {
+    value: 'PARTICULIER',
+    label: 'À titre personnel',
+    pitch: 'Votre nom et votre numéro suffisent.',
+  },
+  {
+    value: 'ENTREPRISE',
+    label: 'Au nom d’une entreprise',
+    pitch: 'Pour recevoir les marchés que VOLTA apporte.',
+  },
+]
+
 /** Ce que la colonne de gauche promet, sous la photo. */
 const PROMESSES: { icon: LucideIcon; texte: string }[] = [
   { icon: Search, texte: 'Accédez à un large choix d’engins' },
@@ -99,6 +120,12 @@ export default function Register() {
   const retour = (location.state as { from?: string } | null)?.from ?? null
 
   const [role, setRole] = useState<Role>('CLIENT')
+  const [clientType, setClientType] = useState<ClientType>('PARTICULIER')
+  const [rccm, setRccm] = useState('')
+  const [dfe, setDfe] = useState('')
+  const [managerEmail, setManagerEmail] = useState('')
+  const [piece, setPiece] = useState<{ name: string; type: string; contentBase64: string } | null>(null)
+  const [pieceErreur, setPieceErreur] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [company, setCompany] = useState('')
   const [email, setEmail] = useState('')
@@ -118,6 +145,47 @@ export default function Register() {
    * technique, qui reçoivent des notifications écrites et signent des rapports.
    */
   const estClient = role === 'CLIENT'
+  /**
+   * L'entreprise cliente est un client, mais pas le même.
+   *
+   * Elle reçoit les marchés que VOLTA lui apporte et signe un contrat qui
+   * l'engage : la plateforme lui demande de quoi l'identifier avant de lui
+   * ouvrir quoi que ce soit. Le particulier, lui, garde son inscription en
+   * trois champs — c'est lui le cas courant, et c'est lui qu'un formulaire
+   * long ferait renoncer.
+   */
+  const estEntreprise = estClient && clientType === 'ENTREPRISE'
+  const besoinStructure = !estClient || estEntreprise
+
+  /**
+   * La pièce du gérant, lue en base64.
+   *
+   * Le fichier part dans le corps de l'inscription, comme les pièces jointes
+   * des parcours : le compte n'existe pas encore, il n'y a donc pas de session
+   * sous laquelle téléverser à part.
+   */
+  const lirePiece = (fichier: File | null) => {
+    setPieceErreur(null)
+    if (!fichier) {
+      setPiece(null)
+      return
+    }
+    if (fichier.size > 5 * 1024 * 1024) {
+      setPieceErreur('La pièce ne doit pas dépasser 5 Mo.')
+      setPiece(null)
+      return
+    }
+    const lecteur = new FileReader()
+    lecteur.onerror = () => setPieceErreur('Fichier illisible. Réessayez.')
+    lecteur.onload = () => {
+      // `readAsDataURL` rend « data:<type>;base64,<contenu> » : le serveur
+      // n'attend que le contenu.
+      const brut = String(lecteur.result ?? '')
+      const contenu = brut.slice(brut.indexOf(',') + 1)
+      setPiece({ name: fichier.name, type: fichier.type || 'application/octet-stream', contentBase64: contenu })
+    }
+    lecteur.readAsDataURL(fichier)
+  }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -125,9 +193,15 @@ export default function Register() {
     setError(null)
     try {
       const user = await register(
-        estClient
-          ? { name, phone, password, role }
-          : { name, email, phone, password, role, company, city },
+        estEntreprise
+          ? {
+              name, email, phone, password, role, company, city,
+              clientType, rccm, dfe, managerEmail,
+              managerIdDocument: piece ?? undefined,
+            }
+          : estClient
+            ? { name, phone, password, role, clientType: 'PARTICULIER' }
+            : { name, email, phone, password, role, company, city },
       )
       navigate(retour ?? HOME_BY_ROLE[user.role] ?? '/')
     } catch {
@@ -255,6 +329,56 @@ export default function Register() {
             </div>
           </fieldset>
 
+          {/* Particulier ou entreprise.
+
+              Posé juste sous le choix de profil, et seulement pour un client :
+              la question ne se pose qu'à lui, et elle commande tout le reste du
+              formulaire. La poser plus bas aurait fait apparaître quatre champs
+              au milieu d'une saisie déjà commencée. */}
+          {estClient && (
+            <fieldset className="mt-4">
+              <legend className="sr-only">Vous êtes</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {TYPES_CLIENT.map((t) => {
+                  const actif = clientType === t.value
+                  return (
+                    <label
+                      key={t.value}
+                      className={`relative cursor-pointer rounded-xl border p-4 transition ${
+                        actif
+                          ? 'border-btp-400 bg-btp-50/60 ring-1 ring-btp-400'
+                          : 'border-papier-200 bg-white hover:border-papier-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="type-client"
+                        value={t.value}
+                        checked={actif}
+                        onChange={() => setClientType(t.value)}
+                        className="sr-only"
+                      />
+                      {actif && (
+                        <span
+                          aria-hidden
+                          className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-btp-500 text-white"
+                        >
+                          <Check size={12} strokeWidth={3} />
+                        </span>
+                      )}
+                      <span className="block text-sm font-bold leading-snug text-acier-900">
+                        {t.label}
+                      </span>
+                      <span className="mt-1 block text-xs leading-snug text-papier-600">
+                        {t.pitch}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </fieldset>
+          )}
+
           <form onSubmit={submit} className="mt-8">
             <p className="text-sm font-bold text-acier-900">Vos informations</p>
 
@@ -276,10 +400,10 @@ export default function Register() {
                 </div>
               </div>
 
-              {!estClient && (
+              {besoinStructure && (
                 <div>
                   <label className={etiquette} htmlFor="inscription-structure">
-                    {role === 'SUPPLIER' ? 'Raison sociale' : 'Nom du bureau de vérification'}{' '}
+                    {role === 'TECHNICAL' ? 'Nom du bureau de vérification' : 'Raison sociale'}{' '}
                     <span className="text-btp-600">*</span>
                   </label>
                   <div className="relative">
@@ -289,15 +413,15 @@ export default function Register() {
                       required
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
-                      placeholder={role === 'SUPPLIER' ? 'BTP CI SARL' : 'Société Technique ABC'}
+                      placeholder={role === 'TECHNICAL' ? 'Société Technique ABC' : 'BTP CI SARL'}
                       className={champ}
                     />
                   </div>
                 </div>
               )}
 
-              <div className={estClient ? '' : 'grid gap-4 sm:grid-cols-2'}>
-                {!estClient && (
+              <div className={besoinStructure ? 'grid gap-4 sm:grid-cols-2' : ''}>
+                {besoinStructure && (
                   <div>
                     <label className={etiquette} htmlFor="inscription-email">
                       Email professionnel <span className="text-btp-600">*</span>
@@ -333,7 +457,11 @@ export default function Register() {
                       className={champ}
                     />
                   </div>
-                  {estClient && (
+                  {/* Dit au seul particulier : c'est le seul à n'avoir que son
+                      numéro pour se reconnecter. L'entreprise donne une adresse,
+                      et lui annoncer le numéro la ferait douter de laquelle
+                      employer. */}
+                  {estClient && !estEntreprise && (
                     <p className="mt-1.5 text-xs text-papier-600">
                       C’est avec ce numéro que vous vous connecterez.
                     </p>
@@ -341,7 +469,107 @@ export default function Register() {
                 </div>
               </div>
 
-              {!estClient && (
+              {/* Les pièces de l'entreprise.
+
+                  Groupées et annoncées, pas semées entre le nom et la ville :
+                  on demande là un effort réel — aller chercher deux numéros et
+                  scanner une pièce — et un dirigeant doit savoir d'avance ce
+                  qu'on attend de lui plutôt que de le découvrir champ après
+                  champ. La phrase dit aussi pourquoi, parce que c'est la seule
+                  chose qui rend l'effort acceptable. */}
+              {estEntreprise && (
+                <div className="rounded-xl border border-papier-200 bg-papier-50/60 p-4">
+                  <p className="text-sm font-bold text-acier-900">Pièces de l’entreprise</p>
+                  <p className="mt-1 text-xs leading-relaxed text-papier-600">
+                    VOLTA vous apporte des marchés. Ces pièces nous permettent de vérifier votre
+                    entreprise avant de vous les confier — elles ne sont lues que par notre équipe.
+                  </p>
+
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className={etiquette} htmlFor="inscription-rccm">
+                        RCCM <span className="text-btp-600">*</span>
+                      </label>
+                      <div className="relative">
+                        <FileText className={picto} aria-hidden />
+                        <input
+                          id="inscription-rccm"
+                          required
+                          value={rccm}
+                          onChange={(e) => setRccm(e.target.value)}
+                          placeholder="CI-ABJ-2024-B-12345"
+                          className={champ}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={etiquette} htmlFor="inscription-dfe">
+                        DFE <span className="text-btp-600">*</span>
+                      </label>
+                      <div className="relative">
+                        <FileText className={picto} aria-hidden />
+                        <input
+                          id="inscription-dfe"
+                          required
+                          value={dfe}
+                          onChange={(e) => setDfe(e.target.value)}
+                          placeholder="Déclaration fiscale d’existence"
+                          className={champ}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className={etiquette} htmlFor="inscription-responsable">
+                      Email du responsable <span className="text-btp-600">*</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className={picto} aria-hidden />
+                      <input
+                        id="inscription-responsable"
+                        type="email"
+                        required
+                        value={managerEmail}
+                        onChange={(e) => setManagerEmail(e.target.value)}
+                        placeholder="direction@entreprise.ci"
+                        className={champ}
+                      />
+                    </div>
+                    {/* Le compte est souvent tenu par un chargé d'affaires ; le
+                        contrat, lui, lie celui qui dirige. */}
+                    <p className="mt-1.5 text-xs text-papier-600">
+                      Celui qui engage l’entreprise, s’il est différent de vous.
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className={etiquette} htmlFor="inscription-piece">
+                      Pièce d’identité du gérant <span className="text-btp-600">*</span>
+                    </label>
+                    <input
+                      id="inscription-piece"
+                      type="file"
+                      required={!piece}
+                      accept="image/jpeg,image/png,application/pdf"
+                      onChange={(e) => lirePiece(e.target.files?.[0] ?? null)}
+                      className="block w-full cursor-pointer rounded-lg border border-papier-300 bg-white px-3 py-2 text-sm text-papier-700 file:mr-3 file:rounded-md file:border-0 file:bg-acier-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-acier-800"
+                    />
+                    <p className="mt-1.5 text-xs text-papier-600">
+                      Photo ou PDF, 5 Mo maximum.
+                      {piece && <span className="ml-1 font-semibold text-btp-700">{piece.name}</span>}
+                    </p>
+                    {pieceErreur && (
+                      <p role="alert" className="mt-1.5 text-xs font-semibold text-red-700">
+                        {pieceErreur}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {besoinStructure && (
                 <div>
                   <label className={etiquette} htmlFor="inscription-ville">
                     Ville <span className="text-btp-600">*</span>

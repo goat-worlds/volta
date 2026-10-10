@@ -240,12 +240,13 @@ public class PublicRequestService {
     private final AuditService audit;
     private final AuthService authService;
     private final CurrentUser currentUser;
+    private final CompanyContractService contracts;
     private final SecureRandom random = new SecureRandom();
 
     public PublicRequestService(PublicRequestRepository requests, RequestAttachmentRepository attachments,
                                 NotificationRepository notifications, UserRepository users,
                                 ReferenceService references, AuditService audit, AuthService authService,
-                                CurrentUser currentUser) {
+                                CurrentUser currentUser, CompanyContractService contracts) {
         this.requests = requests;
         this.attachments = attachments;
         this.notifications = notifications;
@@ -254,6 +255,7 @@ public class PublicRequestService {
         this.audit = audit;
         this.authService = authService;
         this.currentUser = currentUser;
+        this.contracts = contracts;
     }
 
     private static String today() {
@@ -289,6 +291,10 @@ public class PublicRequestService {
         if (!PRIORITIES.contains(priority)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Priorité invalide : " + in.priority());
         }
+
+        // Une entreprise dont le dossier n'est pas validé ne dépose rien : c'est
+        // le moment où elle engagerait VOLTA auprès d'un fournisseur.
+        contracts.requireOperational();
 
         PublicRequest r = new PublicRequest();
         r.id = shortId("req");

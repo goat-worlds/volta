@@ -23,7 +23,10 @@ public class AuthController {
      * sans structure.
      */
     public record RegisterRequest(String name, String email, String phone, String password,
-                                  String role, String company, String city) {
+                                  String role, String company, String city,
+                                  /* Particulier ou entreprise — seul un client en porte un. */
+                                  String clientType, String rccm, String dfe, String managerEmail,
+                                  AuthService.DocumentInput managerIdDocument) {
     }
 
     public record LoginRequest(String email, String password) {
@@ -43,9 +46,11 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public AuthResponse register(@RequestBody RegisterRequest body) {
-        AuthService.AuthResult result = authService.register(
+        AuthService.AuthResult result = authService.register(new AuthService.RegisterInput(
                 body.name(), body.email(), body.phone(), body.password(),
-                body.role(), body.company(), body.city());
+                body.role(), body.company(), body.city(),
+                body.clientType(), body.rccm(), body.dfe(), body.managerEmail(),
+                body.managerIdDocument()));
         return new AuthResponse(result.token(), result.user());
     }
 

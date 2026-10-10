@@ -33,8 +33,11 @@ export default function RoleShell({ role }: { role: Role }) {
   // reste masquée derrière lui.
   useEffect(() => setMenuOpen(false), [location.pathname])
 
-  const sections = useMemo(() => navigationFor(role), [role])
-  const links = useMemo(() => linksFor(role), [role])
+  // Un particulier et une entreprise portent tous deux CLIENT : seul le type
+  // dit laquelle des deux a un contrat à lire.
+  const estEntreprise = currentUser?.clientType === 'ENTREPRISE'
+  const sections = useMemo(() => navigationFor(role, estEntreprise), [role, estEntreprise])
+  const links = useMemo(() => linksFor(role, estEntreprise), [role, estEntreprise])
   const unread = unreadNotifications.length
   const notificationsTo = links.find((l) => l.to.endsWith('/notifications'))?.to
   const badges = useShellBadges(role)
@@ -235,6 +238,7 @@ export default function RoleShell({ role }: { role: Role }) {
             <ApiUnavailable onRetry={() => void retry()} retrying={retrying} />
           ) : (
             <RouteBoundary>
+              <BandeauContrat />
               <Outlet />
             </RouteBoundary>
           )}
@@ -268,5 +272,56 @@ function LiveIndicator({ unavailable, lastSyncAt }: { unavailable: boolean; last
       <Radio size={12} className="animate-pulse" />
       En direct
     </span>
+  )
+}
+
+/**
+ * Ce qui manque à une entreprise pour que son compte s'ouvre.
+ *
+ * Le verrou vit au serveur : sans ce bandeau, l'entreprise découvrirait qu'elle
+ * est retenue au moment d'envoyer une demande — après l'avoir écrite. Un
+ * blocage annoncé est une étape ; un blocage découvert est une panne.
+ *
+ * Il se pose au-dessus de chaque page de l'espace plutôt que sur le seul
+ * tableau de bord : on entre souvent dans un espace par un lien profond, et le
+ * dirigeant qui arrive directement sur le catalogue doit savoir où il en est.
+ *
+ * Il disparaît sur la page du contrat elle-même, qui dit déjà tout cela en
+ * grand, et une fois le dossier validé.
+ */
+function BandeauContrat() {
+  const { currentUser } = useStore()
+  const { pathname } = useLocation()
+
+  if (currentUser?.clientType !== 'ENTREPRISE') return null
+  if (currentUser.contractValidatedAt) return null
+  if (pathname.startsWith('/client/contrat')) return null
+
+  const signe = Boolean(currentUser.contractAcceptedAt)
+  return (
+    <div
+      className={`mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${
+        signe ? 'border-btp-200 bg-btp-50' : 'border-amber-200 bg-amber-50'
+      }`}
+    >
+      <div className="min-w-0 text-sm">
+        <div className="font-semibold text-acier-900">
+          {signe ? 'Dossier en cours de vérification' : 'Votre compte entreprise n’est pas actif'}
+        </div>
+        <div className="text-papier-700">
+          {signe
+            ? 'VOLTA contrôle vos pièces. Vos demandes et commandes s’ouvriront dès la validation.'
+            : 'Lisez et signez le contrat de collaboration pour pouvoir déposer des demandes.'}
+        </div>
+      </div>
+      {!signe && (
+        <Link
+          to="/client/contrat"
+          className="shrink-0 rounded-lg bg-acier-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-acier-800"
+        >
+          Lire le contrat
+        </Link>
+      )}
+    </div>
   )
 }

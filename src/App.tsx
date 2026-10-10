@@ -38,6 +38,7 @@ const ClientNewQuoteRequest = lazy(() => import('./pages/client/ClientNewQuoteRe
 const ClientQuotes = lazy(() => import('./pages/client/ClientQuotes'))
 const ClientRentals = lazy(() => import('./pages/client/ClientRentals'))
 const ClientFavorites = lazy(() => import('./pages/client/ClientFavorites'))
+const ClientContract = lazy(() => import('./pages/client/ClientContract'))
 
 const SupplierDashboard = lazy(() => import('./pages/supplier/SupplierDashboard'))
 const SupplierEquipment = lazy(() => import('./pages/supplier/SupplierEquipment'))
@@ -58,6 +59,7 @@ const AdminCommercial = lazy(() => import('./pages/admin/AdminCommercial'))
 const AdminAudit = lazy(() => import('./pages/admin/AdminAudit'))
 const AdminMarket = lazy(() => import('./pages/admin/AdminMarket'))
 const AdminQuotes = lazy(() => import('./pages/admin/AdminQuotes'))
+const AdminCompanies = lazy(() => import('./pages/admin/AdminCompanies'))
 
 const TechnicalDashboard = lazy(() => import('./pages/technical/TechnicalDashboard'))
 const TechnicalMissions = lazy(() => import('./pages/technical/TechnicalMissions'))
@@ -135,6 +137,7 @@ export default function App() {
                 <Route path="/client/devis" element={<ClientQuotes />} />
                 <Route path="/client/locations" element={<ClientRentals />} />
                 <Route path="/client/favoris" element={<ClientFavorites />} />
+                <Route path="/client/contrat" element={<ClientContract />} />
                 <Route path="/client/notifications" element={<NotificationsPage />} />
                 {/* Le Market est le même qu'en public, monté dans l'espace pour
                     garder la barre latérale. */}
@@ -171,6 +174,7 @@ export default function App() {
                 <Route path="/admin/commercial" element={<AdminCommercial />} />
                 <Route path="/admin/market" element={<AdminMarket />} />
                 <Route path="/admin/devis" element={<AdminQuotes />} />
+                <Route path="/admin/entreprises" element={<AdminCompanies />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/audit" element={<AdminAudit />} />
                 <Route path="/admin/notifications" element={<NotificationsPage />} />

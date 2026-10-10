@@ -20,6 +20,7 @@ import type {
   ChecklistItem,
   Role,
   User,
+  ClientType,
   Category,
   Quote,
   QuoteRequest,
@@ -144,6 +145,21 @@ export interface RegisterInput {
   role: Role
   company?: string
   city?: string
+  /**
+   * Particulier ou entreprise — seul un client en porte un.
+   *
+   * Un particulier loue pour lui : son nom et son numéro suffisent. Une
+   * entreprise reçoit les marchés que VOLTA lui apporte et signe un contrat
+   * qui l'engage : la plateforme doit savoir à qui elle a affaire avant de lui
+   * ouvrir quoi que ce soit.
+   */
+  clientType?: ClientType
+  rccm?: string
+  dfe?: string
+  /** L'adresse du dirigeant, distincte de celle qui tient le compte. */
+  managerEmail?: string
+  /** La pièce d'identité du gérant, encodée. */
+  managerIdDocument?: { name: string; type: string; contentBase64: string }
 }
 
 /**

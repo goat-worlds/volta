@@ -2,8 +2,10 @@ package ci.volta.backend.service;
 
 import ci.volta.backend.model.SessionToken;
 import ci.volta.backend.domain.PhoneKey;
+import ci.volta.backend.model.CompanyDocument;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.SessionRepository;
+import ci.volta.backend.repository.CompanyDocumentRepository;
 import ci.volta.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -27,15 +29,18 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final CompanyDocumentRepository companyDocuments;
     private final PasswordEncoder encoder = new BCryptPasswordEncoder();
     private final long sessionDurationDays;
 
     public AuthService(
             UserRepository userRepository,
             SessionRepository sessionRepository,
+            CompanyDocumentRepository companyDocuments,
             @Value("${volta.session.duration-days:7}") long sessionDurationDays) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.companyDocuments = companyDocuments;
         this.sessionDurationDays = sessionDurationDays;
     }
 
@@ -54,8 +59,46 @@ public class AuthService {
     private static final java.util.Set<String> SELF_ASSIGNABLE_ROLES =
             java.util.Set.of("CLIENT", "SUPPLIER", "TECHNICAL");
 
-    public AuthResult register(String name, String email, String phone, String password,
-                               String role, String company, String city) {
+    /**
+     * Les deux profils de client.
+     *
+     * Un particulier loue pour lui : son nom et son numéro suffisent, et c'est
+     * tout ce qu'on lui demande. Une entreprise reçoit les marchés que VOLTA
+     * lui apporte, signe un contrat qui l'engage, et facture — la plateforme
+     * doit donc savoir à qui elle a affaire avant de lui ouvrir quoi que ce
+     * soit. D'où le registre du commerce, la déclaration fiscale, la pièce du
+     * gérant et l'adresse du responsable.
+     *
+     * Les comptes clients créés avant cette distinction restent sans type :
+     * ils valent particuliers, ce qu'ils étaient de fait.
+     */
+    public static final String CLIENT_PARTICULIER = "PARTICULIER";
+    public static final String CLIENT_ENTREPRISE = "ENTREPRISE";
+
+    /** Pièce jointe à l'inscription : la pièce d'identité du gérant. */
+    public record DocumentInput(String name, String type, String contentBase64) {
+    }
+
+    /**
+     * Ce qu'une inscription apporte.
+     *
+     * La méthode prenait sept paramètres de type String à la file. En ajouter
+     * quatre de plus aurait donné un appel dont aucun lecteur ne peut vérifier
+     * l'ordre — et une inversion entre deux chaînes voisines ne se voit ni à la
+     * compilation ni à l'exécution, seulement dans la base, plus tard.
+     */
+    public record RegisterInput(String name, String email, String phone, String password,
+                                String role, String company, String city,
+                                String clientType, String rccm, String dfe, String managerEmail,
+                                DocumentInput managerIdDocument) {
+    }
+
+    /** Taille maximale d'une pièce déposée à l'inscription. */
+    private static final int MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+
+    public AuthResult register(RegisterInput in) {
+        String name = in == null ? null : in.name();
+        String password = in == null ? null : in.password();
         if (name == null || name.isBlank() || password == null || password.length() < 6) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Nom et mot de passe (6 caractères minimum) sont requis");
@@ -64,65 +107,146 @@ public class AuthService {
         // Un rôle absent vaut CLIENT : c'est le cas courant, et c'était le seul
         // comportement possible avant l'ouverture de l'inscription aux autres
         // rôles — les clients existants continuent de fonctionner à l'identique.
-        String requestedRole = role == null || role.isBlank() ? "CLIENT" : role.trim().toUpperCase();
+        String requestedRole = in.role() == null || in.role().isBlank()
+                ? "CLIENT" : in.role().trim().toUpperCase();
         if (!SELF_ASSIGNABLE_ROLES.contains(requestedRole)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Rôle invalide. Choisissez client, fournisseur ou équipe technique.");
         }
 
+        boolean estClient = "CLIENT".equals(requestedRole);
+        String typeClient = null;
+        if (estClient) {
+            typeClient = in.clientType() == null || in.clientType().isBlank()
+                    ? CLIENT_PARTICULIER : in.clientType().trim().toUpperCase();
+            if (!CLIENT_PARTICULIER.equals(typeClient) && !CLIENT_ENTREPRISE.equals(typeClient)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Type de client invalide : particulier ou entreprise.");
+            }
+        }
+        boolean estEntreprise = CLIENT_ENTREPRISE.equals(typeClient);
+
         /*
-         * L'identifiant de connexion dépend du rôle.
+         * L'identifiant de connexion dépend du profil.
          *
-         * Un client vient déposer un besoin, pas ouvrir un dossier : on lui
-         * demande son nom et son numéro, rien de plus. C'est le numéro qui
+         * Un particulier vient déposer un besoin, pas ouvrir un dossier : on
+         * lui demande son nom et son numéro, rien de plus. C'est le numéro qui
          * l'identifie — il l'a toujours sur lui, et c'est par là qu'on le
          * rappellera de toute façon.
          *
-         * Un fournisseur ou une équipe technique tiennent un parc, reçoivent
-         * des demandes et signent des rapports : l'adresse reste exigée, parce
-         * que c'est par elle que passent les notifications écrites.
+         * Une entreprise, un fournisseur ou une équipe technique tiennent un
+         * parc, reçoivent des demandes et signent des documents : l'adresse
+         * reste exigée, parce que c'est par elle que passent les notifications
+         * écrites et les pièces contractuelles.
          */
-        boolean estClient = "CLIENT".equals(requestedRole);
-        String cleTelephone = PhoneKey.of(phone);
+        String cleTelephone = PhoneKey.of(in.phone());
 
-        if (estClient) {
-            if (cleTelephone == null) {
+        if (estClient && cleTelephone == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Un numéro de téléphone valide est requis");
+        }
+        if ((!estClient || estEntreprise) && (in.email() == null || in.email().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    estEntreprise
+                            ? "L'email est requis pour un compte entreprise"
+                            : "L'email est requis pour un compte fournisseur ou technique");
+        }
+
+        // Un fournisseur, une équipe technique et une entreprise agissent au nom
+        // d'une structure : c'est cette raison sociale que voient l'administrateur
+        // au moment d'assigner un dossier et le contrat au moment d'être signé.
+        String structure = in.company() == null ? "" : in.company().trim();
+        if (structure.isEmpty() && (!estClient || estEntreprise)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La raison sociale est requise pour ce type de compte");
+        }
+
+        String rccm = in.rccm() == null ? "" : in.rccm().trim();
+        String dfe = in.dfe() == null ? "" : in.dfe().trim();
+        String emailResponsable = in.managerEmail() == null ? "" : in.managerEmail().trim();
+        if (estEntreprise) {
+            if (rccm.isEmpty() || dfe.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Un numéro de téléphone valide est requis");
+                        "Le RCCM et la DFE sont requis pour un compte entreprise");
             }
-        } else if (email == null || email.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "L'email est requis pour un compte fournisseur ou technique");
+            if (emailResponsable.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "L'email du responsable est requis pour un compte entreprise");
+            }
+            if (in.managerIdDocument() == null || blank(in.managerIdDocument().contentBase64())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "La pièce d'identité du gérant est requise pour un compte entreprise");
+            }
         }
 
-        // Un fournisseur et une équipe technique agissent au nom d'une
-        // structure : c'est cette raison sociale que voient le client dans le
-        // catalogue et l'administrateur au moment d'assigner une inspection.
-        String structure = company == null ? "" : company.trim();
-        if (structure.isEmpty() && !"CLIENT".equals(requestedRole)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "La raison sociale est requise pour un compte fournisseur ou technique");
-        }
-
-        if (email != null && !email.isBlank()
-                && userRepository.findByEmailIgnoreCase(email).isPresent()) {
+        if (in.email() != null && !in.email().isBlank()
+                && userRepository.findByEmailIgnoreCase(in.email()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Un compte existe déjà avec cet email");
         }
         if (cleTelephone != null && userRepository.findByPhoneKey(cleTelephone).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Un compte existe déjà avec ce numéro");
         }
+
         UserAccount user = new UserAccount();
         user.id = "u-" + UUID.randomUUID().toString().substring(0, 8);
         user.name = name;
         user.role = requestedRole;
         user.company = structure;
-        user.email = email == null ? "" : email.trim();
-        user.phone = phone == null ? "" : phone.trim();
+        user.email = in.email() == null ? "" : in.email().trim();
+        user.phone = in.phone() == null ? "" : in.phone().trim();
         user.phoneKey = cleTelephone;
-        user.city = city == null ? "" : city.trim();
+        user.city = in.city() == null ? "" : in.city().trim();
+        user.clientType = typeClient;
+        user.rccm = rccm;
+        user.dfe = dfe;
+        user.managerEmail = emailResponsable;
         user.passwordHash = encoder.encode(password);
         user = userRepository.save(user);
+
+        if (estEntreprise) {
+            storeManagerId(user.id, in.managerIdDocument());
+        }
         return new AuthResult(createSession(user.id).token, user);
+    }
+
+    /**
+     * Range la pièce du gérant.
+     *
+     * Elle est décodée avant d'être rangée : une chaîne qui n'est pas du base64
+     * se stocke sans broncher et ne se découvre qu'au téléchargement, le jour
+     * où l'administration en a besoin pour valider le dossier.
+     */
+    private void storeManagerId(String userId, DocumentInput doc) {
+        byte[] decoded;
+        try {
+            decoded = java.util.Base64.getDecoder().decode(doc.contentBase64());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La pièce d'identité du gérant est illisible");
+        }
+        if (decoded.length == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La pièce d'identité du gérant est vide");
+        }
+        if (decoded.length > MAX_DOCUMENT_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La pièce d'identité du gérant dépasse 5 Mo");
+        }
+
+        CompanyDocument d = new CompanyDocument();
+        d.id = "doc-" + UUID.randomUUID().toString().substring(0, 8);
+        d.userId = userId;
+        d.kind = CompanyDocument.KIND_MANAGER_ID;
+        d.originalName = blank(doc.name()) ? "piece-gerant" : doc.name().trim();
+        d.contentType = blank(doc.type()) ? "application/octet-stream" : doc.type().trim();
+        d.size = decoded.length;
+        d.uploadedAt = java.time.Instant.now().toString();
+        d.contentBase64 = doc.contentBase64();
+        companyDocuments.save(d);
+    }
+
+    private static boolean blank(String v) {
+        return v == null || v.isBlank();
     }
 
     /**

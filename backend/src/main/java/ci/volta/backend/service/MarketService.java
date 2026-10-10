@@ -93,10 +93,12 @@ public class MarketService {
     private final ReferenceService references;
     private final AuditService audit;
     private final CurrentUser currentUser;
+    private final CompanyContractService contracts;
 
     public MarketService(SaleListingRepository listings, PurchaseRequestRepository purchases,
                          EquipmentRepository equipments, NotificationRepository notifications,
-                         ReferenceService references, AuditService audit, CurrentUser currentUser) {
+                         ReferenceService references, AuditService audit, CurrentUser currentUser,
+                         CompanyContractService contracts) {
         this.listings = listings;
         this.purchases = purchases;
         this.equipments = equipments;
@@ -104,6 +106,7 @@ public class MarketService {
         this.references = references;
         this.audit = audit;
         this.currentUser = currentUser;
+        this.contracts = contracts;
     }
 
     private static String today() {
@@ -321,6 +324,9 @@ public class MarketService {
     // ------------------------------------------------------------------
 
     public PurchaseRequest requestOffer(String listingId, PurchaseInput in) {
+        // Commander est un engagement : une entreprise non validée s'arrête ici.
+        contracts.requireOperational();
+
         SaleListing l = load(listingId);
         if (!MarketWorkflow.isPublished(l.status)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette annonce n'est plus disponible");

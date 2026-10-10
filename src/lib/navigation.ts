@@ -1,7 +1,9 @@
 import {
   AlertOctagon,
   Bell,
+  Building2,
   CalendarCheck,
+  FileSignature,
   ClipboardCheck,
   Heart,
   Inbox,
@@ -39,6 +41,15 @@ export interface NavItem {
   roles: Role[]
   /** Vrai pour la racine de l'espace, qui sinon resterait active partout. */
   end?: boolean
+  /**
+   * Réservé aux clients entreprises.
+   *
+   * Le rôle ne suffit plus à décrire un client : un particulier et une
+   * entreprise portent tous deux CLIENT, et seule la seconde a un contrat à
+   * lire. Montrer « Contrat » à un particulier lui donnerait une page qui lui
+   * répond qu'elle ne le concerne pas.
+   */
+  entrepriseSeulement?: boolean
 }
 
 export interface NavSection {
@@ -71,6 +82,13 @@ const TREE: NavSection[] = [
       { to: '/client/demandes', label: 'Demandes de devis', icon: Inbox, roles: ['CLIENT'] },
       { to: '/client/devis', label: 'Devis reçus', icon: Receipt, roles: ['CLIENT'] },
       { to: '/client/favoris', label: 'Favoris', icon: Heart, roles: ['CLIENT'] },
+      {
+        to: '/client/contrat',
+        label: 'Contrat',
+        icon: FileSignature,
+        roles: ['CLIENT'],
+        entrepriseSeulement: true,
+      },
 
       { to: '/supplier/locations', label: 'Réservations', icon: CalendarCheck, roles: ['SUPPLIER'] },
       { to: '/supplier/demandes', label: 'Demandes de devis', icon: Inbox, roles: ['SUPPLIER'] },
@@ -112,6 +130,10 @@ const TREE: NavSection[] = [
       // Les réponses aux formulaires du site : location, achat, technicien,
       // candidature. C'est par là qu'arrive la majorité du travail de VOLTA.
       { to: '/admin/demandes', label: 'Demandes des formulaires', icon: Inbox, roles: ['ADMIN'] },
+      // Les dossiers entreprises précèdent l'annuaire : l'annuaire liste,
+      // celui-ci tranche, et un dossier non vu est un compte qui reste
+      // fermé sans que personne ne sache pourquoi.
+      { to: '/admin/entreprises', label: 'Clients entreprises', icon: Building2, roles: ['ADMIN'] },
       { to: '/admin/users', label: 'Utilisateurs', icon: Users, roles: ['ADMIN'] },
       { to: '/admin/audit', label: 'Journal d’audit', icon: ScrollText, roles: ['ADMIN'] },
     ],
@@ -153,16 +175,18 @@ export const ROLE_LABEL: Record<Role, string> = {
  * Les sections visibles par un rôle, vidées de ce qu'il ne peut pas ouvrir.
  * Une section qui ne lui laisse rien disparaît avec son intitulé.
  */
-export function navigationFor(role: Role): NavSection[] {
+export function navigationFor(role: Role, estEntreprise = false): NavSection[] {
   return TREE.map((section) => ({
     ...section,
-    items: section.items.filter((item) => item.roles.includes(role)),
+    items: section.items.filter(
+      (item) => item.roles.includes(role) && (!item.entrepriseSeulement || estEntreprise),
+    ),
   })).filter((section) => section.items.length > 0)
 }
 
 /** Tous les liens d'un rôle, à plat : pour retrouver le titre de la page active. */
-export function linksFor(role: Role): NavItem[] {
-  return navigationFor(role).flatMap((s) => s.items)
+export function linksFor(role: Role, estEntreprise = false): NavItem[] {
+  return navigationFor(role, estEntreprise).flatMap((s) => s.items)
 }
 
 export { ALL as ALL_ROLES }

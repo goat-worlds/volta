@@ -15,6 +15,14 @@ export type Level = 'BASIC' | 'SILVER' | 'GOLD'
 
 export type Role = 'ADMIN' | 'SUPPLIER' | 'TECHNICAL' | 'CLIENT'
 
+/**
+ * Les deux profils de client.
+ *
+ * Un compte créé avant la distinction n'en porte aucun : il vaut particulier,
+ * ce qu'il était de fait — on ne lui avait jamais rien demandé d'autre.
+ */
+export type ClientType = 'PARTICULIER' | 'ENTREPRISE'
+
 export interface User {
   id: string
   name: string
@@ -23,6 +31,15 @@ export interface User {
   email: string
   phone: string
   city: string
+  clientType?: ClientType | null
+  rccm?: string | null
+  dfe?: string | null
+  managerEmail?: string | null
+  /** Quand l'entreprise a signé le contrat de collaboration. */
+  contractAcceptedAt?: string | null
+  /** Quand VOLTA a validé son dossier — c'est cela qui ouvre les fonctions. */
+  contractValidatedAt?: string | null
+  contractValidatedBy?: string | null
 }
 
 export interface Category {
