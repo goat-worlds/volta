@@ -615,7 +615,32 @@ public class PublicRequestService {
     public List<AdminView> listForSupplier() {
         UserAccount me = currentUser.requireRole(CurrentUser.ROLE_SUPPLIER);
         return requests.findBySupplierIdOrderByCreatedAtDesc(me.id).stream()
-                .map(AdminView::of).toList();
+                .map(AdminView::of)
+                .map(PublicRequestService::sansIdentiteDuClient)
+                .toList();
+    }
+
+    /**
+     * Ce qu'un fournisseur reçoit d'une demande : le besoin, pas le demandeur.
+     *
+     * L'{@link AdminView} porte le nom, la société, le téléphone et l'adresse
+     * du déposant. C'est la vue de l'administration, qui arbitre et doit voir
+     * les deux côtés. La servir telle quelle au fournisseur lui donnait de quoi
+     * appeler directement — et VOLTA, qui se porte garante de la prestation, ne
+     * peut le faire que sur ce qui passe par elle.
+     *
+     * Les notes internes partent avec : elles sont le carnet de l'équipe.
+     *
+     * Le sujet, le lieu et les réponses du formulaire restent — c'est ce qui
+     * permet de chiffrer. Un fournisseur à qui l'on cacherait aussi le besoin
+     * n'aurait rien à proposer.
+     */
+    private static AdminView sansIdentiteDuClient(AdminView v) {
+        return new AdminView(v.id(), v.reference(), v.kind(), v.intent(), v.subject(),
+                new ContactInput("Client VOLTA", "Client VOLTA", "", "", v.contact().city()),
+                v.location(), v.status(), v.priority(), null, v.payload(), "",
+                null, v.createdAt(), v.updatedAt(), null, null, null,
+                v.supplierId(), v.offerAmount());
     }
 
     /** Vrai si la demande est celle de ce compte — par le lien, le courriel ou le numéro. */

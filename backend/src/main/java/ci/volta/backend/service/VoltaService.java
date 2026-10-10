@@ -219,15 +219,73 @@ public class VoltaService {
                            String city, String email, String phone) {
     }
 
-    private static UserView view(UserAccount u, boolean withContact) {
-        return new UserView(u.id, u.name, u.role, u.company, u.city,
-                withContact ? u.email : "", withContact ? u.phone : "");
+    /**
+     * Ce que l'annuaire laisse voir d'un compte.
+     *
+     * <h2>Deux rideaux, pas un</h2>
+     *
+     * Les coordonnées — adresse, téléphone — étaient déjà retirées. Le nom et
+     * la raison sociale, eux, étaient servis à tout le monde : un client lisait
+     * le nom du loueur sur son devis, un fournisseur celui du client sur sa
+     * demande. Les deux pouvaient se rappeler en dehors de la plateforme, et
+     * c'est exactement ce que VOLTA ne peut pas garantir.
+     *
+     * VOLTA est l'intermédiaire et se porte garante de la satisfaction, de
+     * l'avancement du chantier et de la disponibilité des machines. Elle ne le
+     * peut que sur ce qui passe par elle : les deux parties ne se voient donc
+     * pas, et chacune a VOLTA en face.
+     *
+     * <h2>Ce qui reste ouvert</h2>
+     *
+     * Son propre compte, toujours. L'administration, qui arbitre et doit voir
+     * les deux côtés. L'équipe technique, qui se rend sur site et doit pouvoir
+     * nommer le propriétaire de l'engin qu'elle inspecte — elle est interne, et
+     * son métier impose la rencontre.
+     *
+     * <h2>Pourquoi le masque est un libellé et non un vide</h2>
+     *
+     * Une chaîne vide donnerait des écrans troués, et chaque page devrait
+     * inventer son propre repli. « Partenaire VOLTA » dit ce qu'il y a à
+     * savoir : il y a quelqu'un en face, et c'est VOLTA qui en répond.
+     */
+    private static final String MASQUE_FOURNISSEUR = "Partenaire VOLTA";
+    private static final String MASQUE_CLIENT = "Client VOLTA";
+
+    private static UserView view(UserAccount u, boolean withContact, boolean withIdentity) {
+        if (withIdentity) {
+            return new UserView(u.id, u.name, u.role, u.company, u.city,
+                    withContact ? u.email : "", withContact ? u.phone : "");
+        }
+        String masque = CurrentUser.ROLE_SUPPLIER.equalsIgnoreCase(u.role)
+                ? MASQUE_FOURNISSEUR : MASQUE_CLIENT;
+        return new UserView(u.id, masque, u.role, masque, "", "", "");
+    }
+
+    /**
+     * Vrai si l'appelant a le droit de savoir qui est ce compte.
+     *
+     * Écrit en liste d'exceptions plutôt qu'en liste d'autorisations : on
+     * nomme les trois cas où l'identité se montre, et tout le reste est
+     * masqué. Dans l'autre sens, un rôle ajouté demain verrait tout sans que
+     * personne n'ait rien décidé.
+     */
+    private boolean peutVoirIdentite(UserAccount u) {
+        if (isAdmin()) {
+            return true;
+        }
+        String moi = currentUser.optional().map(x -> x.id).orElse(null);
+        if (moi != null && moi.equals(u.id)) {
+            return true;
+        }
+        return CurrentUser.ROLE_TECHNICAL.equalsIgnoreCase(currentUser.role());
     }
 
     @Transactional(readOnly = true)
     public List<UserView> listVisibleUsers() {
         boolean admin = isAdmin();
-        return userRepository.findAll().stream().map(u -> view(u, admin)).toList();
+        return userRepository.findAll().stream()
+                .map(u -> view(u, admin, peutVoirIdentite(u)))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -237,7 +295,7 @@ public class VoltaService {
         // On voit ses propres coordonnées, et l'administration voit celles de
         // tous : un utilisateur doit pouvoir relire sa propre fiche.
         boolean withContact = isAdmin() || id.equals(currentUser.requireId());
-        return view(u, withContact);
+        return view(u, withContact, peutVoirIdentite(u));
     }
 
     /** Champs modifiables d'un compte. Le mot de passe suit un autre chemin. */
@@ -284,7 +342,7 @@ public class VoltaService {
         u.passwordHash = authService.encodePassword(input.password());
         u = userRepository.save(u);
         audit.record("USER_CREATED", "USER", u.id, u.email, "Rôle : " + u.role);
-        return view(u, true);
+        return view(u, true, true);
     }
 
     /** Rôles qu'un administrateur peut attribuer, celui d'administrateur inclus. */
@@ -337,7 +395,7 @@ public class VoltaService {
             u.role = role;
         }
 
-        return view(userRepository.save(u), true);
+        return view(userRepository.save(u), true, true);
     }
 
     /** Identifiants des engins du fournisseur connecté. */
@@ -440,17 +498,22 @@ public class VoltaService {
      *
      * Le fournisseur recevait le téléphone et l'email dès la première demande :
      * il pouvait appeler et traiter hors plateforme sans jamais accepter, et
-     * VOLTA n'apparaissait plus que comme un annuaire. Il décide désormais sur
-     * ce qui concerne la mission — engin, dates, lieu, opérateur, transport —
-     * et obtient de quoi joindre le client une fois qu'il a accepté.
+     * VOLTA n'apparaissait plus que comme un annuaire.
+     *
+     * Le masque tombait ensuite, à l'acceptation. Il ne tombe plus : VOLTA est
+     * l'intermédiaire et se porte garante de la prestation, ce qu'elle ne peut
+     * faire que sur ce qui passe par elle. Deux parties qui ont le numéro l'une
+     * de l'autre traitent dehors au premier désaccord — et la garantie tombe
+     * avec le dossier qu'elle ne voit plus.
+     *
+     * Ce dont le fournisseur a besoin pour travailler reste : l'engin, les
+     * dates, le lieu, l'opérateur, le transport. La coordination passe par
+     * VOLTA, dont le numéro est sur chaque écran.
      *
      * Une copie, jamais l'entité : effacer les champs sur un objet géré par JPA
      * les effacerait en base au prochain flush.
      */
     private static RentalRequest hideClientContactUntilAccepted(RentalRequest source) {
-        if (RentalWorkflow.supplierMayContactClient(source.status)) {
-            return source;
-        }
         RentalRequest masked = new RentalRequest();
         masked.id = source.id;
         masked.reference = source.reference;
@@ -462,8 +525,9 @@ public class VoltaService {
         masked.withOperator = source.withOperator;
         masked.transport = source.transport;
         masked.comment = source.comment;
-        masked.clientName = source.clientName;
-        // Retenus jusqu'à l'acceptation.
+        // L'identité ne sort pas de la plateforme : le fournisseur sait qu'il y
+        // a un client, pas lequel.
+        masked.clientName = MASQUE_CLIENT;
         masked.clientPhone = null;
         masked.clientEmail = null;
         masked.status = source.status;
@@ -538,7 +602,7 @@ public class VoltaService {
         masked.quantity = source.quantity;
         masked.startDate = source.startDate;
         masked.endDate = source.endDate;
-        masked.clientName = source.clientName;
+        masked.clientName = MASQUE_CLIENT;
         masked.clientPhone = null;
         masked.clientEmail = null;
         masked.createdAt = source.createdAt;
