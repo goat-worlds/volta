@@ -7,34 +7,55 @@ import { useState } from 'react'
  * espaces connectés : trois copies à retoucher à chaque changement d'identité,
  * et deux d'entre elles finissaient toujours par diverger.
  *
- * <h2>Le symbole, pas le bloc</h2>
+ * <h2>Le symbole EST le V</h2>
  *
- * Le fichier de marque livré est un bloc empilé : le V orange, puis VOLTA en
- * noir, puis la baseline. Il est fait pour du papier, et il ne survit pas à une
- * barre de 60 px — le mot y tombe à dix pixels de haut, et son encre noire
- * disparaît dans le bleu nuit. Posé tel quel dans l'en-tête, on ne voyait
- * qu'une tache orange suivie d'une bavure.
+ * Le symbole livré n'est pas un emblème abstrait posé à côté du nom : c'est la
+ * lettre V, dessinée, avec une pelle logée dans sa branche droite. Il était
+ * pourtant affiché devant le mot « VOLTA » écrit en entier — on lisait donc
+ * « V VOLTA », la lettre deux fois, une fois dessinée et une fois composée.
+ * Deux V côte à côte, c'est une faute d'orthographe sur sa propre marque.
  *
- * On a d'abord tenté de le sauver en l'agrandissant, puis en le posant sur une
- * plaque blanche. L'agrandissement poussait la navigation à la ligne ; la
- * plaque collait un rectangle clair dans une barre sombre. Le vrai problème
- * était la composition : il fallait un logo couché, pas empilé.
+ * Le symbole prend donc la place qui est la sienne, celle de l'initiale, et la
+ * typographie reprend à « OLTA ». Le mot se lit d'un seul tenant.
  *
- * Seul le symbole est donc repris — `logo-volta-mark.png`, découpé de
- * l'artwork au-dessus du mot — et le nom est composé en typographie à côté.
- * C'est ce que montre la maquette, c'est lisible à 36 px, et la couleur du
- * texte suit le fond au lieu de le subir.
+ * <h2>Ce que cela impose</h2>
  *
- * Le repli typographique reste : un logo manquant ne doit pas laisser un cadre
- * brisé en haut de chaque page, et il se déclenche aussi bien si le fichier est
- * absent que s'il est corrompu ou bloqué par le réseau.
+ * Le glyphe est servi recadré sur son encre (`logo-volta-v.png`) : le fichier
+ * d'origine porte une marge transparente qui représente plus du tiers de sa
+ * largeur, et cette marge ouvrait un blanc entre le V et le O que rien dans la
+ * mise en page ne pouvait refermer.
+ *
+ * L'alignement se fait sur la ligne de base, pas sur le centre : centrer un
+ * glyphe de proportions libres à côté d'une capitale le fait flotter, haut sur
+ * un mot court, bas sur un mot long. Le V descend très légèrement sous la
+ * ligne, comme dans le bloc de marque d'origine.
+ *
+ * <h2>Lecture à voix haute</h2>
+ *
+ * La composition ne se lit que des yeux : un lecteur d'écran y entendrait
+ * « OLTA ». Le nom complet est donc donné une fois, invisible à l'œil, et tout
+ * le dessin est masqué à l'assistance.
+ *
+ * <h2>Repli</h2>
+ *
+ * Un logo manquant ne doit pas laisser un cadre brisé en haut de chaque page.
+ * Le repli écrit le V en typographie, dans la couleur de la marque, et le mot
+ * reste entier. Il se déclenche aussi bien si le fichier est absent que s'il
+ * est corrompu ou bloqué par le réseau.
  */
 
-/** Le symbole seul, découpé du bloc de marque. */
-const MARQUE = '/images/logo-volta-mark.png'
+/** Le V de la marque, recadré sur son encre. */
+const GLYPHE = '/images/logo-volta-v.png'
 
-/** Signature par défaut, sous le nom. */
-const SIGNATURE = 'by Génie Sélect Digital'
+/**
+ * Signature par défaut, sous le nom.
+ *
+ * L'artwork de marque écrit « BY GÉNIE SELECT », sans « Digital » et sans
+ * accent sur SELECT. On y avait ajouté « Digital » parce que c'est le pôle qui
+ * édite la plateforme : exact sur le fond, mais un logo ne se complète pas à la
+ * main. La signature dit donc ce que dit le logo.
+ */
+const SIGNATURE = 'by Génie Select'
 
 export default function Logo({
   /** Clair sur fond sombre (en-tête, pied de page), sombre sinon. */
@@ -57,44 +78,59 @@ export default function Logo({
   const teinteLigne = tone === 'dark' ? 'text-acier-300' : 'text-papier-600'
 
   return (
-    <span className={`flex shrink-0 items-center gap-2.5 ${className}`}>
-      {absent ? (
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-btp-500 text-lg font-black text-acier-900">
-          V
-        </span>
-      ) : (
-        <img
-          src={MARQUE}
-          // Le nom est écrit juste à côté : décrire l'image le ferait entendre
-          // deux fois à un lecteur d'écran.
-          alt=""
-          aria-hidden
-          className="h-9 w-auto"
-          onError={() => setAbsent(true)}
-          // Le logo est au-dessus de la ligne de flottaison : le différer
-          // ferait clignoter l'en-tête au premier affichage.
-          loading="eager"
-        />
-      )}
+    <span className={`flex shrink-0 flex-col justify-center leading-none ${className}`}>
+      {/* Le nom, dit une fois, pour qui ne voit pas la composition. */}
+      <span className="sr-only">VOLTA{ligne ? ` ${ligne}` : ''}</span>
 
-      <span className="leading-none">
-        <span className={`block text-lg font-black tracking-tight ${nom}`}>VOLTA</span>
-        {ligne && (
-          <span
-            // Sans `whitespace-nowrap`, la signature se brise en trois lignes
-            // dès que la barre se charge, et le logo pousse toute la navigation.
-            className={`block whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest ${teinteLigne}`}
-          >
-            {ligne === SIGNATURE ? (
-              <>
-                <span className="lowercase">by</span> Génie Sélect Digital
-              </>
-            ) : (
-              ligne
-            )}
-          </span>
+      <span aria-hidden className="flex items-baseline">
+        {absent ? (
+          <span className="text-[26px] font-black leading-none tracking-tight text-btp-500">V</span>
+        ) : (
+          <img
+            src={GLYPHE}
+            alt=""
+            /* La hauteur dépasse la capitale : le V porte une pelle dans sa
+               branche, et à hauteur de capitale exacte elle devient une tache.
+               Les 2 px sous la ligne de base reprennent le débord du bloc de
+               marque d'origine. */
+            className="h-[28px] w-auto translate-y-[1px]"
+            onError={() => setAbsent(true)}
+            /* Le logo est au-dessus de la ligne de flottaison : le différer
+               ferait clignoter l'en-tête au premier affichage. */
+            loading="eager"
+          />
         )}
+
+        {/* Le V se termine en pointe : à espacement nul, l'œil voit encore un
+            blanc au milieu du mot. Le rapprochement compense la diagonale,
+            comme un crénage entre deux lettres. */}
+        <span className={`-ml-[0.07em] text-[26px] font-black leading-none tracking-tight ${nom}`}>
+          OLTA
+        </span>
       </span>
+
+      {ligne && (
+        <span
+          aria-hidden
+          /* Sans `whitespace-nowrap`, la signature se brise en trois lignes dès
+             que la barre se charge, et le logo pousse toute la navigation.
+             Elle s'aligne sur le bord gauche du V, pas sur celui du O : c'est
+             le mot entier qu'elle signe.
+             
+             Le filet orange qui la précède est celui de l'artwork : il rattache
+             la signature au mot au lieu de la laisser flotter sous lui. */
+          className={`mt-1 flex items-center gap-1.5 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.18em] ${teinteLigne}`}
+        >
+          <span aria-hidden className="h-px w-3.5 shrink-0 bg-btp-500" />
+          {ligne === SIGNATURE ? (
+            <>
+              <span className="lowercase">by</span> Génie Select
+            </>
+          ) : (
+            ligne
+          )}
+        </span>
+      )}
     </span>
   )
 }
