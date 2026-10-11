@@ -1,0 +1,231 @@
+# Intégration continue de VOLTA.
+#
+# Le dépôt porte deux moitiés : le frontend Vite/React à la racine, le backend
+# Spring Boot dans backend/. Chacune a son job, et trois jobs d'analyse couvrent
+# les secrets, les dépendances et l'image publiée. Le job « recapitulatif » est
+# le seul à déclarer comme contrôle obligatoire sur la branche : il échoue dès
+# qu'un autre échoue, ce qui évite de maintenir la liste des contrôles requis
+# dans les réglages GitHub.
+#
+# Rien ici ne déploie. La mise en ligne reste pilotée par Render (backend) et
+# Vercel (frontend), qui suivent la branche par eux-mêmes.
+
+name: Intégration continue
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Deux poussées rapprochées sur la même branche : seule la dernière mérite des
+# minutes de calcul.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Lecture seule : aucun job n'écrit dans le dépôt.
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  frontend:
+    name: Frontend — lint, types et build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # npm ci, et non npm install : l'installation suit package-lock.json à la
+      # lettre et échoue si le verrou a divergé du manifeste, au lieu de le
+      # réécrire en silence.
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # « npm run build » enchaîne « tsc -b » puis « vite build » : la
+      # vérification des types fait donc partie de cette étape, et une erreur de
+      # type casse le build avant la production des bundles.
+      - name: Build
+        run: npm run build
+
+      - name: Conserver le build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  backend:
+    name: Backend — compilation et tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      # Java 17 : la version déclarée par le pom et celle de l'image Docker.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # Les tests tournent sur H2 en mémoire
+      # (backend/src/test/resources/application.properties). Aucun service
+      # externe n'est donc nécessaire ici : ni MySQL, ni conteneur.
+      - name: Compiler et tester
+        run: ./mvnw -B -ntp clean verify
+
+      # Publiés même en échec : c'est précisément quand le build casse qu'on a
+      # besoin de lire le détail des tests.
+      - name: Conserver les rapports de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-rapports-tests
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+      - name: Conserver le jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/*.jar
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  secrets:
+    name: Analyse — secrets
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — gitleaks parcourt l'historique. Avec le clone
+      # superficiel par défaut, il n'examinerait que le dernier commit et
+      # laisserait passer un secret introduit puis retiré.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Ce job est bloquant, et c'est voulu : un identifiant publié est
+      # compromis dès la poussée, le retirer ensuite ne le révoque pas.
+      - name: Rechercher des secrets
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1 \
+            detect --source=/repo --redact --no-banner --verbose
+
+  # ---------------------------------------------------------------------------
+  dependances:
+    name: Analyse — dépendances
+    runs-on: ubuntu-latest
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      # Le jar produit par le job précédent, plutôt que le pom : Trivy lit les
+      # bibliothèques réellement embarquées dans un jar Spring Boot, alors que
+      # l'analyse de pom.xml résout l'arbre de dépendances par le réseau et
+      # dépasse régulièrement son délai.
+      - name: Récupérer le jar du backend
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: jar-backend
+
+      - name: Dépendances npm du frontend
+        run: |
+          docker run --rm -v "$PWD:/scan" aquasec/trivy:0.74.0 fs /scan \
+            --scanners vuln --severity HIGH,CRITICAL \
+            --skip-dirs node_modules --skip-dirs dist --skip-dirs backend \
+            --no-progress --timeout 10m
+
+      - name: Bibliothèques Java du backend
+        run: |
+          docker run --rm -v "$PWD/jar-backend:/scan" aquasec/trivy:0.74.0 fs /scan \
+            --scanners vuln --severity HIGH,CRITICAL \
+            --no-progress --timeout 10m
+
+      # Deuxième passe, bloquante celle-ci. Les deux étapes ci-dessus donnent à
+      # lire toutes les failles élevées et critiques ; celle-ci n'arrête le
+      # pipeline que sur une faille CRITIQUE pour laquelle un correctif existe,
+      # c'est-à-dire sur ce qui est à la fois grave et corrigeable aujourd'hui.
+      # Resserrer ce seuil (retirer --ignore-unfixed, descendre à HIGH) est le
+      # bon réflexe une fois l'arriéré traité.
+      - name: Barrière — critiques corrigeables
+        run: |
+          docker run --rm -v "$PWD:/scan" aquasec/trivy:0.74.0 fs /scan \
+            --scanners vuln --severity CRITICAL --ignore-unfixed \
+            --skip-dirs node_modules --skip-dirs dist --skip-dirs backend \
+            --exit-code 1 --no-progress --timeout 10m
+          docker run --rm -v "$PWD/jar-backend:/scan" aquasec/trivy:0.74.0 fs /scan \
+            --scanners vuln --severity CRITICAL --ignore-unfixed \
+            --exit-code 1 --no-progress --timeout 10m
+
+  # ---------------------------------------------------------------------------
+  image:
+    name: Analyse — image du backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Construire l'image vérifie le Dockerfile lui-même : c'est l'artefact que
+      # Render déploie, et une erreur ici casse la mise en ligne sans que le
+      # build Maven ne s'en aperçoive.
+      - name: Construire l'image
+        run: docker build -t volta-backend:ci ./backend
+
+      # L'image ajoute une surface que le jar seul n'a pas : la distribution de
+      # base et le JRE. C'est là que se logent la plupart des failles système.
+      - name: Analyser l'image
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.74.0 image volta-backend:ci \
+            --scanners vuln --severity HIGH,CRITICAL \
+            --no-progress --timeout 10m
+
+      - name: Barrière — critiques corrigeables
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.74.0 image volta-backend:ci \
+            --scanners vuln --severity CRITICAL --ignore-unfixed \
+            --exit-code 1 --no-progress --timeout 10m
+
+  # ---------------------------------------------------------------------------
+  recapitulatif:
+    name: Récapitulatif
+    runs-on: ubuntu-latest
+    needs: [frontend, backend, secrets, dependances, image]
+    # always() : sans lui, ce job serait « skipped » quand un besoin échoue, et
+    # un contrôle ignoré ne bloque pas une fusion.
+    if: always()
+    steps:
+      - name: Vérifier que tout est passé
+        run: |
+          echo "frontend    : ${{ needs.frontend.result }}"
+          echo "backend     : ${{ needs.backend.result }}"
+          echo "secrets     : ${{ needs.secrets.result }}"
+          echo "dependances : ${{ needs.dependances.result }}"
+          echo "image       : ${{ needs.image.result }}"
+          echec=0
+          for resultat in \
+            "${{ needs.frontend.result }}" \
+            "${{ needs.backend.result }}" \
+            "${{ needs.secrets.result }}" \
+            "${{ needs.dependances.result }}" \
+            "${{ needs.image.result }}"
+          do
+            if [ "$resultat" != "success" ]; then echec=1; fi
+          done
+          if [ "$echec" -ne 0 ]; then
+            echo "::error::Au moins un job du pipeline n'est pas passé."
+            exit 1
+          fi
+          echo "Tous les jobs sont passés."

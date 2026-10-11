@@ -183,23 +183,51 @@ class MarketWorkflowHttpTest {
            .andExpect(jsonPath("$.listingTitle").value("Pelle test 20 t"))
            .andExpect(jsonPath("$.notes").doesNotExist());
 
-        // Le vendeur voit la demande sur son annonce, sans les coordonnées de l'acheteur.
+        // Fraîchement reçue, la demande n'est qu'entre l'acheteur et VOLTA : le
+        // vendeur ne la voit pas encore (MarketWorkflow.transmittedToSeller).
         mvc.perform(get("/api/market/requests").header("X-Session-Token", sellerToken))
            .andExpect(status().isOk())
-           .andExpect(jsonPath("$[0].id").value(requestId))
-           .andExpect(jsonPath("$[0].contactPhone").value(""))
-           .andExpect(jsonPath("$[0].contactEmail").value(""));
+           .andExpect(jsonPath("$[*].id", not(hasItem(requestId))));
 
-        // Sauter une étape est refusé ; avancer d'un cran est accepté.
+        // Avancer de plusieurs crans d'un coup est permis (une commande dont
+        // l'engin est en stock et le prix affiché n'a pas à traverser des
+        // étapes qui n'ont pas eu lieu), mais une offre reste une offre : sans
+        // montant, elle est refusée, et la demande ne bouge pas.
         mvc.perform(post("/api/market/requests/" + requestId + "/stage")
                    .header("X-Session-Token", adminToken)
                    .contentType(MediaType.APPLICATION_JSON).content("{\"stage\":\"OFFER\"}"))
-           .andExpect(status().isConflict());
+           .andExpect(status().isBadRequest());
         mvc.perform(post("/api/market/requests/" + requestId + "/stage")
                    .header("X-Session-Token", adminToken)
                    .contentType(MediaType.APPLICATION_JSON).content("{\"stage\":\"QUALIFYING\",\"notes\":\"Appel passé\"}"))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.status").value("QUALIFYING"));
+
+        // VOLTA interroge le vendeur sur la disponibilité : c'est à cette
+        // étape, et pas avant, que la demande lui est transmise. Elle lui
+        // parvient alors sans les coordonnées de l'acheteur, qui restent
+        // l'affaire de VOLTA.
+        mvc.perform(post("/api/market/requests/" + requestId + "/stage")
+                   .header("X-Session-Token", adminToken)
+                   .contentType(MediaType.APPLICATION_JSON).content("{\"stage\":\"AVAILABILITY_CHECK\"}"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.status").value("AVAILABILITY_CHECK"));
+
+        // On cherche la demande par son identifiant plutôt qu'en tête de liste :
+        // les autres tests de cette classe partagent la base en mémoire et y
+        // laissent leurs propres demandes.
+        mvc.perform(get("/api/market/requests").header("X-Session-Token", sellerToken))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$[*].id", hasItem(requestId)))
+           .andExpect(jsonPath("$[?(@.id == '" + requestId + "')].contactPhone", hasItem("")))
+           .andExpect(jsonPath("$[?(@.id == '" + requestId + "')].contactEmail", hasItem("")));
+
+        // Reculer d'un cran corrige une erreur de saisie ; reculer de deux
+        // réécrit l'histoire de la demande, et reste refusé.
+        mvc.perform(post("/api/market/requests/" + requestId + "/stage")
+                   .header("X-Session-Token", adminToken)
+                   .contentType(MediaType.APPLICATION_JSON).content("{\"stage\":\"RECEIVED\"}"))
+           .andExpect(status().isConflict());
 
         assertThat(purchases.findById(requestId).orElseThrow().notes).contains("Appel passé");
     }
