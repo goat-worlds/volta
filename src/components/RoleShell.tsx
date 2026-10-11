@@ -293,11 +293,32 @@ function BandeauContrat() {
   const { currentUser } = useStore()
   const { pathname } = useLocation()
 
-  if (currentUser?.clientType !== 'ENTREPRISE') return null
-  if (currentUser.contractValidatedAt) return null
-  if (pathname.startsWith('/client/contrat')) return null
+  /*
+   * Qui est tenu par le contrat.
+   *
+   * Les entreprises clientes et les fournisseurs : ce sont les deux à qui ses
+   * clauses s'adressent — honorer la disponibilité affichée, traiter sur la
+   * plateforme les marchés qu'on leur apporte, ne pas débaucher un technicien
+   * sans accord écrit. Un particulier n'est tenu à rien de cela.
+   */
+  const estEntreprise = currentUser?.clientType === 'ENTREPRISE'
+  const estFournisseur = currentUser?.role === 'SUPPLIER'
+  if (!estEntreprise && !estFournisseur) return null
 
   const signe = Boolean(currentUser.contractAcceptedAt)
+
+  /*
+   * Une fois signé, il ne se représente jamais.
+   *
+   * Un fournisseur signe à sa première connexion et c'est tout : un document
+   * qu'on redemande à chaque ouverture cesse d'être lu dès la deuxième fois.
+   * L'entreprise cliente garde son bandeau d'attente jusqu'à la validation de
+   * son dossier, parce que c'est elle que le verrou retient — le fournisseur,
+   * lui, travaille dès qu'il a signé.
+   */
+  if (estFournisseur && signe) return null
+  if (estEntreprise && currentUser.contractValidatedAt) return null
+  if (pathname.startsWith('/client/contrat') || pathname.startsWith('/supplier/contrat')) return null
   return (
     <div
       className={`mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${
@@ -306,17 +327,23 @@ function BandeauContrat() {
     >
       <div className="min-w-0 text-sm">
         <div className="font-semibold text-acier-900">
-          {signe ? 'Dossier en cours de vérification' : 'Votre compte entreprise n’est pas actif'}
+          {signe
+            ? 'Dossier en cours de vérification'
+            : estFournisseur
+              ? 'Signez le contrat de collaboration'
+              : 'Votre compte entreprise n’est pas actif'}
         </div>
         <div className="text-papier-700">
           {signe
             ? 'VOLTA contrôle vos pièces. Vos demandes et commandes s’ouvriront dès la validation.'
-            : 'Lisez et signez le contrat de collaboration pour pouvoir déposer des demandes.'}
+            : estFournisseur
+              ? 'Une seule fois, à votre première connexion. Il ne vous sera plus redemandé.'
+              : 'Lisez et signez le contrat de collaboration pour pouvoir déposer des demandes.'}
         </div>
       </div>
       {!signe && (
         <Link
-          to="/client/contrat"
+          to={estFournisseur ? '/supplier/contrat' : '/client/contrat'}
           className="shrink-0 rounded-lg bg-acier-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-acier-800"
         >
           Lire le contrat

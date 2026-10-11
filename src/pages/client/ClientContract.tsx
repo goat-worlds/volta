@@ -27,22 +27,34 @@ import type { User } from '../../store/types'
  * elle-même, et l'écran le dit plutôt que de laisser croire à un retard.
  */
 export default function ClientContract() {
-  const { currentUser, reload } = useStore()
+  const { currentUser, refreshMe } = useStore()
   const navigate = useNavigate()
   const toast = useToast()
   const [lu, setLu] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const signe = Boolean(currentUser?.contractAcceptedAt)
-  const valide = Boolean(currentUser?.contractValidatedAt)
+  /*
+   * Le fournisseur travaille dès qu'il a signé.
+   *
+   * L'entreprise cliente attend en plus que VOLTA vérifie ses pièces — RCCM,
+   * DFE, pièce du gérant — parce que c'est à elle qu'on confie des marchés.
+   * Le fournisseur, lui, a déjà passé l'inspection de ses engins : lui
+   * imposer une seconde vérification des mêmes papiers le ferait attendre
+   * deux fois pour une seule entrée.
+   */
+  const estFournisseur = currentUser?.role === 'SUPPLIER'
+  const valide = estFournisseur ? signe : Boolean(currentUser?.contractValidatedAt)
 
   const signer = async () => {
     setBusy(true)
     try {
       await apiPost<User>('/me/contract')
-      // Le magasin repose l'utilisateur : c'est lui qui porte la date de
-      // signature, et c'est elle qui fait basculer cet écran.
-      await reload()
+      // C'est le compte qui porte la date de signature, et c'est elle qui fait
+      // basculer cet écran. `reload` ne resynchronise que les collections :
+      // l'écran restait sur son état d'avant jusqu'au prochain rechargement
+      // complet de la page.
+      await refreshMe()
       toast.success('Contrat signé', 'VOLTA vérifie vos pièces et active votre compte.')
     } catch (e) {
       toast.fromError(e)
@@ -54,17 +66,23 @@ export default function ClientContract() {
   if (valide) {
     return (
       <div className="space-y-6">
-        <PageTitle title="Contrat de collaboration" subtitle="Votre compte entreprise est actif." />
+        <PageTitle
+          title="Contrat de collaboration"
+          subtitle={estFournisseur ? 'Signé. Il ne vous sera plus redemandé.' : 'Votre compte entreprise est actif.'}
+        />
         <Card className="flex flex-wrap items-center gap-4 border-emerald-200 bg-emerald-50 p-5">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
             <ShieldCheck size={20} />
           </span>
           <div className="min-w-0 text-sm">
-            <div className="font-semibold text-emerald-900">Compte entreprise actif</div>
+            <div className="font-semibold text-emerald-900">
+              {estFournisseur ? 'Contrat signé' : 'Compte entreprise actif'}
+            </div>
             <div className="text-emerald-800">
-              Contrat signé le{' '}
-              {new Date(currentUser!.contractAcceptedAt!).toLocaleDateString('fr-FR')}, validé par
-              VOLTA le {new Date(currentUser!.contractValidatedAt!).toLocaleDateString('fr-FR')}.
+              Signé le {new Date(currentUser!.contractAcceptedAt!).toLocaleDateString('fr-FR')}
+              {currentUser!.contractValidatedAt
+                ? `, validé par VOLTA le ${new Date(currentUser!.contractValidatedAt).toLocaleDateString('fr-FR')}.`
+                : '.'}
             </div>
           </div>
         </Card>
@@ -102,7 +120,9 @@ export default function ClientContract() {
     <div className="space-y-6">
       <PageTitle
         title="Contrat de collaboration"
-        subtitle="À lire et à signer pour activer votre compte entreprise."
+        subtitle={estFournisseur
+          ? 'À lire et à signer. Une seule fois, à votre première connexion.'
+          : 'À lire et à signer pour activer votre compte entreprise.'}
       />
 
       <Clauses />
@@ -118,7 +138,7 @@ export default function ClientContract() {
           <span className="text-sm leading-relaxed text-acier-900">
             J’ai lu et j’accepte les engagements ci-dessus au nom de{' '}
             <strong>{currentUser?.company || 'mon entreprise'}</strong>. Je dispose du pouvoir de
-            l’engager.
+            l’engager. {estFournisseur && 'Cette signature ne vous sera plus redemandée.'}
           </span>
         </label>
 
@@ -134,7 +154,7 @@ export default function ClientContract() {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/client')}
+            onClick={() => navigate(estFournisseur ? '/supplier' : '/client')}
             className="rounded-lg border border-papier-200 px-5 py-2.5 text-sm font-semibold text-acier-900 transition hover:border-papier-300"
           >
             Plus tard

@@ -95,6 +95,7 @@ const TREE: NavSection[] = [
       { to: '/supplier/demandes', label: 'Demandes de devis', icon: Inbox, roles: ['SUPPLIER'] },
       { to: '/supplier/devis', label: 'Mes devis', icon: Receipt, roles: ['SUPPLIER'] },
       { to: '/supplier/vendre', label: 'Vendre — Volta Market', icon: Tag, roles: ['SUPPLIER'] },
+      { to: '/supplier/contrat', label: 'Contrat', icon: FileSignature, roles: ['SUPPLIER'] },
 
       { to: '/admin/requests', label: 'Réservations', icon: CalendarCheck, roles: ['ADMIN'] },
       { to: '/admin/devis', label: 'Devis', icon: Receipt, roles: ['ADMIN'] },

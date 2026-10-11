@@ -164,6 +164,9 @@ export default function App() {
                 <Route path="/supplier/anomalies" element={<AnomaliesPage />} />
                 <Route path="/supplier/notifications" element={<NotificationsPage />} />
                 <Route path="/supplier/vendre" element={<SupplierListings />} />
+                {/* Le contrat se signe une fois ; la page reste
+                    atteignable pour le relire. */}
+                <Route path="/supplier/contrat" element={<ClientContract />} />
                 <Route path="/supplier/*" element={<NotFoundLazy />} />
               </Route>
               <Route element={<AdminLayout />}>

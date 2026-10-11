@@ -120,9 +120,10 @@ public class SecurityConfig {
                 // contrôlée pièce par pièce dans le service.
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // Signer son propre contrat : le service vérifie ensuite que le
-                // signataire est bien une entreprise, et non un particulier.
-                .requestMatchers(HttpMethod.POST, "/api/me/contract").hasRole("CLIENT")
+                // Signer son propre contrat. Les deux rôles que ses clauses
+                // lient ; le service écarte ensuite le particulier, qui porte
+                // lui aussi le rôle CLIENT mais n'est tenu à rien.
+                .requestMatchers(HttpMethod.POST, "/api/me/contract").hasAnyRole("CLIENT", "SUPPLIER")
 
                 // --- Demandes de parcours : qui agit à quel moment ---
                 // Le rôle ouvre la porte, le service vérifie ensuite que le

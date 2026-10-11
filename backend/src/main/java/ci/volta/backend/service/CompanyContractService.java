@@ -82,6 +82,33 @@ public class CompanyContractService {
     }
 
     /**
+     * Qui doit signer le contrat de collaboration.
+     *
+     * Les entreprises clientes, et les fournisseurs. Ce sont les deux seuls à
+     * qui ses clauses s'adressent : honorer la disponibilité affichée, traiter
+     * sur la plateforme les marchés qu'on leur apporte, ne pas débaucher un
+     * technicien formé par l'académie sans accord écrit. Un particulier qui
+     * loue une pelle pour son garage n'est tenu à rien de tout cela.
+     *
+     * Les équipes techniques en sont exclues : elles sont internes, et leur
+     * engagement relève de leur contrat de travail, pas de celui-ci.
+     */
+    public static boolean doitSigner(UserAccount u) {
+        return estEntreprise(u) || (u != null && CurrentUser.ROLE_SUPPLIER.equalsIgnoreCase(u.role));
+    }
+
+    /**
+     * Le contrat reste-t-il à signer pour ce compte ?
+     *
+     * Lu par l'écran au premier écran qui suit la connexion. Une fois signé,
+     * il ne se représente jamais : un document qu'on redemande à chaque
+     * ouverture cesse d'être lu dès la deuxième fois.
+     */
+    public static boolean resteASigner(UserAccount u) {
+        return doitSigner(u) && u.contractAcceptedAt == null;
+    }
+
+    /**
      * Vrai si ce compte peut engager quoi que ce soit.
      *
      * Tout le monde le peut, sauf une entreprise dont le dossier n'a pas
@@ -114,9 +141,9 @@ public class CompanyContractService {
     @Transactional
     public UserAccount accept() {
         UserAccount me = currentUser.require();
-        if (!estEntreprise(me)) {
+        if (!doitSigner(me)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Seul un compte entreprise signe ce contrat");
+                    "Ce contrat lie les entreprises clientes et les fournisseurs.");
         }
         // Resigner ne réécrit pas la date : la première signature est celle qui
         // fait foi, et la réécrire effacerait la preuve de son antériorité.

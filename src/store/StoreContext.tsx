@@ -50,6 +50,15 @@ interface Store {
   lastSyncAt: Date | null
   currentUser: User | null
   reload: () => Promise<void>
+  /**
+   * Relit le compte connecté.
+   *
+   * `reload` resynchronise les collections, pas l'utilisateur : celui-ci est
+   * posé une fois par `/auth/me` au montage. Une action qui change son propre
+   * compte — signer le contrat — laissait donc l'écran afficher l'état
+   * d'avant, jusqu'au prochain rechargement complet de la page.
+   */
+  refreshMe: () => Promise<void>
   /** Relance une tentative après une panne, sans repasser par l'écran de chargement. */
   retryConnection: () => Promise<void>
   login: (email: string, password: string) => Promise<User>
@@ -593,6 +602,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reload,
       retryConnection,
 
+      async refreshMe() {
+        if (!getToken()) return
+        try {
+          retenirUtilisateur(await apiGet<User>('/auth/me'))
+        } catch {
+          // Un échec ici ne doit rien casser : l'écran garde ce qu'il affichait,
+          // et le prochain chargement de page remettra les choses d'aplomb.
+        }
+      },
+
       async login(email, password) {
         const res = await apiPost<{ token: string; user: User }>('/auth/login', { email, password })
         setToken(res.token)
@@ -784,7 +803,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       users, categories, equipment, inspections, reports, rentalRequests, notifications, loading,
       apiUnavailable, sessionExpired, lastSyncAt, currentUser, favorites, toggleFavorite,
       myQuoteRequests, myQuotes, myNotifications, unreadNotifications, markNotificationsRead,
-      reload, retryConnection,
+      reload, retryConnection, retenirUtilisateur,
     ],
   )
 
