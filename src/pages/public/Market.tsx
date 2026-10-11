@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import {
   ArrowRight,
+  ChevronDown,
   BadgeCheck,
   FileSearch,
   HeartHandshake,
@@ -122,6 +123,11 @@ export default function Market() {
   const [condition, setCondition] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [sort, setSort] = useState<Sort>('featured')
+  /* Fermé d'emblée sous `sm` : on ouvre le Market pour voir des annonces. */
+  const [filtresOuverts, setFiltresOuverts] = useState(false)
+  /* Montré sur le bouton replié : sans lui, on ne sait pas pourquoi la liste
+     est courte. Le tri n'en fait pas partie — il ne retire rien. */
+  const actifs = [query, category, condition, maxPrice].filter(Boolean).length
 
   const listings = data ?? []
   const inClientSpace = pathname.startsWith('/client')
@@ -219,13 +225,45 @@ export default function Market() {
         </Reveal>
       </section>
 
-      {/* Filtres, collés sous l'en-tête pour rester sous la main en défilant. */}
+      {/* Filtres, collés sous l'en-tête pour rester sous la main en défilant.
+          
+          Repliés sur téléphone : les quatre champs y passaient à la ligne et
+          formaient un pavé qui repoussait la première annonce sous le pli. On
+          ouvre le Market pour voir ce qu'il y a, pas pour remplir des champs —
+          on filtre ensuite, et seulement quand il y a trop à voir. */}
       <section
         id="annonces"
         className="sticky top-[61px] z-30 scroll-mt-20 border-b border-papier-200 bg-white/95 backdrop-blur"
       >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3">
-          <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-papier-600">
+        <div className="mx-auto max-w-7xl px-4 py-2 sm:py-3">
+          <button
+            type="button"
+            onClick={() => setFiltresOuverts((v) => !v)}
+            aria-expanded={filtresOuverts}
+            aria-controls="market-filtres"
+            className="flex w-full items-center justify-between gap-2 py-1.5 text-left sm:hidden"
+          >
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-papier-600">
+              <SlidersHorizontal size={14} aria-hidden />
+              Filtrer
+              {actifs > 0 && (
+                <span className="rounded-full bg-btp-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                  {actifs}
+                </span>
+              )}
+            </span>
+            <ChevronDown
+              size={16}
+              aria-hidden
+              className={`shrink-0 text-papier-600 transition ${filtresOuverts ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          <div
+            id="market-filtres"
+            className={`flex-wrap items-center gap-2 sm:flex ${filtresOuverts ? 'flex pt-2 sm:pt-0' : 'hidden'}`}
+          >
+          <span className="mr-1 hidden items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-papier-600 sm:inline-flex">
             <SlidersHorizontal size={14} />
             Filtrer
           </span>
@@ -261,6 +299,7 @@ export default function Market() {
             <option value="price-asc">Prix croissant</option>
             <option value="price-desc">Prix décroissant</option>
           </select>
+          </div>
         </div>
       </section>
 

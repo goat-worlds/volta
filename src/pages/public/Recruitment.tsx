@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { CANDIDATE_STATUS_LABELS, type CandidateStatus } from '../../types/domain'
+import TradesCarousel from '../../components/recrutement/TradesCarousel'
 import {
   Card,
   CardGrid,
@@ -151,17 +152,15 @@ export default function Recruitment() {
           title="Six métiers, un même terrain."
           text="Les besoins viennent des clients de VOLTA : parcs d’engins à entretenir, pannes à diagnostiquer, machines à inspecter avant publication."
         />
-        <CardGrid columns={4}>
-          {TRADES.map((t, i) => (
-            <Reveal key={t.title} delay={(i % 4) * 0.06}>
-              <Card>
-                <CardIcon icon={t.icon} />
-                <h3 className="volta-display mt-4 text-xl leading-tight text-acier-900">{t.title}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-papier-600">{t.text}</p>
-              </Card>
-            </Reveal>
-          ))}
-        </CardGrid>
+        {/* Une ligne qui avance, et non six cartes en grille.
+            
+            Six cartes alignées se lisent comme un formulaire : on les parcourt
+            du regard et l'on n'en retient aucune. Une ligne qui avance attire
+            l'œil sur celle qui entre — et le recrutement n'a pas besoin qu'on
+            compare six métiers, il a besoin qu'on en reconnaisse un. */}
+        <div className="mt-10">
+          <TradesCarousel metiers={TRADES} />
+        </div>
       </Section>
 
       <Section tone="muted">

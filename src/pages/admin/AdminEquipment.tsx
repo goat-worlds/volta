@@ -6,6 +6,49 @@ import InspectionReview from '../../components/Admin/InspectionReview'
 import EquipmentDecision from '../../components/Admin/EquipmentDecision'
 import type { Equipment } from '../../store/types'
 
+/**
+ * Les engins, rangés par qui doit agir.
+ *
+ * <h2>Pourquoi segmenter</h2>
+ *
+ * La page listait tout le parc dans un seul tableau, du brouillon d'un
+ * fournisseur à l'engin publié depuis un an. Pour trouver ce qui attendait une
+ * décision, il fallait lire la colonne « Statut » ligne par ligne, ou choisir
+ * le bon filtre dans un menu de dix entrées — c'est-à-dire savoir d'avance ce
+ * qu'on cherche.
+ *
+ * Les quatre segments répondent à la seule question que l'écran doit trancher
+ * d'un regard : chez qui est la balle. Ce qui attend VOLTA vient en premier,
+ * avec son décompte ; ce qui est déjà en ligne ferme la liste.
+ *
+ * Le filtre reste, pour qui cherche un statut précis. Il écrase alors les
+ * segments : chercher « dépublié » et obtenir quatre sections dont trois vides
+ * serait une réponse plus confuse que la question.
+ */
+const SEGMENTS: { titre: string; aide: string; statuts: string[]; urgent?: boolean }[] = [
+  {
+    titre: 'À décider',
+    aide: 'Le rapport est là. VOLTA attribue la catégorie, publie ou renvoie au fournisseur.',
+    statuts: ['REPORT_SUBMITTED', 'PENDING_ADMIN_REVIEW'],
+    urgent: true,
+  },
+  {
+    titre: 'En cours de vérification',
+    aide: 'Soumis par le fournisseur, assigné ou en cours d’inspection sur le terrain.',
+    statuts: ['SUBMITTED', 'PENDING_INSPECTION', 'INSPECTION_IN_PROGRESS'],
+  },
+  {
+    titre: 'Au catalogue',
+    aide: 'Référencés et publiés : visibles des clients.',
+    statuts: ['REFERENCED', 'PUBLISHED'],
+  },
+  {
+    titre: 'Chez le fournisseur',
+    aide: 'Brouillons, corrections demandées, refus et dépublications — la balle n’est pas chez nous.',
+    statuts: ['DRAFT', 'CORRECTIONS_REQUESTED', 'REJECTED', 'UNPUBLISHED'],
+  },
+]
+
 export default function AdminEquipment() {
   const {
     equipment,
@@ -38,6 +81,69 @@ export default function AdminEquipment() {
 
   const filtered = filter ? equipment.filter((e) => e.status === filter) : equipment
 
+  /**
+   * Un segment de la liste.
+   *
+   * Déclaré ici et non à part : il lit le catalogue, l'annuaire et les
+   * catégories du magasin, et les lui passer en paramètres ferait six
+   * arguments pour un tableau qui ne sert qu'à cet écran.
+   */
+  const Tableau = ({ rows }: { rows: Equipment[] }) => (
+    <Card className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <tr>
+            <th className="px-4 py-3">Engin</th>
+            <th className="px-4 py-3">Fournisseur</th>
+            <th className="px-4 py-3">Prix / heure</th>
+            <th className="px-4 py-3">Statut</th>
+            <th className="px-4 py-3">Niveau</th>
+            <th className="px-4 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {rows.map((e) => (
+            <tr key={e.id} className="hover:bg-slate-50">
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    loading="lazy"
+                    src={e.photos[0] || '/images/placeholders/equipment.svg'}
+                    alt=""
+                    className="h-10 w-14 rounded object-cover"
+                  />
+                  <div>
+                    <div className="font-medium">{e.name}</div>
+                    <div className="text-xs text-slate-400">
+                      {categories.find((c) => c.id === e.categoryId)?.name}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-3">{users.find((u) => u.id === e.supplierId)?.company}</td>
+              <td className="px-4 py-3">{fmtPrice(e.pricePerDay)}</td>
+              <td className="px-4 py-3">
+                <StatusBadge status={e.status} />
+              </td>
+              <td className="px-4 py-3">
+                <LevelBadge level={e.level} />
+                {!e.level && <span className="text-xs text-slate-400">—</span>}
+              </td>
+              <td className="px-4 py-3">
+                <button
+                  onClick={() => setSelectedId(e.id)}
+                  className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                >
+                  Ouvrir
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Card>
+  )
+
   return (
     <div>
       <PageTitle
@@ -59,47 +165,38 @@ export default function AdminEquipment() {
           </select>
         }
       />
-      {filtered.length === 0 ? (
-        <EmptyState title="Aucun engin pour ce filtre" />
+      {filter ? (
+        filtered.length === 0 ? (
+          <EmptyState title="Aucun engin pour ce filtre" />
+        ) : (
+          <Tableau rows={filtered} />
+        )
       ) : (
-        <Card className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Engin</th>
-                <th className="px-4 py-3">Fournisseur</th>
-                <th className="px-4 py-3">Prix / heure</th>
-                <th className="px-4 py-3">Statut</th>
-                <th className="px-4 py-3">Niveau</th>
-                <th className="px-4 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <img loading="lazy" src={e.photos[0] || '/images/placeholders/equipment.svg'} alt="" className="h-10 w-14 rounded object-cover" />
-                      <div>
-                        <div className="font-medium">{e.name}</div>
-                        <div className="text-xs text-slate-400">{categories.find((c) => c.id === e.categoryId)?.name}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{users.find((u) => u.id === e.supplierId)?.company}</td>
-                  <td className="px-4 py-3">{fmtPrice(e.pricePerDay)}</td>
-                  <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
-                  <td className="px-4 py-3"><LevelBadge level={e.level} />{!e.level && <span className="text-xs text-slate-400">—</span>}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => setSelectedId(e.id)} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
-                      Ouvrir
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+        <div className="space-y-8">
+          {SEGMENTS.map((seg) => {
+            const rows = equipment.filter((e) => seg.statuts.includes(e.status))
+            if (rows.length === 0) return null
+            return (
+              <section key={seg.titre}>
+                <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+                    {seg.titre}
+                  </h2>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                      seg.urgent ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {rows.length}
+                  </span>
+                  <span className="text-xs text-slate-500">{seg.aide}</span>
+                </div>
+                <Tableau rows={rows} />
+              </section>
+            )
+          })}
+          {equipment.length === 0 && <EmptyState title="Aucun engin référencé" />}
+        </div>
       )}
 
       <Modal open={!!selected} onClose={() => setSelectedId(null)} title={selected?.name ?? ''} size="large">
