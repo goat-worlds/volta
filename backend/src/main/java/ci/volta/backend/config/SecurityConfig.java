@@ -134,6 +134,13 @@ public class SecurityConfig {
                                  "/api/requests/*/complete").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/requests/*/response").hasAnyRole("CLIENT", "ADMIN")
 
+                // Les preuves d'un dossier. Le rôle ouvre la porte ; le service
+                // vérifie ensuite que le dossier est bien celui de l'appelant —
+                // une règle d'accès ne sait pas à qui appartient un dossier.
+                .requestMatchers(HttpMethod.POST, "/api/requests/*/proofs").hasAnyRole("SUPPLIER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/requests/*/proofs",
+                                 "/api/requests/proofs/*/file").authenticated()
+
                 // --- Catalogue : consultation ouverte, écriture réservée ---
                 .requestMatchers(HttpMethod.POST, "/api/equipment/photos").hasAnyRole("SUPPLIER", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/equipment").hasAnyRole("SUPPLIER", "ADMIN")

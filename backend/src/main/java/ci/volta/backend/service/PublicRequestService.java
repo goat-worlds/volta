@@ -2,14 +2,17 @@ package ci.volta.backend.service;
 
 import ci.volta.backend.domain.RequestWorkflow;
 import ci.volta.backend.model.Notification;
+import ci.volta.backend.domain.ProofRules;
 import ci.volta.backend.domain.RentalWorkflow;
 import ci.volta.backend.model.PublicRequest;
 import ci.volta.backend.model.RentalRequest;
+import ci.volta.backend.model.RequestProof;
 import ci.volta.backend.model.RequestAttachment;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.NotificationRepository;
 import ci.volta.backend.repository.PublicRequestRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
+import ci.volta.backend.repository.RequestProofRepository;
 import ci.volta.backend.repository.RequestAttachmentRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.security.CurrentUser;
@@ -28,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Demandes des parcours publics (CDC §5) : location, achat libre, technicien,
@@ -245,13 +249,14 @@ public class PublicRequestService {
     private final CurrentUser currentUser;
     private final CompanyContractService contracts;
     private final RentalRequestRepository rentals;
+    private final RequestProofRepository proofs;
     private final SecureRandom random = new SecureRandom();
 
     public PublicRequestService(PublicRequestRepository requests, RequestAttachmentRepository attachments,
                                 NotificationRepository notifications, UserRepository users,
                                 ReferenceService references, AuditService audit, AuthService authService,
                                 CurrentUser currentUser, CompanyContractService contracts,
-                                RentalRequestRepository rentals) {
+                                RentalRequestRepository rentals, RequestProofRepository proofs) {
         this.requests = requests;
         this.attachments = attachments;
         this.notifications = notifications;
@@ -262,6 +267,7 @@ public class PublicRequestService {
         this.currentUser = currentUser;
         this.contracts = contracts;
         this.rentals = rentals;
+        this.proofs = proofs;
     }
 
     private static String today() {
@@ -697,6 +703,164 @@ public class PublicRequestService {
         return v == null ? "" : v.trim();
     }
 
+    /**
+     * Les preuves versées à un dossier.
+     *
+     * <h2>Qui les voit</h2>
+     *
+     * L'administration, qui arbitre ; le fournisseur à qui la demande a été
+     * transmise, qui les a versées ; et le client, qui a le droit de savoir ce
+     * qu'on retient contre ou pour lui. Personne d'autre : une preuve est un
+     * document d'affaires, pas une pièce publique.
+     *
+     * Le contenu ne part jamais avec la liste — il se télécharge à part, et le
+     * même contrôle s'y applique.
+     */
+    public record ProofView(String id, String kind, String label, String originalName,
+                            String contentType, long size, String uploadedAt, String note) {
+        static ProofView of(RequestProof p) {
+            return new ProofView(p.id, p.kind, ProofRules.label(p.kind), p.originalName,
+                    p.contentType, p.size, p.uploadedAt, p.note);
+        }
+    }
+
+    /**
+     * L'état des preuves d'un dossier : ce qui est là, ce qui manque.
+     *
+     * Rendu à l'écran avant la clôture, pour que l'exécutant sache ce qu'on
+     * attend de lui plutôt que de le découvrir en butant sur un refus.
+     */
+    public record ProofStatus(List<ProofView> proofs, List<String> missing,
+                              List<String> missingLabels, boolean closable) {
+    }
+
+    public record ProofInput(String kind, String name, String type, String contentBase64,
+                             String note) {
+    }
+
+    /** Taille maximale d'une preuve. Un PV scanné tient largement dedans. */
+    private static final int MAX_PROOF_BYTES = 10 * 1024 * 1024;
+
+    @Transactional(readOnly = true)
+    public ProofStatus proofsOf(String requestId) {
+        PublicRequest r = load(requestId);
+        requireProofAccess(r);
+        return etatDesPreuves(r);
+    }
+
+    /**
+     * Verse une preuve au dossier.
+     *
+     * Déposable par l'administration et par le fournisseur à qui la demande a
+     * été transmise : ce sont les deux mains qui exécutent. Le client ne verse
+     * rien — il reçoit la prestation, il ne l'atteste pas lui-même, sans quoi
+     * la preuve ne prouverait que sa bonne volonté.
+     *
+     * Le dépôt ne crée aucune réservation et n'en touche aucune : compléter un
+     * dossier incomplet se fait sans rouvrir quoi que ce soit.
+     */
+    @Transactional
+    public ProofStatus addProof(String requestId, ProofInput in) {
+        PublicRequest r = load(requestId);
+        UserAccount me = currentUser.require();
+        boolean destinataire = currentUser.isSupplier()
+                && r.supplierId != null && r.supplierId.equals(me.id);
+        if (!currentUser.isAdmin() && !destinataire) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Seuls VOLTA et le prestataire désigné versent les pièces d'un dossier.");
+        }
+        if (in == null || !ProofRules.isKnown(in.kind())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Type de pièce inconnu.");
+        }
+        if (blank(in.contentBase64()) || blank(in.name())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Joignez un fichier pour verser cette pièce.");
+        }
+        byte[] decoded;
+        try {
+            decoded = java.util.Base64.getDecoder().decode(in.contentBase64());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le fichier déposé est illisible.");
+        }
+        if (decoded.length == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le fichier déposé est vide.");
+        }
+        if (decoded.length > MAX_PROOF_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le fichier dépasse 10 Mo.");
+        }
+
+        RequestProof p = new RequestProof();
+        p.id = shortId("prv");
+        p.requestId = r.id;
+        p.kind = in.kind().trim().toUpperCase();
+        p.originalName = in.name().trim();
+        p.contentType = blank(in.type()) ? "application/octet-stream" : in.type().trim();
+        p.size = decoded.length;
+        p.uploadedBy = me.id;
+        p.uploadedAt = Instant.now().toString();
+        p.note = in.note() == null ? "" : in.note().trim();
+        p.contentBase64 = in.contentBase64();
+        proofs.save(p);
+
+        trace(r, "Pièce versée : " + ProofRules.label(p.kind) + " — " + p.originalName);
+        requests.save(r);
+        audit.record("PROOF_ADDED", "REQUEST", r.id, r.reference, ProofRules.label(p.kind));
+        return etatDesPreuves(r);
+    }
+
+    /** Le fichier lui-même, pour qui a le droit de le lire. */
+    @Transactional(readOnly = true)
+    public DownloadedFile downloadProof(String proofId) {
+        RequestProof p = proofs.findById(proofId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pièce introuvable"));
+        requireProofAccess(load(p.requestId));
+        try {
+            return new DownloadedFile(java.util.Base64.getDecoder().decode(p.contentBase64),
+                    p.contentType, p.originalName);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "La pièce enregistrée est illisible.");
+        }
+    }
+
+    /**
+     * L'administration, le prestataire désigné, le client du dossier.
+     *
+     * Écrit en liste d'exceptions : tout autre compte est refusé. Dans l'autre
+     * sens, un rôle ajouté demain lirait les pièces de tout le monde sans que
+     * personne n'ait rien décidé.
+     */
+    private void requireProofAccess(PublicRequest r) {
+        UserAccount me = currentUser.require();
+        if (currentUser.isAdmin()) {
+            return;
+        }
+        if (currentUser.isSupplier() && r.supplierId != null && r.supplierId.equals(me.id)) {
+            return;
+        }
+        if (appartientA(r, me)) {
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Les pièces de ce dossier ne vous sont pas accessibles.");
+    }
+
+    private ProofStatus etatDesPreuves(PublicRequest r) {
+        List<RequestProof> versees = proofs.findByRequestIdOrderByUploadedAtAsc(r.id);
+        Set<String> presentes = versees.stream().map(p -> p.kind).collect(Collectors.toSet());
+        List<String> manquantes = ProofRules.requiredFor(r.kind).stream()
+                .filter(k -> !presentes.contains(k))
+                .toList();
+        return new ProofStatus(
+                versees.stream().map(ProofView::of).toList(),
+                manquantes,
+                manquantes.stream().map(ProofRules::label).toList(),
+                manquantes.isEmpty());
+    }
+
     /** La prestation commence, puis s'achève. Même main que la proposition. */
     public AdminView setMission(String id, boolean termine) {
         UserAccount me = currentUser.require();
@@ -708,6 +872,25 @@ public class PublicRequestService {
         }
         String target = termine ? RequestWorkflow.DONE : RequestWorkflow.MISSION;
         RequestWorkflow.checkTransition(r.status, target);
+
+        /*
+         * On ne clôt pas sur du vide.
+         *
+         * Clore posait `DONE` et rien d'autre : un dossier terminé et un
+         * dossier qu'on a cessé de suivre se ressemblaient parfaitement, et le
+         * jour où un client conteste, il ne restait rien à lui opposer.
+         *
+         * Le refus nomme ce qui manque. Un refus qui dirait seulement « pièces
+         * incomplètes » obligerait l'exécutant à deviner laquelle, et il
+         * déposerait n'importe quoi pour voir.
+         */
+        if (termine) {
+            ProofStatus etat = etatDesPreuves(r);
+            if (!etat.closable()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Pièces manquantes pour clore : " + String.join(", ", etat.missingLabels()));
+            }
+        }
 
         r.status = target;
         trace(r, termine ? "Prestation terminée" : "Prestation démarrée");

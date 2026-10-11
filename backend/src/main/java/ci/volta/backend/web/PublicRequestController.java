@@ -133,6 +133,37 @@ public class PublicRequestController {
         return service.listForSupplier();
     }
 
+    // --- Preuves de réalisation ---
+
+    /**
+     * L'état des pièces d'un dossier : ce qui est versé, ce qui manque.
+     *
+     * Lu par l'administration, le prestataire désigné et le client du dossier.
+     * Le service tranche ensuite ; la règle d'accès ne peut pas le faire, elle
+     * ne sait pas à qui appartient le dossier.
+     */
+    @GetMapping("/requests/{id}/proofs")
+    public PublicRequestService.ProofStatus proofs(@PathVariable String id) {
+        return service.proofsOf(id);
+    }
+
+    @PostMapping("/requests/{id}/proofs")
+    public PublicRequestService.ProofStatus addProof(@PathVariable String id,
+                                                     @RequestBody PublicRequestService.ProofInput body) {
+        return service.addProof(id, body);
+    }
+
+    /** Le fichier, servi en pièce jointe pour être ouvert, pas deviné. */
+    @GetMapping("/requests/proofs/{proofId}/file")
+    public ResponseEntity<ByteArrayResource> proofFile(@PathVariable String proofId) {
+        PublicRequestService.DownloadedFile f = service.downloadProof(proofId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(f.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + f.originalName().replace("\"", "") + "\"")
+                .body(new ByteArrayResource(f.bytes()));
+    }
+
     // --- Console d'administration ---
 
     @GetMapping("/admin/requests")
