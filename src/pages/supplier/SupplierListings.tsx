@@ -13,6 +13,7 @@ import {
   withdrawListing,
 } from '../../services/market'
 import type { ListingInput, PurchaseRequest, SaleListing } from '../../store/types'
+import VerrouDossier from '../../components/supplier/VerrouDossier'
 
 /**
  * Espace fournisseur — Vendre sur Volta Market.
@@ -115,6 +116,8 @@ export default function SupplierListings() {
 
   return (
     <div>
+      <VerrouDossier sujet='market' />
+
       <PageTitle
         title="Vendre sur Volta Market"
         subtitle="Vos annonces sont examinées par l’équipe VOLTA avant publication. Les acheteurs passent par VOLTA."

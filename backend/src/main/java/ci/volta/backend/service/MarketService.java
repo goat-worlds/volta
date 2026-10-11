@@ -194,6 +194,10 @@ public class MarketService {
         if (!currentUser.isSupplier() && !currentUser.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seul un fournisseur vend sur Volta Market");
         }
+        // Vendre, c'est transférer la propriété d'une machine contre une somme
+        // qui se compte en millions. Savoir à qui l'on a affaire cesse d'être
+        // une formalité : ici les pièces vérifiées ne se contournent pas.
+        contracts.requireVerifiedFor("vendre sur Volta Market");
         SaleListing l = new SaleListing();
         l.id = shortId("sale");
         l.reference = references.next(ReferenceService.LISTING);

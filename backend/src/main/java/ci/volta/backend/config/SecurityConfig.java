@@ -125,6 +125,11 @@ public class SecurityConfig {
                 // lui aussi le rôle CLIENT mais n'est tenu à rien.
                 .requestMatchers(HttpMethod.POST, "/api/me/contract").hasAnyRole("CLIENT", "SUPPLIER")
 
+                // Le dossier d'entreprise : son propriétaire le dépose et le
+                // relit. Rien d'autre ne passe par là — l'administration lit
+                // les pièces par /api/admin, avec la trace que cela laisse.
+                .requestMatchers("/api/me/documents").hasAnyRole("CLIENT", "SUPPLIER")
+
                 // --- Demandes de parcours : qui agit à quel moment ---
                 // Le rôle ouvre la porte, le service vérifie ensuite que le
                 // dossier est bien celui de l'appelant : un fournisseur a le

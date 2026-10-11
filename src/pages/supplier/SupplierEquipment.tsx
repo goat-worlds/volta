@@ -15,6 +15,7 @@ import { useToast } from '../../components/feedback/Toaster'
 import WorkflowTimeline, { SupplierNextAction } from '../../components/WorkflowTimeline'
 import { equipmentRef } from '../../lib/references'
 import type { EquipmentStatus } from '../../store/types'
+import VerrouDossier from '../../components/supplier/VerrouDossier'
 
 const PROGRESS: Record<EquipmentStatus, number> = {
   DRAFT: 10,
@@ -57,6 +58,8 @@ export default function SupplierEquipment() {
 
   return (
     <div>
+      <VerrouDossier sujet='parc' />
+
       <PageTitle
         title="Mes engins"
         subtitle="Suivez chaque dossier étape par étape, de la soumission à la publication."

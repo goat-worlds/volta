@@ -2,11 +2,14 @@ package ci.volta.backend.service;
 
 import ci.volta.backend.model.CompanyDocument;
 import ci.volta.backend.model.UserAccount;
+import ci.volta.backend.domain.EquipmentWorkflow;
 import ci.volta.backend.repository.CompanyDocumentRepository;
+import ci.volta.backend.repository.EquipmentRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.security.CurrentUser;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Set;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -63,13 +66,16 @@ public class CompanyContractService {
 
     private final UserRepository users;
     private final CompanyDocumentRepository documents;
+    private final EquipmentRepository equipments;
     private final CurrentUser currentUser;
     private final AuditService audit;
 
     public CompanyContractService(UserRepository users, CompanyDocumentRepository documents,
+                                  EquipmentRepository equipments,
                                   CurrentUser currentUser, AuditService audit) {
         this.users = users;
         this.documents = documents;
+        this.equipments = equipments;
         this.currentUser = currentUser;
         this.audit = audit;
     }
@@ -151,6 +157,234 @@ public class CompanyContractService {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, me.suspendedAt != null
                 ? "Votre compte est suspendu. Contactez VOLTA."
                 : "Signez le contrat de collaboration pour activer votre compte.");
+    }
+
+    /**
+     * Les pièces que le compte dépose lui-même, depuis son espace.
+     *
+     * <h2>Pourquoi pas à l'inscription</h2>
+     *
+     * Une entreprise cliente les donne en s'inscrivant : elle vient chercher
+     * des marchés, elle sait qu'on lui demandera qui elle est. Un fournisseur
+     * vient d'abord voir ; lui réclamer son registre du commerce avant qu'il
+     * ait publié un seul engin le fait partir. Il s'inscrit, il signe, il
+     * travaille — et il complète quand il veut davantage.
+     *
+     * <h2>Ce que cela ouvre</h2>
+     *
+     * Un compte sans pièces publie jusqu'à {@link #ENGINS_SANS_PIECES} engins
+     * et ne vend pas sur Volta Market. C'est assez pour éprouver la plateforme,
+     * trop peu pour en vivre. Les pièces vérifiées lèvent la limite et ouvrent
+     * la vente — là où les sommes changent d'ordre de grandeur, savoir à qui
+     * l'on a affaire cesse d'être une formalité.
+     *
+     * <h2>Déposer n'est pas être vérifié</h2>
+     *
+     * Le dépôt remet le dossier à l'administration ; c'est elle qui valide.
+     * Ouvrir les droits au dépôt reviendrait à les accorder sur déclaration,
+     * et une pièce qu'aucun œil ne regarde ne prouve rien.
+     */
+    public record DocumentsInput(String rccm, String dfe, String managerEmail,
+                                 AuthService.DocumentInput managerIdDocument) {
+    }
+
+    /** Ce qu'un compte non vérifié peut publier. Assez pour essayer, pas pour vivre. */
+    public static final int ENGINS_SANS_PIECES = 3;
+
+    @Transactional
+    public UserAccount submitDocuments(DocumentsInput in) {
+        UserAccount me = currentUser.require();
+        if (!doitSigner(me)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Seuls les fournisseurs et les entreprises clientes déposent ces pièces.");
+        }
+        if (in == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Aucune pièce transmise.");
+        }
+
+        String rccm = in.rccm() == null ? "" : in.rccm().trim();
+        String dfe = in.dfe() == null ? "" : in.dfe().trim();
+        if (rccm.isEmpty() || dfe.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le RCCM et la DFE sont tous deux nécessaires.");
+        }
+
+        /*
+         * Tout changement rouvre la vérification.
+         *
+         * La validation portait sur un numéro précis et une pièce précise.
+         * Laisser remplacer l'un ou l'autre en gardant le bénéfice de la
+         * validation reviendrait à valider le suivant sans l'avoir vu : il
+         * suffirait de se faire valider une fois sur un dossier propre, puis
+         * d'y substituer n'importe quoi.
+         *
+         * L'email du responsable ne compte pas : c'est une adresse de
+         * correspondance, pas une pièce.
+         */
+        boolean nouvellePiece = in.managerIdDocument() != null
+                && in.managerIdDocument().contentBase64() != null
+                && !in.managerIdDocument().contentBase64().isBlank();
+        boolean change = !rccm.equals(me.rccm == null ? "" : me.rccm)
+                || !dfe.equals(me.dfe == null ? "" : me.dfe)
+                || nouvellePiece;
+
+        me.rccm = rccm;
+        me.dfe = dfe;
+        if (in.managerEmail() != null && !in.managerEmail().isBlank()) {
+            me.managerEmail = in.managerEmail().trim();
+        }
+        if (nouvellePiece) {
+            remplacerPiece(me.id, in.managerIdDocument());
+        }
+        if (change) {
+            me.contractValidatedAt = null;
+            me.contractValidatedBy = null;
+        }
+
+        me = users.save(me);
+        audit.record("DOCUMENTS_SUBMITTED", "USER", me.id, me.company, rccm);
+        return me;
+    }
+
+    /**
+     * Remplace la pièce du gérant.
+     *
+     * Une seule par compte : en empiler plusieurs obligerait l'administration à
+     * deviner laquelle fait foi, et c'est toujours la dernière.
+     */
+    private void remplacerPiece(String userId, AuthService.DocumentInput doc) {
+        byte[] decoded;
+        try {
+            decoded = Base64.getDecoder().decode(doc.contentBase64());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La pièce déposée est illisible.");
+        }
+        if (decoded.length == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La pièce déposée est vide.");
+        }
+        if (decoded.length > 5 * 1024 * 1024) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La pièce dépasse 5 Mo.");
+        }
+
+        documents.findByUserIdAndKind(userId, CompanyDocument.KIND_MANAGER_ID)
+                .ifPresent(documents::delete);
+
+        CompanyDocument d = new CompanyDocument();
+        d.id = "doc-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        d.userId = userId;
+        d.kind = CompanyDocument.KIND_MANAGER_ID;
+        d.originalName = doc.name() == null || doc.name().isBlank() ? "piece-gerant" : doc.name().trim();
+        d.contentType = doc.type() == null || doc.type().isBlank()
+                ? "application/octet-stream" : doc.type().trim();
+        d.size = decoded.length;
+        d.uploadedAt = Instant.now().toString();
+        d.contentBase64 = doc.contentBase64();
+        documents.save(d);
+    }
+
+    /**
+     * Ce compte est-il vérifié ?
+     *
+     * Les pièces déposées et regardées par l'administration. C'est ce qui lève
+     * la limite d'engins publiés et ouvre la vente sur Volta Market.
+     */
+    public static boolean estVerifie(UserAccount u) {
+        return u != null && u.contractValidatedAt != null
+                && u.rccm != null && !u.rccm.isBlank()
+                && u.dfe != null && !u.dfe.isBlank();
+    }
+
+    /**
+     * Les statuts qui occupent une place dans le parc.
+     *
+     * Ni le brouillon, ni le refusé, ni le retiré : ce qui compte est ce que
+     * la plateforme porte — une fiche soumise mobilise déjà une inspection, et
+     * une fiche publiée mobilise la caution de VOLTA devant le client.
+     *
+     * Compter les seuls publiés laisserait déposer trente fiches d'un coup et
+     * déplacerait le refus sur l'administration, qui n'a pas à expliquer au
+     * fournisseur un plafond qu'elle n'a pas fixé.
+     */
+    private static final Set<String> AU_PARC = Set.of(
+            EquipmentWorkflow.SUBMITTED, EquipmentWorkflow.PENDING_INSPECTION,
+            EquipmentWorkflow.INSPECTION_IN_PROGRESS, EquipmentWorkflow.REPORT_SUBMITTED,
+            EquipmentWorkflow.PENDING_ADMIN_REVIEW, EquipmentWorkflow.REFERENCED,
+            EquipmentWorkflow.PUBLISHED);
+
+    /** Combien d'engins de ce fournisseur occupent une place. */
+    @Transactional(readOnly = true)
+    public int enginsAuParc(String supplierId) {
+        if (supplierId == null) {
+            return 0;
+        }
+        return (int) equipments.findBySupplierId(supplierId).stream()
+                .filter(e -> e.status != null && AU_PARC.contains(e.status))
+                .count();
+    }
+
+    /**
+     * Barre la route quand le dossier ne porte pas assez loin.
+     *
+     * Posée devant le quatrième engin et devant la vente sur le Market. Le
+     * message dit ce qui manque et ce que cela ouvrirait : un refus qui se
+     * contente de refuser n'apprend rien à celui qui le reçoit.
+     *
+     * L'administration n'est jamais arrêtée : elle agit pour le compte d'un
+     * fournisseur dont elle a le dossier sous les yeux.
+     */
+    public void requireParcCapacity() {
+        UserAccount me = currentUser.require();
+        if (currentUser.isAdmin() || estVerifie(me)) {
+            return;
+        }
+        if (enginsAuParc(me.id) >= ENGINS_SANS_PIECES) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Vous avez " + ENGINS_SANS_PIECES + " engins au parc, la limite des comptes "
+                            + "sans pièces vérifiées. " + suite(me));
+        }
+    }
+
+    /** Même verrou, pour ce qui ne se compte pas : la vente. */
+    public void requireVerifiedFor(String action) {
+        UserAccount me = currentUser.require();
+        if (currentUser.isAdmin() || estVerifie(me)) {
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Il faut un dossier vérifié pour " + action + ". " + suite(me));
+    }
+
+    /**
+     * Ce qu'il reste à faire, et par qui.
+     *
+     * Dire « déposez vos pièces » à quelqu'un qui vient de les déposer le
+     * renvoie sur un écran où tout est déjà rempli : il conclut à une panne et
+     * recommence. Le refus doit nommer celui qui tient la suite.
+     */
+    private String suite(UserAccount u) {
+        boolean depose = u.rccm != null && !u.rccm.isBlank()
+                && u.dfe != null && !u.dfe.isBlank();
+        return depose
+                ? "Votre dossier est déposé, VOLTA le vérifie. Vous serez prévenu dès la validation."
+                : "Déposez votre RCCM et votre DFE dans votre espace pour lever cette limite.";
+    }
+
+    /** L'état du dossier, tel que l'espace du fournisseur l'affiche. */
+    public record DossierView(String rccm, String dfe, String managerEmail,
+                              boolean pieceDeposee, boolean verifie,
+                              int enginsAuParc, int plafondSansPieces) {
+    }
+
+    @Transactional(readOnly = true)
+    public DossierView monDossier() {
+        UserAccount me = currentUser.require();
+        boolean piece = documents
+                .findByUserIdAndKind(me.id, CompanyDocument.KIND_MANAGER_ID).isPresent();
+        return new DossierView(
+                me.rccm == null ? "" : me.rccm,
+                me.dfe == null ? "" : me.dfe,
+                me.managerEmail == null ? "" : me.managerEmail,
+                piece, estVerifie(me), enginsAuParc(me.id), ENGINS_SANS_PIECES);
     }
 
     /** L'entreprise lit le contrat et le signe. */

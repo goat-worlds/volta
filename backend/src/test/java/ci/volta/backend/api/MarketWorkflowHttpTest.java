@@ -83,6 +83,17 @@ class MarketWorkflowHttpTest {
             return users.save(u);
         });
         user.role = role;
+        /*
+         * Les vendeurs du scénario ont un dossier vérifié.
+         *
+         * Vendre sur le Market l'exige ; sans cela ces tests mesureraient le
+         * verrou au lieu du parcours. Le verrou lui-même a son test.
+         */
+        if ("SUPPLIER".equals(role)) {
+            user.rccm = "CI-ABJ-TEST-" + slug;
+            user.dfe = "DFE-" + slug;
+            user.contractValidatedAt = java.time.Instant.now().toString();
+        }
         return users.save(user);
     }
 
@@ -100,6 +111,21 @@ class MarketWorkflowHttpTest {
         Matcher m = Pattern.compile(regex).matcher(json);
         assertThat(m.find()).as("champ attendu dans " + json).isTrue();
         return m.group(1);
+    }
+
+    @Test
+    @DisplayName("Sans dossier vérifié, le fournisseur ne peut pas déposer d'annonce")
+    void venteFermeeSansDossierVerifie() throws Exception {
+        UserAccount sansPieces = users.findById("u-mkt-other").orElseThrow();
+        sansPieces.rccm = null;
+        sansPieces.dfe = null;
+        sansPieces.contractValidatedAt = null;
+        users.save(sansPieces);
+
+        mvc.perform(post("/api/market/listings")
+                   .header("X-Session-Token", otherSellerToken)
+                   .contentType(MediaType.APPLICATION_JSON).content(LISTING_BODY))
+           .andExpect(status().isForbidden());
     }
 
     @Test

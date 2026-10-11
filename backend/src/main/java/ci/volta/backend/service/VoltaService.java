@@ -80,6 +80,7 @@ public class VoltaService {
             new ChecklistItem("MOBILITÉ & INTERVENTION", "Délai d'intervention constaté", null, ""));
 
     private final EquipmentRepository equipmentRepository;
+    private final CompanyContractService contracts;
     private final InspectionRepository inspectionRepository;
     private final ReportRepository reportRepository;
     private final RentalRequestRepository rentalRequestRepository;
@@ -110,6 +111,7 @@ public class VoltaService {
             ReferenceService references,
             AuditService audit,
             UserRepository userRepository,
+            CompanyContractService contracts,
             CurrentUser currentUser) {
         this.anomalyRepository = anomalyRepository;
         this.references = references;
@@ -123,6 +125,7 @@ public class VoltaService {
         this.quoteRepository = quoteRepository;
         this.webhookService = webhookService;
         this.userRepository = userRepository;
+        this.contracts = contracts;
         this.currentUser = currentUser;
     }
 
@@ -776,6 +779,9 @@ public class VoltaService {
     public Equipment submitEquipment(String equipmentId) {
         Equipment eq = getEquipment(equipmentId);
         currentUser.requireOwnership(eq.supplierId, "cet équipement");
+        // Le plafond se vérifie ici et non à la création : écrire une fiche ne
+        // coûte rien, c'est la soumettre qui engage une inspection.
+        contracts.requireParcCapacity();
         EquipmentWorkflow.checkTransition(eq.status, EquipmentWorkflow.SUBMITTED);
         eq.status = "SUBMITTED";
         notify("ADMIN", eq.name + " soumis pour vérification");

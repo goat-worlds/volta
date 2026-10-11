@@ -40,6 +40,24 @@ public class CompanyContractController {
         return service.accept();
     }
 
+    /**
+     * Le compte dépose lui-même ses pièces, depuis son espace.
+     *
+     * Déposer n'est pas être vérifié : le dossier part à l'administration, qui
+     * valide. Ouvrir les droits au dépôt reviendrait à les accorder sur
+     * déclaration.
+     */
+    @PostMapping("/me/documents")
+    public UserAccount submitDocuments(@RequestBody CompanyContractService.DocumentsInput body) {
+        return service.submitDocuments(body);
+    }
+
+    /** L'état de son propre dossier : ce qui est là, ce que cela ouvre. */
+    @GetMapping("/me/documents")
+    public CompanyContractService.DossierView monDossier() {
+        return service.monDossier();
+    }
+
     /** Les dossiers entreprises à vérifier, et ceux déjà ouverts. */
     @GetMapping("/admin/companies")
     public List<UserAccount> companies() {

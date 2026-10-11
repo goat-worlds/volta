@@ -47,6 +47,7 @@ const SupplierRequests = lazy(() => import('./pages/supplier/SupplierRequests'))
 const SupplierQuoteRequests = lazy(() => import('./pages/supplier/SupplierQuoteRequests'))
 const SupplierQuotes = lazy(() => import('./pages/supplier/SupplierQuotes'))
 const SupplierListings = lazy(() => import('./pages/supplier/SupplierListings'))
+const SupplierDossier = lazy(() => import('./pages/supplier/SupplierDossier'))
 
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminEquipment = lazy(() => import('./pages/admin/AdminEquipment'))
@@ -166,6 +167,7 @@ export default function App() {
                 <Route path="/supplier/vendre" element={<SupplierListings />} />
                 {/* Le contrat se signe une fois ; la page reste
                     atteignable pour le relire. */}
+                <Route path="/supplier/dossier" element={<SupplierDossier />} />
                 <Route path="/supplier/contrat" element={<ClientContract />} />
                 <Route path="/supplier/*" element={<NotFoundLazy />} />
               </Route>
