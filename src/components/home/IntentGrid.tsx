@@ -77,7 +77,30 @@ export default function IntentGrid({
        * se poseraient sinon en haut avec un vide sous le bouton.
        */
       className={
-        cover ? 'flex min-h-[calc(100svh-4rem)] items-center pb-10 pt-6 sm:pt-8' : ''
+        cover
+          ? /*
+             * Tant que le verrou tient, la couverture est sa propre zone de
+             * défilement.
+             *
+             * Sur un téléphone, les huit cartes font 1060 px pour 844 px
+             * d'écran : verrouiller la page sans cela cacherait les quatre
+             * dernières derrière un défilement qu'on vient d'interdire. Ici,
+             * on parcourt les huit, on ne passe pas au-delà — ce qui est
+             * exactement ce que la couverture promet.
+             *
+             * `overscroll-contain` empêche le geste de se propager au document
+             * quand on atteint le bas : sans lui, un doigt insistant reprend la
+             * page là où le verrou l'avait arrêtée.
+             *
+             * Les 28 rem du bas dégagent le bouton, qui flotte au-dessus : la
+             * huitième carte s'arrêterait sinon dessous.
+             */
+            `flex min-h-[calc(100svh-4rem)] flex-col justify-center pt-6 sm:pt-8 ${
+              locked
+                ? 'max-h-[calc(100svh-4rem)] overflow-y-auto overscroll-contain pb-28'
+                : 'pb-10'
+            }`
+          : ''
       }
     >
       {/* La couverture n'a pas de chapeau : huit cartes illustrées disent

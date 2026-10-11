@@ -148,6 +148,14 @@ public class DataSeeder {
                 category("c-niveleuse", "Niveleuses", "🛣️"),
                 category("c-foreuse", "Foreuses", "🔩"),
                 category("c-groupe", "Groupes électrogènes", "🔌"),
+                // Quatre familles que le chantier loue autant que les engins de
+                // terrassement, et qui tombaient jusqu'ici dans « Autres » :
+                // un chef de chantier qui cherche une citerne à eau ne pense
+                // pas à ouvrir une rubrique fourre-tout.
+                category("c-tractopelle", "Tractopelles", "🚜"),
+                category("c-citerne-eau", "Citernes à eau", "💧"),
+                category("c-citerne-carburant", "Citernes à carburant", "⛽"),
+                category("c-car-personnel", "Cars de transport de personnel", "🚌"),
                 // « Équipement » n'est pas une famille d'engins : c'est tout ce
                 // qui s'ajoute au parc sans rouler — compresseurs, pompes,
                 // groupes de soudage, matériel de première installation. Elle

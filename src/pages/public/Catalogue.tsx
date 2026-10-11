@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { ArrowRight, ChevronDown, MapPin } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { EmptyState, LevelBadge, fmtPrice } from '../../components/ui'
 import { PageHero, Reveal, Section } from '../../components/site/SiteKit'
@@ -27,6 +27,13 @@ export default function Catalogue() {
   const [level, setLevel] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [availableOnly, setAvailableOnly] = useState(false)
+  /* Fermé d'emblée : on ouvre un catalogue pour voir des engins, pas des
+     champs. Ignoré au-delà de `lg`, où la colonne ne gêne personne. */
+  const [filtresOuverts, setFiltresOuverts] = useState(false)
+
+  /* Le nombre de filtres posés, montré sur le bouton replié : sans lui, on ne
+     sait pas pourquoi la liste est courte. */
+  const actifs = [query, category, level, maxPrice].filter(Boolean).length + (availableOnly ? 1 : 0)
 
   const published = equipment.filter((e) => e.status === 'PUBLISHED')
 
@@ -63,8 +70,44 @@ export default function Catalogue() {
 
       <Section tone="light" className="pt-12">
         <div className="flex flex-col gap-6 lg:flex-row">
-          <aside className="h-fit w-full shrink-0 rounded-lg border border-papier-200 bg-papier-50 p-5 lg:w-64">
-            <div className="volta-display mb-4 text-xl text-acier-900">Filtres</div>
+          {/* Les filtres se replient sur téléphone.
+              
+              Le panneau faisait 400 px de haut, empilé au-dessus de la grille :
+              la première vignette arrivait à 704 px sur un écran de 844, c'est
+              à dire que l'on ouvrait un catalogue sans voir un engin. Or on
+              vient d'abord regarder, et l'on filtre ensuite — rarement, et
+              seulement quand il y a trop à voir.
+              
+              Replié par défaut sous `lg`, toujours ouvert au-dessus : sur un
+              grand écran la colonne ne prend la place de personne. */}
+          <aside className="h-fit w-full shrink-0 rounded-lg border border-papier-200 bg-papier-50 lg:w-64">
+            <button
+              type="button"
+              onClick={() => setFiltresOuverts((v) => !v)}
+              aria-expanded={filtresOuverts}
+              aria-controls="cat-filtres"
+              className="flex w-full items-center justify-between gap-2 p-4 text-left lg:hidden"
+            >
+              <span className="volta-display text-lg text-acier-900">
+                Filtres
+                {actifs > 0 && (
+                  <span className="ml-2 rounded-full bg-btp-500 px-2 py-0.5 text-xs font-bold text-white">
+                    {actifs}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                size={18}
+                aria-hidden
+                className={`shrink-0 text-papier-600 transition ${filtresOuverts ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            <div
+              id="cat-filtres"
+              className={`px-5 pb-5 lg:block lg:pt-5 ${filtresOuverts ? 'block' : 'hidden'}`}
+            >
+            <div className="volta-display mb-4 hidden text-xl text-acier-900 lg:block">Filtres</div>
 
             <label className={LABEL} htmlFor="cat-q">
               Recherche
@@ -130,6 +173,7 @@ export default function Catalogue() {
               />
               Disponible uniquement
             </label>
+            </div>
           </aside>
 
           <div className="flex-1">

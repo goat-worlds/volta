@@ -54,12 +54,20 @@ public class WatermarkService {
 
     private static final Logger log = LoggerFactory.getLogger(WatermarkService.class);
 
-    /** Le symbole seul, découpé du bloc de marque. */
+    /** Le V seul, recadré sur son encre — le glyphe de la barre de navigation. */
     private static final String CHEMIN_SYMBOLE = "marque/logo-volta-mark.png";
 
-    /** Les deux lignes de la marque, identiques à celles du catalogue. */
-    private static final String MARQUE = "VOLTA";
-    private static final String MAISON = "by GÉNIE SÉLECT DIGITAL";
+    /**
+     * Le symbole EST la lettre V : la typographie reprend à « OLTA ».
+     *
+     * On écrivait « VOLTA » à côté du glyphe, c'est-à-dire la lettre deux fois,
+     * une fois dessinée et une fois composée — une faute d'orthographe sur sa
+     * propre marque. Le site l'a corrigé, le filigrane des photos aussi ; les
+     * images téléversées suivent, sans quoi la marque s'écrirait de deux façons
+     * selon que la photo vient de nous ou d'un fournisseur.
+     */
+    private static final String MARQUE = "OLTA";
+    private static final String MAISON = "by GÉNIE SELECT";
 
     /** Hauteur du symbole, en fraction de la largeur de la photo. */
     private static final double PART_LARGEUR = 0.055;
@@ -159,9 +167,13 @@ public class WatermarkService {
         int hauteur = image.getHeight();
 
         double cible = Math.min(largeur * 0.46, hauteur * 1.30);
-        int hautSymbole = (int) Math.max(24, cible * 0.26);
-        int corpsMarque = (int) Math.max(16, cible * 0.17);
-        int corpsPetit = Math.max(9, (int) (corpsMarque * 0.34));
+        int corpsMarque = (int) Math.max(16, cible * 0.19);
+        int corpsPetit = Math.max(9, (int) (corpsMarque * 0.30));
+
+        // Les proportions de la barre de navigation : le glyphe dépasse la
+        // capitale, parce qu'il porte une pelle dans sa branche et qu'à hauteur
+        // de capitale exacte elle devient une tache.
+        int hautSymbole = (int) Math.max(20, corpsMarque * 28.0 / 26.0);
 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -171,23 +183,34 @@ public class WatermarkService {
         Font fPetit = new Font(Font.SANS_SERIF, Font.BOLD, corpsPetit);
         FontRenderContext regle = g.getFontRenderContext();
 
-        String[] lignes = {MARQUE, MAISON, telephone};
-        Font[] fontes = {fMarque, fPetit, fPetit};
-        Rectangle2D[] boites = new Rectangle2D[3];
-        for (int i = 0; i < 3; i++) {
-            boites[i] = fontes[i].getStringBounds(lignes[i], regle);
-        }
+        Rectangle2D bMarque = fMarque.getStringBounds(MARQUE, regle);
+        String[] basses = {MAISON, telephone};
+        Rectangle2D[] boites = {
+            fPetit.getStringBounds(MAISON, regle),
+            fPetit.getStringBounds(telephone, regle),
+        };
 
         int largSymbole = symbole == null
                 ? 0
                 : (int) Math.round(symbole.getWidth() * (hautSymbole / (double) symbole.getHeight()));
         int interligne = Math.max(3, corpsPetit / 2);
 
-        int largBloc = largSymbole;
-        int hautBloc = symbole == null ? 0 : hautSymbole + interligne;
-        for (int i = 0; i < 3; i++) {
-            largBloc = Math.max(largBloc, (int) Math.ceil(boites[i].getWidth()));
-            hautBloc += (int) Math.ceil(boites[i].getHeight()) + interligne;
+        /*
+         * Le V se termine en pointe : à espacement nul, l'œil voit encore un
+         * blanc au milieu du mot. Le rapprochement compense la diagonale, comme
+         * un crénage entre deux lettres. C'est la valeur de la barre de
+         * navigation.
+         */
+        int crenage = (int) Math.round(corpsMarque * 0.07);
+
+        int largMot = largSymbole - crenage + (int) Math.ceil(bMarque.getWidth());
+        int hautMot = Math.max(hautSymbole, (int) Math.ceil(bMarque.getHeight()));
+
+        int largBloc = largMot;
+        int hautBloc = hautMot;
+        for (Rectangle2D b : boites) {
+            largBloc = Math.max(largBloc, (int) Math.ceil(b.getWidth()));
+            hautBloc += (int) Math.ceil(b.getHeight()) + interligne;
         }
 
         int x0 = (largeur - largBloc) / 2;
@@ -206,40 +229,58 @@ public class WatermarkService {
         gb.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         gb.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        if (symbole != null) {
-            gb.drawImage(symbole, (largBloc - largSymbole) / 2, 0, largSymbole, hautSymbole, null);
-        }
-
-        int y = symbole == null ? 0 : hautSymbole + interligne;
         int trait = Math.max(1, corpsMarque / 14);
-        for (int i = 0; i < 3; i++) {
-            gb.setFont(fontes[i]);
+        Color contour = new Color(0, 0, 0, 170);
+
+        /*
+         * Le glyphe et « OLTA » sur la même ligne de base, pas centrés l'un sur
+         * l'autre : centrer un dessin de proportions libres à côté d'une
+         * capitale le fait flotter au-dessus ou au-dessous du mot.
+         */
+        int xMot = (largBloc - largMot) / 2;
+        if (symbole != null) {
+            gb.drawImage(symbole, xMot, hautMot - hautSymbole, largSymbole, hautSymbole, null);
+        }
+        gb.setFont(fMarque);
+        int xMarque = xMot + largSymbole - crenage;
+        int yMarque = hautMot - gb.getFontMetrics().getDescent();
+        ecrire(gb, MARQUE, xMarque, yMarque, trait, contour);
+
+        int y = hautMot;
+        for (int i = 0; i < basses.length; i++) {
+            gb.setFont(fPetit);
             int largTexte = (int) Math.ceil(boites[i].getWidth());
-            int xTexte = (largBloc - largTexte) / 2;
-            int yTexte = y + gb.getFontMetrics().getAscent();
-
-            // Le liseré sombre tient sous le blanc quel que soit le fond : au
-            // centre d'une photo, la luminance change d'un bout à l'autre du
-            // bloc, et une teinte choisie sur la moyenne y échouerait une fois
-            // sur deux.
-            gb.setColor(new Color(0, 0, 0, 170));
-            for (int dx = -trait; dx <= trait; dx++) {
-                for (int dy = -trait; dy <= trait; dy++) {
-                    if (dx != 0 || dy != 0) {
-                        gb.drawString(lignes[i], xTexte + dx, yTexte + dy);
-                    }
-                }
-            }
-            gb.setColor(Color.WHITE);
-            gb.drawString(lignes[i], xTexte, yTexte);
-
-            y += (int) Math.ceil(boites[i].getHeight()) + interligne;
+            int hautTexte = (int) Math.ceil(boites[i].getHeight());
+            y += interligne;
+            ecrire(gb, basses[i], (largBloc - largTexte) / 2,
+                    y + gb.getFontMetrics().getAscent(), trait, contour);
+            y += hautTexte;
         }
         gb.dispose();
 
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.42f));
         g.drawImage(calque, x0, y0, null);
         g.setComposite(AlphaComposite.SrcOver);
+    }
+
+    /**
+     * Écrit en blanc, cerné de sombre.
+     *
+     * Le liseré tient sous le blanc quel que soit le fond : au centre d'une
+     * photo, la luminance change d'un bout à l'autre du bloc, et une teinte
+     * choisie sur la moyenne y échouerait une fois sur deux.
+     */
+    private static void ecrire(Graphics2D gb, String texte, int x, int y, int trait, Color contour) {
+        gb.setColor(contour);
+        for (int dx = -trait; dx <= trait; dx++) {
+            for (int dy = -trait; dy <= trait; dy++) {
+                if (dx != 0 || dy != 0) {
+                    gb.drawString(texte, x + dx, y + dy);
+                }
+            }
+        }
+        gb.setColor(Color.WHITE);
+        gb.drawString(texte, x, y);
     }
 
     /**

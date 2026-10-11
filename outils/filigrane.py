@@ -56,11 +56,18 @@ MASTERS = RACINE.parent / "volta-junior" / "masters-tatoues"
 # Les images de remplacement, affichées à la place d'une photo absente.
 REMPLACEMENTS = RACINE / "public" / "images" / "placeholders"
 
-LOGO = RACINE / "public" / "images" / "logo-volta.png"
+# Le V seul, recadré sur son encre — le même fichier que la barre de
+# navigation. L'ancien pointait sur le bloc empilé, qui contient déjà le mot
+# « VOLTA » : le filigrane écrivait donc la marque deux fois, une fois dessinée
+# et une fois composée.
+LOGO = RACINE / "public" / "images" / "logo-volta-v.png"
 SITE_NAV = RACINE / "src" / "lib" / "siteNav.ts"
 
-MARQUE = "VOLTA"
-MAISON = "by GÉNIE SÉLECT DIGITAL"
+# Le symbole EST la lettre V : la typographie reprend à « OLTA », comme dans la
+# barre de navigation. Écrire « VOLTA » à côté du glyphe donnait « V VOLTA » —
+# une faute d'orthographe sur sa propre marque.
+MARQUE = "OLTA"
+MAISON = "by GÉNIE SELECT"
 
 # Polices : une gras pour la marque, une normale pour la maison.
 GRAS = Path(r"C:\Windows\Fonts\arialbd.ttf")
@@ -160,8 +167,10 @@ def filigraner(source: Path, cible: Path, tel: str) -> None:
     présent pour décourager la reprise, assez transparent pour qu'un loueur
     juge la machine. C'est le compromis que fait tout catalogue en ligne.
 
-    La composition est celle des huit vignettes de l'accueil — symbole, VOLTA,
-    la maison, le numéro — pour que la marque soit la même partout.
+    La composition est exactement celle de la barre de navigation : le V dessiné
+    tient lieu d'initiale, « OLTA » le suit, puis la maison et le numéro. Une
+    marque qui ne s'écrit pas pareil sur le site et sur ses images n'en est plus
+    tout à fait une.
     """
     image = Image.open(source).convert("RGB")
     L, H = image.size
@@ -171,11 +180,15 @@ def filigraner(source: Path, cible: Path, tel: str) -> None:
     # dire la même chose.
     largeur_cible = min(L * 0.46, H * 1.30)
 
-    hauteur_logo = max(24, int(largeur_cible * 0.26))
-    corps_marque = max(16, int(largeur_cible * 0.17))
-    corps_petit = max(9, int(corps_marque * 0.34))
+    corps_marque = max(16, int(largeur_cible * 0.19))
+    corps_petit = max(9, int(corps_marque * 0.30))
 
+    # Les proportions de la barre de navigation : le glyphe dépasse la capitale
+    # d'un quinzième, parce qu'il porte une pelle dans sa branche et qu'à
+    # hauteur de capitale exacte elle devient une tache.
+    hauteur_logo = max(20, int(corps_marque * 28 / 26))
     logo = logo_marque(hauteur_logo)
+
     f_marque = police(GRAS, corps_marque)
     f_petit = police(NORMALE, corps_petit)
 
@@ -187,24 +200,47 @@ def filigraner(source: Path, cible: Path, tel: str) -> None:
     h_marque = b_marque[3] - b_marque[1]
     h_maison = b_maison[3] - b_maison[1]
     h_tel = b_tel[3] - b_tel[1]
+    l_marque = b_marque[2] - b_marque[0]
     interligne = max(3, corps_petit // 2)
 
-    l_bloc = max(logo.width, b_marque[2] - b_marque[0], b_maison[2] - b_maison[0], b_tel[2] - b_tel[0])
-    h_bloc = hauteur_logo + interligne + h_marque + interligne + h_maison + interligne + h_tel
+    # Le V se termine en pointe : à espacement nul, l'œil voit encore un blanc
+    # au milieu du mot. Le rapprochement compense la diagonale, comme un
+    # crénage entre deux lettres. C'est la valeur de la barre de navigation.
+    crenage = int(corps_marque * 0.07)
+
+    # Première ligne : le glyphe puis « OLTA », d'un seul tenant.
+    l_mot = logo.width - crenage + l_marque
+    h_mot = max(hauteur_logo, h_marque)
+
+    l_bloc = max(l_mot, b_maison[2] - b_maison[0], b_tel[2] - b_tel[0])
+    h_bloc = h_mot + interligne + h_maison + interligne + h_tel
 
     bloc = Image.new("RGBA", (l_bloc, h_bloc), (0, 0, 0, 0))
-    bloc.alpha_composite(logo, ((l_bloc - logo.width) // 2, 0))
-
     plume = ImageDraw.Draw(bloc)
+
     # Le liseré sombre tient sous le blanc quel que soit le fond : au centre
     # d'une photo, la luminance change d'un bout à l'autre du bloc, et une
     # teinte choisie sur la moyenne y échouerait une fois sur deux.
     contour = (0, 0, 0, 170)
     trait = max(1, corps_marque // 14)
 
-    y = hauteur_logo + interligne
+    # Les deux sont posés sur la même ligne de base, pas centrés l'un sur
+    # l'autre : centrer un glyphe de proportions libres à côté d'une capitale
+    # le fait flotter au-dessus ou au-dessous du mot.
+    x_mot = (l_bloc - l_mot) // 2
+    base = h_mot
+    bloc.alpha_composite(logo, (x_mot, base - hauteur_logo))
+    plume.text(
+        (x_mot + logo.width - crenage - b_marque[0], base - h_marque - b_marque[1]),
+        MARQUE,
+        font=f_marque,
+        fill=(255, 255, 255, 255),
+        stroke_width=trait,
+        stroke_fill=contour,
+    )
+
+    y = h_mot + interligne
     for texte, fonte, boite, hauteur in (
-        (MARQUE, f_marque, b_marque, h_marque),
         (MAISON, f_petit, b_maison, h_maison),
         (tel, f_petit, b_tel, h_tel),
     ):
