@@ -78,6 +78,17 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/market/listings", "/api/market/listings/*").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/market/listings/*/requests").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/market/requests/track/*").permitAll()
+
+                // Un avis se lit avant d'avoir un compte : c'est même à ce
+                // moment-là qu'il sert. L'écriture, elle, exige d'avoir loué
+                // la machine — le service le vérifie dans les réservations.
+                .requestMatchers(HttpMethod.GET, "/api/equipment/*/reviews",
+                                 "/api/equipment/reviews/summaries").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/equipment/*/reviews").hasRole("CLIENT")
+
+                // Le prix plancher appartient au fournisseur qui l'a fixé ;
+                // l'administration le voit pour négocier. Jamais le client.
+                .requestMatchers("/api/equipment/*/price-floor").hasAnyRole("SUPPLIER", "ADMIN")
                 // Parcours publics (location, achat libre, technicien, candidature…) :
                 // dépôt et suivi sans compte, comme Volta Market. La console qui les
                 // traite vit sous /api/admin/requests, déjà couverte par la règle

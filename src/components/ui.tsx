@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { AnomalyStatus, EquipmentStatus, Level, OpportunityStage, RentalStatus } from '../store/types'
-import { Check, Copy, Inbox, X } from 'lucide-react'
+import { Check, Copy, Inbox, Star, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import { roleTheme } from '../lib/roleTheme'
@@ -89,20 +89,44 @@ export function SeverityBadge({ severity }: { severity: string }) {
   return styledBadge(ANOMALY_SEVERITY[severity], severity)
 }
 
-const LEVEL_COLORS: Record<Level, string> = {
-  // Les trois couleurs demandées : blanc, gris, or. Le blanc porte une bordure,
-  // sans quoi la mention la plus basse disparaîtrait sur une carte blanche —
-  // l'absence de pastille se lirait comme une absence de qualification.
-  BASIC: 'border border-papier-300 bg-white text-acier-800',
-  SILVER: 'bg-slate-300 text-slate-800',
-  GOLD: 'bg-amber-300 text-amber-900',
+/**
+ * La prestance d'un engin, en étoiles.
+ *
+ * <h2>Pourquoi plus de mots</h2>
+ *
+ * Le badge écrivait « Basique », « Silver », « Gold ». Trois mots qui
+ * n'expliquent rien à qui les lit pour la première fois : rien ne dit qu'ils
+ * sont ordonnés, ni dans quel sens, ni ce qui les sépare. Et « Basique » posé
+ * sur une machine inspectée et conforme se lit comme un défaut, alors que
+ * c'est une machine qui a passé le contrôle.
+ *
+ * Une, deux ou trois étoiles se classent d'elles-mêmes. Le mot reste dans
+ * l'infobulle et dans le libellé pour l'assistance vocale, qui ne voit pas la
+ * forme.
+ *
+ * Les trois couleurs demandées sont conservées : blanc, gris, or. Le blanc
+ * porte une bordure, sans quoi la mention la plus basse disparaîtrait sur une
+ * carte blanche — l'absence de pastille se lirait comme une absence de
+ * qualification.
+ */
+const LEVEL_STYLE: Record<Level, { classe: string; etoiles: number; mot: string }> = {
+  BASIC: { classe: 'border border-papier-300 bg-white text-acier-700', etoiles: 1, mot: 'Prestance vérifiée' },
+  SILVER: { classe: 'bg-slate-300 text-slate-800', etoiles: 2, mot: 'Bonne prestance' },
+  GOLD: { classe: 'bg-amber-300 text-amber-900', etoiles: 3, mot: 'Meilleure prestance' },
 }
 
 export function LevelBadge({ level }: { level: Level | null }) {
   if (!level) return null
+  const { classe, etoiles, mot } = LEVEL_STYLE[level]
   return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${LEVEL_COLORS[level]}`}>
-      {level === 'BASIC' ? 'Basique' : level === 'SILVER' ? 'Silver' : 'Gold'}
+    <span
+      title={mot}
+      aria-label={mot}
+      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 ${classe}`}
+    >
+      {Array.from({ length: etoiles }, (_, i) => (
+        <Star key={i} size={11} aria-hidden className="fill-current" />
+      ))}
     </span>
   )
 }

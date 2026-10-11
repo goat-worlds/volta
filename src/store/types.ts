@@ -46,6 +46,8 @@ export interface Category {
   id: string
   name: string
   icon: string
+  /** Photo de la catégorie ; à défaut, la carte retombe sur son pictogramme. */
+  image?: string | null
 }
 
 export interface Equipment {
@@ -78,6 +80,20 @@ export interface Equipment {
   level: Level | null
   declaredCondition: string
   createdAt: string
+  /**
+   * Les caractéristiques de la plaque, telles qu'elles y sont écrites.
+   *
+   * Des chaînes et non des nombres : une puissance se lit « 148 kW (198 ch) »,
+   * un godet « 1,2 m³ ». On ne calcule rien avec, on les affiche.
+   */
+  power?: string | null
+  operatingWeight?: string | null
+  bucketCapacity?: string | null
+  dimensions?: string | null
+  /** Ce que la liste ne prévoit pas : attache rapide, flèche, options. */
+  otherSpecs?: string | null
+  /** Date du dernier rapport d'inspection transmis. */
+  lastInspectionAt?: string | null
 }
 
 export type CheckResult = 'CONFORME' | 'A_SURVEILLER' | 'NON_CONFORME' | null

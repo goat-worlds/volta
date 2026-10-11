@@ -640,6 +640,57 @@ public class VoltaService {
      * passer permettait d'inscrire un équipement au catalogue d'un concurrent.
      * Seul l'administrateur peut désigner un autre fournisseur.
      */
+    /**
+     * Le plancher de prix d'un engin.
+     *
+     * <h2>Deux bornes, une seule publique</h2>
+     *
+     * {@code pricePerDay} est la première proposition : ce que le client voit
+     * sur la fiche et ce sur quoi il demande un devis. Le plancher est l'autre
+     * borne — le prix sous lequel le fournisseur ne descend pas, qu'il fixe en
+     * confiant sa machine à l'inspection.
+     *
+     * <h2>Pourquoi une route à part</h2>
+     *
+     * Le champ est marqué {@code @JsonIgnore} : il ne part avec aucune fiche,
+     * aucune liste, aucun catalogue. C'est le seul réglage qui résiste à un
+     * écran ajouté demain sans y penser — masquer au cas par cas finit
+     * toujours par oublier un cas, et celui-là donnerait au client la marge de
+     * négociation de VOLTA.
+     *
+     * Le lire demande donc de le demander, et de prouver qu'on en a le droit :
+     * le fournisseur sur sa propre machine, l'administration partout.
+     */
+    public Long getPriceFloor(String equipmentId) {
+        Equipment e = requireEquipment(equipmentId);
+        currentUser.requireOwnership(e.supplierId, "cet engin");
+        return e.priceFloor;
+    }
+
+    public Equipment setPriceFloor(String equipmentId, Long amount) {
+        Equipment e = requireEquipment(equipmentId);
+        currentUser.requireOwnership(e.supplierId, "cet engin");
+        if (amount != null && amount <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le prix plancher doit être supérieur à zéro, ou vide s'il n'y en a pas.");
+        }
+        if (amount != null && e.pricePerDay > 0 && amount > e.pricePerDay) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le prix plancher ne peut pas dépasser le prix affiché.");
+        }
+        e.priceFloor = amount;
+        e = equipmentRepository.save(e);
+        audit.record("EQUIPMENT_PRICE_FLOOR", "EQUIPMENT", e.id, e.reference,
+                amount == null ? "retiré" : String.valueOf(amount));
+        return e;
+    }
+
+    private Equipment requireEquipment(String id) {
+        return equipmentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Engin introuvable : " + id));
+    }
+
     public Equipment addEquipment(Equipment equipment) {
         if (!currentUser.isAdmin() || equipment.supplierId == null || equipment.supplierId.isBlank()) {
             equipment.supplierId = currentUser.requireId();
@@ -827,6 +878,10 @@ public class VoltaService {
         inspectionRepository.save(inspection);
         Equipment eq = getEquipment(inspection.equipmentId);
         eq.status = "PENDING_ADMIN_REVIEW";
+        // La fiche annonce « inspecté le … » : la date est posée au moment où
+        // le rapport est transmis, et non retrouvée par une jointure à chaque
+        // vignette du catalogue. Elle ne change que deux fois par an.
+        eq.lastInspectionAt = report.submittedAt;
         equipmentRepository.save(eq);
         notify("ADMIN", "Rapport d'inspection transmis pour " + eq.name);
         long openAnomalies = anomalyRepository

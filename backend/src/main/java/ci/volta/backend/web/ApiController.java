@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -155,6 +156,26 @@ public class ApiController {
     @ResponseStatus(HttpStatus.CREATED)
     public Equipment addEquipment(@RequestBody Equipment equipment) {
         return service.addEquipment(equipment);
+    }
+
+    public record PriceFloorBody(Long amount) {
+    }
+
+    /**
+     * Le prix plancher : son fournisseur et l'administration, personne d'autre.
+     *
+     * Il ne part avec aucune fiche ni aucun catalogue — le demander est le seul
+     * moyen de l'obtenir, et le service vérifie qu'on en a le droit.
+     */
+    @GetMapping("/equipment/{id}/price-floor")
+    public Map<String, Long> priceFloor(@PathVariable String id) {
+        Long montant = service.getPriceFloor(id);
+        return montant == null ? java.util.Collections.emptyMap() : Map.of("amount", montant);
+    }
+
+    @PostMapping("/equipment/{id}/price-floor")
+    public Equipment setPriceFloor(@PathVariable String id, @RequestBody PriceFloorBody body) {
+        return service.setPriceFloor(id, body == null ? null : body.amount());
     }
 
     @PostMapping("/equipment/{id}/submit")

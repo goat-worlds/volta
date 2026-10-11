@@ -168,23 +168,24 @@ export default function Market() {
           la moitié droite, la première annonce mise en avant en grand. Or le
           tri par défaut place déjà la sélection en tête de la grille : la même
           annonce était montrée deux fois à deux tailles, à deux endroits. */}
-      <section className="relative isolate overflow-hidden bg-acier-900 px-4 py-20 text-center sm:px-6">
+      <section className="relative isolate overflow-hidden bg-acier-900 px-4 py-6 text-center sm:px-6 sm:py-12">
         <Reveal className="mx-auto max-w-3xl">
           <span className="volta-eyebrow text-btp-400">
             <Tag size={14} />
             Volta Market
           </span>
-          <h1 className="volta-display mt-4 text-5xl text-white sm:text-6xl">
+          <h1 className="volta-display mt-2 text-2xl text-white sm:text-4xl">
             Des engins à vendre, <span className="text-btp-400">vérifiés avant la mise en vente</span>.
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-acier-200">
-            Chaque annonce est examinée par l’équipe VOLTA avant publication. Vous demandez une
-            offre, VOLTA vérifie l’état et la disponibilité, puis vous répond.
+          {/* Masquée sur téléphone : elle rassure, mais elle repoussait la
+              première annonce sous le pli — et c'est l'annonce qui rassure. */}
+          <p className="mx-auto mt-3 hidden max-w-2xl text-sm leading-relaxed text-acier-200 sm:block">
+            Chaque annonce est examinée par l’équipe VOLTA avant publication.
           </p>
 
           <form
             onSubmit={(e) => e.preventDefault()}
-            className="mx-auto mt-8 flex max-w-xl overflow-hidden rounded-lg bg-white shadow-lg"
+            className="mx-auto mt-4 flex max-w-xl overflow-hidden rounded-lg bg-white shadow-lg"
           >
             <div className="flex flex-1 items-center px-4">
               <Search className="h-5 w-5 shrink-0 text-papier-600" />
@@ -205,7 +206,7 @@ export default function Market() {
           </form>
 
           {listings.length > 0 && (
-            <p className="mx-auto mt-10 max-w-2xl border-t border-white/10 pt-6 text-sm leading-relaxed text-acier-300">
+            <p className="mx-auto mt-4 hidden max-w-2xl text-xs leading-relaxed text-acier-300 sm:block">
               <span className="font-semibold text-btp-400">
                 {listings.length} {listings.length > 1 ? 'annonces' : 'annonce'} en ligne
               </span>
@@ -217,44 +218,6 @@ export default function Market() {
           )}
         </Reveal>
       </section>
-
-      {/* Trois besoins, trois réponses.
-          La page ouvrait directement sur la grille d'annonces : le visiteur
-          voyait du matériel sans savoir ce que Volta Market résout pour lui.
-          Chaque carte nomme un besoin, y répond, et mène à la sélection
-          correspondante — comme les rayons d'une boutique. */}
-      <Section tone="muted">
-        <SectionHeader
-          tone="muted"
-          label="Vos besoins, nos réponses"
-          title="Ce que Volta Market règle pour vous."
-        />
-        <CardGrid>
-          {OFFERS.map((offer, i) => (
-            <Reveal key={offer.title} delay={(i % 3) * 0.06}>
-              <Link
-                to={offer.to}
-                className="group flex h-full flex-col rounded-lg border border-papier-200 bg-white p-6 shadow-xs transition hover:-translate-y-0.5 hover:border-btp-300 hover:shadow-md"
-              >
-                <div className="flex items-center gap-3">
-                  <CardIcon icon={offer.icon} />
-                  <span className="text-xs font-bold uppercase tracking-wider text-papier-600">
-                    {offer.need}
-                  </span>
-                </div>
-                <h3 className="volta-display mt-4 text-xl leading-tight text-acier-900">
-                  {offer.title}
-                </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-papier-600">{offer.text}</p>
-                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-btp-600 transition group-hover:gap-3">
-                  {offer.cta}
-                  <ArrowRight size={15} />
-                </span>
-              </Link>
-            </Reveal>
-          ))}
-        </CardGrid>
-      </Section>
 
       {/* Filtres, collés sous l'en-tête pour rester sous la main en défilant. */}
       <section
@@ -301,7 +264,7 @@ export default function Market() {
         </div>
       </section>
 
-      <Section tone="light">
+      <Section tone="light" className="pt-8 sm:pt-20">
         <SectionHeader
           label={hasFilter ? 'Résultats' : 'La vitrine'}
           title={hasFilter ? 'Ce qui correspond à votre recherche.' : 'Toutes les annonces en ligne.'}
@@ -439,6 +402,50 @@ export default function Market() {
             </Link>
           </Reveal>
         </div>
+      </Section>
+
+      {/* Trois besoins, trois réponses — après la liste, pas avant.
+          
+          Ce bloc ouvrait la page : on arrivait sur Volta Market et l'on
+          lisait ce que Volta Market résout, sans voir un seul engin. Mais on
+          vient ici avec un besoin déjà formé — on vient voir ce qu'il y a.
+          Les rayons se lisent une fois qu'on a vu la boutique. */}
+      {/* Trois besoins, trois réponses.
+          La page ouvrait directement sur la grille d'annonces : le visiteur
+          voyait du matériel sans savoir ce que Volta Market résout pour lui.
+          Chaque carte nomme un besoin, y répond, et mène à la sélection
+          correspondante — comme les rayons d'une boutique. */}
+      <Section tone="muted">
+        <SectionHeader
+          tone="muted"
+          label="Vos besoins, nos réponses"
+          title="Ce que Volta Market règle pour vous."
+        />
+        <CardGrid>
+          {OFFERS.map((offer, i) => (
+            <Reveal key={offer.title} delay={(i % 3) * 0.06}>
+              <Link
+                to={offer.to}
+                className="group flex h-full flex-col rounded-lg border border-papier-200 bg-white p-6 shadow-xs transition hover:-translate-y-0.5 hover:border-btp-300 hover:shadow-md"
+              >
+                <div className="flex items-center gap-3">
+                  <CardIcon icon={offer.icon} />
+                  <span className="text-xs font-bold uppercase tracking-wider text-papier-600">
+                    {offer.need}
+                  </span>
+                </div>
+                <h3 className="volta-display mt-4 text-xl leading-tight text-acier-900">
+                  {offer.title}
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-papier-600">{offer.text}</p>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-btp-600 transition group-hover:gap-3">
+                  {offer.cta}
+                  <ArrowRight size={15} />
+                </span>
+              </Link>
+            </Reveal>
+          ))}
+        </CardGrid>
       </Section>
 
       {/* Le circuit, en quatre temps lisibles. Les dix étapes du serveur
