@@ -6,6 +6,8 @@ import { createRequest, type RequestAttachmentInput, type RequestReceipt } from 
 import { attachmentPayload, parseAttachment } from '../../services/attachments'
 import { contactDefaults, firstName, forgetVisitor, readVisitor, rememberVisitor } from '../../services/profile'
 import RequestTimeline from './RequestTimeline'
+import { useStore } from '../../store/StoreContext'
+import type { FieldOption } from './fields'
 import {
   CheckboxField,
   FileField,
@@ -39,6 +41,13 @@ function renderField(
   value: string,
   error: string | undefined,
   onChange: (value: string) => void,
+  /**
+   * Les listes puisées dans les données, résolues au rendu.
+   *
+   * Déclarées dans le parcours, elles seraient figées au chargement du module
+   * — avant que le parc soit connu.
+   */
+  dynamiques: Partial<Record<NonNullable<FieldDef['optionsFrom']>, FieldOption[]>> = {},
 ) {
   const common = {
     name: field.name,
@@ -50,15 +59,19 @@ function renderField(
     onChange,
   }
 
+  const options = field.optionsFrom
+    ? (dynamiques[field.optionsFrom] ?? [])
+    : (field.options ?? [])
+
   switch (field.kind) {
     case 'textarea':
       return <TextAreaField {...common} placeholder={field.placeholder} />
     case 'select':
-      return <SelectField {...common} options={field.options ?? []} />
+      return <SelectField {...common} options={options} />
     case 'checkbox':
       return <CheckboxField name={field.name} label={field.label} help={field.help} value={value} onChange={onChange} />
     case 'tags':
-      return <TagsField {...common} options={field.options ?? []} max={field.max} />
+      return <TagsField {...common} options={options} max={field.max} />
     case 'file':
       return <FileField {...common} accept={field.accept} />
     default:
@@ -88,7 +101,34 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
   const known = firstName(visitor)
 
   const [stepIndex, setStepIndex] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>(() => contactDefaults(visitor))
+  /*
+   * Le compte connecté prime sur le carnet de l'appareil.
+   *
+   * Le carnet garde ce qui a été tapé la dernière fois ; le compte porte ce
+   * que la personne a déclaré en s'inscrivant. Quand les deux divergent — un
+   * poste partagé, un collègue qui a déposé une demande avant — c'est le
+   * compte qui dit la vérité.
+   */
+  const { currentUser, equipment } = useStore()
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    contactDefaults(visitor, currentUser),
+  )
+
+  /*
+   * Le parc, pour les parcours qui portent sur une machine existante.
+   *
+   * La valeur retenue est l'identifiant : l'administration retrouve ainsi la
+   * fiche, ses caractéristiques et son historique sans que le client ait eu à
+   * les ressaisir. Le libellé dit la marque et le modèle, qui sont ce qu'on
+   * reconnaît.
+   */
+  const optionsParc = useMemo<FieldOption[]>(
+    () =>
+      equipment
+        .filter((e) => e.status === 'PUBLISHED')
+        .map((e) => ({ value: e.id, label: `${e.name} — ${e.brand} ${e.model}` })),
+    [equipment],
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState<RequestReceipt | null>(null)
@@ -117,7 +157,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
 
   /** Oublie le carnet et vide les coordonnées préremplies — pas le reste. */
   const forget = () => {
-    const filled = Object.keys(contactDefaults(visitor))
+    const filled = Object.keys(contactDefaults(visitor, currentUser))
     forgetVisitor()
     setVisitor(null)
     setValues((previous) => {
@@ -393,8 +433,12 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           {visibleFields.map((field) => (
             <div key={field.name} className={field.full ? 'sm:col-span-2' : ''}>
-              {renderField(field, values[field.name] ?? '', errors[field.name], (value) =>
-                set(field.name, value),
+              {renderField(
+                field,
+                values[field.name] ?? '',
+                errors[field.name],
+                (value) => set(field.name, value),
+                { equipment: optionsParc },
               )}
             </div>
           ))}

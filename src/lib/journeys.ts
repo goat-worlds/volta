@@ -41,6 +41,19 @@ export interface FieldDef {
   /** Nombre maximal de choix, pour un champ à pastilles. */
   max?: number
   /**
+   * Liste puisée dans les données plutôt qu'écrite ici.
+   *
+   * Une demande de maintenance porte sur une machine qui existe déjà au
+   * catalogue : faire retaper sa marque, son modèle et son année revient à
+   * demander ce qu'on sait. Le formulaire propose donc le parc, et la demande
+   * part avec l'identifiant — l'administration retrouve la fiche, ses
+   * caractéristiques et son historique sans rien ressaisir.
+   *
+   * La liste est résolue au rendu par {@code JourneyForm} : la déclarer ici
+   * la figerait au chargement du module, avant que le parc soit connu.
+   */
+  optionsFrom?: 'equipment'
+  /**
    * Champ qui ne se montre que dans certains cas — « Autre » coché, par
    * exemple. Toujours affiché quand la fonction est absente, et un champ
    * masqué ne peut pas bloquer la validation de l'étape.
@@ -124,6 +137,31 @@ const EQUIPMENT_CATEGORIES = opts(
 )
 
 const URGENCY = opts('Immédiate', 'Sous 24 h', 'Sous 48 h', 'Cette semaine', 'Planifiée')
+
+const DOMAINES_FORMATION = opts(
+  'Conduite d’engins',
+  'Sécurité sur chantier',
+  'Maintenance et mécanique',
+  'Élingage et levage',
+  'Habilitation électrique',
+  'Autre',
+)
+
+const NIVEAUX_FORMATION = opts(
+  'Débutants',
+  'Expérimentés, à mettre à niveau',
+  'À recertifier',
+  'Niveaux mélangés',
+)
+
+const FORMATS_FORMATION = opts('Sur site', 'En centre', 'À distance', 'Mixte')
+
+const TYPES_MAINTENANCE = opts(
+  'Entretien préventif',
+  'Réparation après panne',
+  'Diagnostic',
+  'Révision complète',
+)
 
 const TRADES = opts(
   // Un seul mécanicien.
@@ -1013,6 +1051,292 @@ const FLEET: Journey = {
   ],
 }
 
+/**
+ * Former son équipe.
+ *
+ * <h2>Pourquoi ce parcours n'existait pas</h2>
+ *
+ * La carte « Je veux former mon équipe » menait à la page de recrutement —
+ * celle où l'on dépose son CV pour rejoindre l'équipe technique de VOLTA. Un
+ * chef d'entreprise qui voulait faire certifier six conducteurs arrivait donc
+ * sur un formulaire de candidature individuelle. Il n'y avait aucun chemin
+ * entre son besoin et nous.
+ *
+ * <h2>Ce qu'on demande, et ce qu'on ne demande pas</h2>
+ *
+ * Le besoin se décrit en six réponses : quoi, combien, où, quand, sous quelle
+ * forme, et pourquoi. Aucun nom de participant, aucun CV, aucune pièce : à ce
+ * stade on cherche un organisme et un programme, pas à inscrire des gens. Les
+ * listes nominatives viendront quand une proposition aura été retenue — les
+ * demander maintenant ferait saisir douze lignes pour une formation qui ne se
+ * fera peut-être pas.
+ */
+const FORMATION: Journey = {
+  intent: 'TRAIN_TEAM',
+  kind: 'SUPPORT',
+  title: 'Je veux former mon équipe',
+  subtitle:
+    'Conduite d’engins, sécurité, maintenance. Décrivez le besoin : nous cherchons l’organisme, ' +
+    'le programme et les dates, puis nous vous proposons.',
+  promise:
+    'Génie Select Academy et nos organismes partenaires étudient votre besoin et vous proposent un programme.',
+  steps: [
+    {
+      title: 'La formation recherchée',
+      intro: 'Ce que vos équipes doivent savoir faire à la fin.',
+      fields: [
+        {
+          name: 'domaine',
+          label: 'Domaine',
+          kind: 'select',
+          options: DOMAINES_FORMATION,
+          required: true,
+        },
+        {
+          name: 'domaineAutre',
+          label: 'Précisez le domaine',
+          kind: 'text',
+          required: true,
+          showIf: (v) => v.domaine === 'Autre',
+        },
+        {
+          name: 'objectif',
+          label: 'Objectif de la formation',
+          kind: 'textarea',
+          required: true,
+          full: true,
+          placeholder:
+            'Ex. : six conducteurs doivent être habilités à la pelle hydraulique avant l’ouverture du chantier.',
+        },
+        {
+          name: 'headcount',
+          label: 'Nombre de collaborateurs',
+          kind: 'number',
+          required: true,
+        },
+        {
+          name: 'niveau',
+          label: 'Niveau actuel des participants',
+          kind: 'select',
+          options: NIVEAUX_FORMATION,
+          required: true,
+        },
+      ],
+    },
+    {
+      title: 'Où et quand',
+      intro: 'Le format et la période décident de l’organisme autant que le domaine.',
+      fields: [
+        {
+          name: 'format',
+          label: 'Format souhaité',
+          kind: 'select',
+          options: FORMATS_FORMATION,
+          required: true,
+        },
+        {
+          name: 'siteLocation',
+          label: 'Lieu',
+          kind: 'text',
+          required: true,
+          help: 'Le site si la formation vient à vous, la ville sinon.',
+        },
+        { name: 'startDate', label: 'À partir du', kind: 'date', required: true },
+        {
+          name: 'duree',
+          label: 'Durée envisagée',
+          kind: 'text',
+          placeholder: 'Ex. : 5 jours, 2 semaines',
+        },
+        {
+          name: 'certification',
+          label: 'Une attestation ou une certification est nécessaire',
+          kind: 'checkbox',
+          full: true,
+        },
+        {
+          name: 'contraintes',
+          label: 'Contraintes particulières',
+          kind: 'textarea',
+          full: true,
+          help: 'Horaires décalés, langue, accès au site, équipes à ne pas immobiliser en même temps.',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+  subject: (v) => {
+    const domaine = v.domaine === 'Autre' ? v.domaineAutre || 'Formation' : v.domaine
+    return `Formation ${domaine || ''} — ${v.headcount || '?'} personne(s)`.replace('  ', ' ')
+  },
+  recap: (v) => [
+    v.domaine
+      ? `Je veux former mon équipe en ${v.domaine === 'Autre' ? v.domaineAutre || 'un domaine à préciser' : v.domaine}.`
+      : null,
+    v.headcount ? `Nous serons ${v.headcount} participant(s).` : null,
+    v.niveau ? `Leur niveau actuel : ${v.niveau.toLowerCase()}.` : null,
+    v.format ? `Je souhaite une formation ${v.format.toLowerCase()}.` : null,
+    v.siteLocation ? `Elle se tiendrait à ${v.siteLocation}.` : null,
+    v.startDate ? `À partir du ${v.startDate}${v.duree ? `, sur ${v.duree}` : ''}.` : null,
+    v.certification === 'true' ? 'Une attestation ou certification est nécessaire.' : null,
+    v.objectif ? `Objectif : ${v.objectif}` : null,
+    v.contraintes ? `À savoir : ${v.contraintes}` : null,
+  ],
+}
+
+/**
+ * Faire entretenir ou réparer une machine.
+ *
+ * <h2>Pourquoi ce parcours n'existait pas</h2>
+ *
+ * La carte « Je veux faire la maintenance de mon engin » ouvrait le formulaire
+ * de recherche de technicien. On y demandait un métier, une spécialité et une
+ * date — sans jamais demander de quelle machine il s'agissait. L'équipe
+ * recevait « Mécanicien engins — Abidjan » et devait téléphoner pour apprendre
+ * ce qui était en panne.
+ *
+ * <h2>La machine d'abord</h2>
+ *
+ * Le premier champ est l'engin, choisi dans le catalogue. La demande part avec
+ * son identifiant : l'administration retrouve la fiche, ses caractéristiques
+ * et son historique d'inspection sans que personne n'ait retapé une marque.
+ * L'engin hors catalogue reste possible — on ne refuse pas une panne parce que
+ * la machine vient d'ailleurs — et c'est alors, et alors seulement, qu'on
+ * demande de la décrire.
+ *
+ * <h2>Le compteur</h2>
+ *
+ * Demandé à chaque fois, même pour une machine connue : c'est la seule donnée
+ * qui bouge entre deux interventions, et c'est elle qui décide d'une révision.
+ * Le reste est déjà en base.
+ */
+const MAINTENANCE: Journey = {
+  intent: 'MAINTAIN_EQUIPMENT',
+  kind: 'TECHNICIAN',
+  title: 'Je veux faire la maintenance de mon engin',
+  subtitle:
+    'Entretien courant, panne ou révision. Dites-nous quelle machine et ce qu’elle a : ' +
+    'un technicien intervient sur place.',
+  promise:
+    'VOLTA qualifie la panne, choisit le technicien capable d’intervenir et vous propose une date.',
+  steps: [
+    {
+      title: 'La machine',
+      intro: 'Si elle est au catalogue VOLTA, nous avons déjà ses caractéristiques.',
+      fields: [
+        {
+          name: 'equipmentId',
+          label: 'Engin concerné',
+          kind: 'select',
+          optionsFrom: 'equipment',
+          help: 'Laissez vide si votre machine n’est pas au catalogue.',
+          full: true,
+        },
+        {
+          name: 'equipmentLibre',
+          label: 'Votre machine : marque, modèle, année',
+          kind: 'text',
+          required: true,
+          full: true,
+          placeholder: 'Ex. : Caterpillar 320D, 2016',
+          showIf: (v) => !v.equipmentId,
+        },
+        {
+          name: 'hours',
+          label: 'Compteur horaire actuel',
+          kind: 'number',
+          required: true,
+          help: 'C’est lui qui décide d’une révision : il change entre deux interventions.',
+        },
+      ],
+    },
+    {
+      title: 'Ce qu’elle a',
+      fields: [
+        {
+          name: 'maintenanceType',
+          label: 'Type d’intervention',
+          kind: 'select',
+          options: TYPES_MAINTENANCE,
+          required: true,
+        },
+        {
+          name: 'urgency',
+          label: 'Priorité',
+          kind: 'select',
+          options: URGENCY,
+          required: true,
+        },
+        {
+          name: 'symptomes',
+          label: 'Ce que vous constatez',
+          kind: 'textarea',
+          required: true,
+          full: true,
+          placeholder:
+            'Bruit, fuite, voyant, perte de puissance, depuis quand, dans quelles conditions.',
+        },
+        {
+          name: 'immobilise',
+          label: 'La machine est à l’arrêt',
+          kind: 'checkbox',
+          full: true,
+          help: 'Une machine arrêtée passe devant une machine qui tourne encore.',
+        },
+      ],
+    },
+    {
+      title: 'L’intervention',
+      fields: [
+        {
+          name: 'siteLocation',
+          label: 'Lieu de l’intervention',
+          kind: 'text',
+          required: true,
+          help: 'Chantier, dépôt, atelier — l’adresse où le technicien se rend.',
+        },
+        { name: 'startDate', label: 'Date souhaitée', kind: 'date', required: true },
+        {
+          name: 'acces',
+          label: 'Contraintes d’accès ou de sécurité',
+          kind: 'textarea',
+          full: true,
+          help: 'Horaires d’ouverture, badge, piste difficile, équipement obligatoire.',
+        },
+        {
+          name: 'photo',
+          label: 'Photo de la panne (facultatif)',
+          kind: 'file',
+          accept: 'image/jpeg,image/png,application/pdf',
+          full: true,
+          help: 'Une photo du voyant, de la fuite ou de la pièce évite souvent un déplacement.',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+  subject: (v) =>
+    `Maintenance ${v.maintenanceType || ''} — ${v.equipmentLibre || v.equipmentId || 'engin'}`.replace(
+      '  ',
+      ' ',
+    ),
+  recap: (v) => [
+    v.equipmentId
+      ? 'Il s’agit d’un engin de votre sélection au catalogue VOLTA.'
+      : v.equipmentLibre
+        ? `Il s’agit de mon ${v.equipmentLibre}.`
+        : null,
+    v.hours ? `Le compteur affiche ${v.hours} heures.` : null,
+    v.maintenanceType ? `Je demande une intervention de type ${v.maintenanceType.toLowerCase()}.` : null,
+    v.immobilise === 'true' ? 'La machine est à l’arrêt.' : null,
+    v.symptomes ? `Ce que je constate : ${v.symptomes}` : null,
+    v.siteLocation ? `L’intervention a lieu à ${v.siteLocation}.` : null,
+    v.startDate ? `Je la souhaite à partir du ${v.startDate}.` : null,
+    v.urgency ? `Priorité : ${v.urgency.toLowerCase()}.` : null,
+    v.acces ? `Accès : ${v.acces}` : null,
+  ],
+}
+
 export const JOURNEYS: Journey[] = [
   RENT,
   FLEET,
@@ -1024,6 +1348,8 @@ export const JOURNEYS: Journey[] = [
   GOLD,
   SUPPORT,
   JOIN_TEAM,
+  FORMATION,
+  MAINTENANCE,
 ]
 
 export function journeyFor(intent: IntentId): Journey | undefined {

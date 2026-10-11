@@ -82,13 +82,32 @@ export function forgetVisitor(): void {
 }
 
 /** Les valeurs de formulaire à préremplir pour l'étape des coordonnées. */
-export function contactDefaults(profile: VisitorProfile | null): Record<string, string> {
-  if (!profile) return {}
+export function contactDefaults(
+  profile: VisitorProfile | null,
+  /**
+   * Le compte connecté, s'il y en a un.
+   *
+   * Il prime sur la mémoire de l'appareil : celle-ci garde ce qui a été tapé
+   * la dernière fois, lui porte ce que la personne a déclaré en s'inscrivant.
+   * Quand les deux divergent — un téléphone partagé, un collègue qui a déposé
+   * une demande depuis le même poste — c'est le compte qui dit la vérité.
+   *
+   * Un formulaire prérempli reste relu et corrigé avant l'envoi : il fait
+   * gagner la saisie, il ne décide de rien.
+   */
+  account?: { name?: string; company?: string; phone?: string; email?: string; city?: string } | null,
+): Record<string, string> {
   const filled: Record<string, string> = {}
-  if (profile.name) filled.contactName = profile.name
-  if (profile.company) filled.contactCompany = profile.company
-  if (profile.phone) filled.contactPhone = profile.phone
-  if (profile.email) filled.contactEmail = profile.email
-  if (profile.city) filled.contactCity = profile.city
+  if (profile?.name) filled.contactName = profile.name
+  if (profile?.company) filled.contactCompany = profile.company
+  if (profile?.phone) filled.contactPhone = profile.phone
+  if (profile?.email) filled.contactEmail = profile.email
+  if (profile?.city) filled.contactCity = profile.city
+
+  if (account?.name) filled.contactName = account.name
+  if (account?.company) filled.contactCompany = account.company
+  if (account?.phone) filled.contactPhone = account.phone
+  if (account?.email) filled.contactEmail = account.email
+  if (account?.city) filled.contactCity = account.city
   return filled
 }

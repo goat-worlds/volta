@@ -101,6 +101,8 @@ export default function App() {
                     dans un historique de navigation. */}
                 <Route path="/demande/location" element={<JourneyPage intent="RENT_EQUIPMENT" />} />
                 <Route path="/demande/technicien" element={<JourneyPage intent="FIND_TECHNICIAN" />} />
+                <Route path="/demande/maintenance" element={<JourneyPage intent="MAINTAIN_EQUIPMENT" />} />
+                <Route path="/demande/formation" element={<JourneyPage intent="TRAIN_TEAM" />} />
                 <Route path="/demande/base-vie" element={<JourneyPage intent="BUILD_BASE_LIFE" />} />
                 <Route path="/demande/flotte" element={<JourneyPage intent="FLEET_NEED" />} />
                 {/* Volta Market : la vitrine d'abord, le formulaire libre pour

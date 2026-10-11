@@ -83,7 +83,9 @@ export const INTENTS: Intent[] = [
     description:
       'Entretien courant, panne ou révision : un technicien intervient sur votre machine.',
     cta: 'Ne perdez plus de temps : demandez votre intervention de maintenance.',
-    to: '/demande/technicien',
+    // Menait au formulaire de recherche de technicien, qui ne demandait
+    // jamais de quelle machine il s'agissait.
+    to: '/demande/maintenance',
     icon: Wrench,
     image: '/engins/technicien-maintenance.jpeg',
     audience: 'CLIENT',
@@ -119,7 +121,9 @@ export const INTENTS: Intent[] = [
     description:
       'Conduite d’engins, sécurité, maintenance des machines, formations pratiques et certifiantes.',
     cta: 'Envoyez-nous votre planning de formation, nous préparons votre programme.',
-    to: '/recrutement',
+    // Menait au dépôt de CV : un chef d'entreprise qui voulait faire
+    // certifier six conducteurs arrivait sur une candidature individuelle.
+    to: '/demande/formation',
     icon: GraduationCap,
     image: '/engins/formation-equipe.jpeg',
     audience: 'CLIENT',
