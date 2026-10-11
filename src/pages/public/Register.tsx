@@ -204,11 +204,26 @@ export default function Register() {
             : { name, email, phone, password, role, company, city },
       )
       navigate(retour ?? HOME_BY_ROLE[user.role] ?? '/')
-    } catch {
+    } catch (err) {
+      /*
+       * Le serveur dit pourquoi ; l'écran le disait à sa place.
+       *
+       * Le refus était remplacé par une supposition — « l'email est peut-être
+       * déjà utilisé » — alors que le serveur avait répondu « Le RCCM et la DFE
+       * sont requis », ou « Un compte existe déjà avec ce numéro », ou « La
+       * pièce d'identité du gérant est requise ». Celui qui s'inscrivait
+       * corrigeait son adresse en boucle pendant que la vraie cause était
+       * ailleurs.
+       *
+       * La supposition ne sert plus que de dernier recours, quand le serveur
+       * est injoignable et qu'il n'y a donc aucun message à lire.
+       */
+      const raison = err instanceof Error ? err.message.trim() : ''
       setError(
-        estClient
-          ? 'Inscription impossible. Ce numéro est peut-être déjà enregistré.'
-          : "Inscription impossible. Vérifiez vos informations — l'email est peut-être déjà utilisé.",
+        raison ||
+          (estClient
+            ? 'Inscription impossible. Ce numéro est peut-être déjà enregistré.'
+            : "Inscription impossible. Vérifiez vos informations — l'email est peut-être déjà utilisé."),
       )
     } finally {
       setBusy(false)

@@ -1,10 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Clock, FileSignature, ShieldCheck } from 'lucide-react'
+import { Clock, Download, FileSignature, ShieldCheck } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { Card, PageTitle } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
-import { CONTRAT_CLAUSES, CONTRAT_PREAMBULE, CONTRAT_VERSION } from '../../lib/contrat'
+import {
+  CONTRAT_FICHIER,
+  CONTRAT_PREAMBULE,
+  CONTRAT_SOUS_TITRE,
+  CONTRAT_TEXTE,
+  CONTRAT_TITRE,
+  CONTRAT_VERSION,
+} from '../../lib/contrat'
+import ContractText from '../../components/contrat/ContractText'
 import { apiPost } from '../../store/api'
 import type { User } from '../../store/types'
 
@@ -169,29 +177,53 @@ export default function ClientContract() {
   )
 }
 
-/** Le texte lui-même, identique dans les trois états de l'écran. */
+/**
+ * Le texte lui-même, identique dans les trois états de l'écran.
+ *
+ * Dans un cadre à défilement propre : vingt articles poussés dans le flux de
+ * la page feraient disparaître la case d'acceptation et le bouton à deux
+ * écrans sous le pli. Ici le document se lit où il est, et ce qu'on attend du
+ * lecteur reste sous les yeux.
+ *
+ * Le téléchargement rend le fichier source, pas une reconstitution : c'est le
+ * même texte que celui affiché, et il ne peut donc pas en différer.
+ */
 function Clauses() {
+  const telecharger = () => {
+    const fichier = new Blob([CONTRAT_TEXTE], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(fichier)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = CONTRAT_FICHIER
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <Card className="p-5 sm:p-6">
-      <p className="text-sm leading-relaxed text-papier-700">{CONTRAT_PREAMBULE}</p>
-      <ol className="mt-5 space-y-5">
-        {CONTRAT_CLAUSES.map((c, i) => (
-          <li key={c.titre} className="flex gap-3">
-            <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-acier-900 text-[11px] font-bold text-white">
-              {i + 1}
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-bold text-acier-900">{c.titre}</span>
-              <span className="mt-1 block text-sm leading-relaxed text-papier-700">{c.texte}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-      <p className="mt-5 flex items-start gap-2 rounded-lg bg-papier-50 px-3 py-2.5 text-xs leading-relaxed text-papier-700">
-        <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-btp-600" aria-hidden />
-        Ces engagements valent pour chaque marché apporté par VOLTA, pour toute la durée de la
-        collaboration.
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="volta-display text-xl text-acier-900">{CONTRAT_TITRE}</h2>
+          <p className="mt-1 text-sm text-papier-600">{CONTRAT_SOUS_TITRE}</p>
+          <p className="mt-1 text-xs text-papier-500">Version {CONTRAT_VERSION}</p>
+        </div>
+        <button
+          type="button"
+          onClick={telecharger}
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-papier-200 px-4 py-2 text-sm font-semibold text-acier-900 transition hover:border-btp-400"
+        >
+          <Download size={15} aria-hidden />
+          Télécharger
+        </button>
+      </div>
+
+      <p className="mt-4 rounded-lg bg-papier-50 px-4 py-3 text-sm leading-relaxed text-papier-700">
+        {CONTRAT_PREAMBULE}
       </p>
+
+      <div className="mt-4 max-h-[60vh] overflow-y-auto rounded-lg border border-papier-200 p-4 sm:p-5">
+        <ContractText source={CONTRAT_TEXTE} />
+      </div>
     </Card>
   )
 }
