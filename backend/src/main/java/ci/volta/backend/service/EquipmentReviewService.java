@@ -1,9 +1,11 @@
 package ci.volta.backend.service;
 
 import ci.volta.backend.domain.RentalWorkflow;
+import ci.volta.backend.model.EquipmentLike;
 import ci.volta.backend.model.EquipmentReview;
 import ci.volta.backend.model.RentalRequest;
 import ci.volta.backend.model.UserAccount;
+import ci.volta.backend.repository.EquipmentLikeRepository;
 import ci.volta.backend.repository.EquipmentReviewRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.security.CurrentUser;
@@ -49,13 +51,16 @@ public class EquipmentReviewService {
             RentalWorkflow.IN_PROGRESS, RentalWorkflow.COMPLETED);
 
     private final EquipmentReviewRepository reviews;
+    private final EquipmentLikeRepository likes;
     private final RentalRequestRepository rentals;
     private final CurrentUser currentUser;
     private final AuditService audit;
 
-    public EquipmentReviewService(EquipmentReviewRepository reviews, RentalRequestRepository rentals,
+    public EquipmentReviewService(EquipmentReviewRepository reviews, EquipmentLikeRepository likes,
+                                  RentalRequestRepository rentals,
                                   CurrentUser currentUser, AuditService audit) {
         this.reviews = reviews;
+        this.likes = likes;
         this.rentals = rentals;
         this.currentUser = currentUser;
         this.audit = audit;
@@ -169,6 +174,46 @@ public class EquipmentReviewService {
         r.hidden = hidden;
         reviews.save(r);
         audit.record(hidden ? "REVIEW_HIDDEN" : "REVIEW_RESTORED", "EQUIPMENT", r.equipmentId, "", reviewId);
+    }
+
+    /**
+     * Les « j'aime » d'un engin, et si l'appelant en fait partie.
+     *
+     * Public, contrairement au favori qui range une machine dans sa propre
+     * liste. Un visiteur sans compte voit le compte et ne peut pas voter :
+     * un compteur anonyme se gonfle en rechargeant la page.
+     */
+    public record LikeState(String equipmentId, long count, boolean liked) {
+    }
+
+    @Transactional(readOnly = true)
+    public List<LikeState> likeCounts() {
+        String moi = currentUser.optional().map(u -> u.id).orElse(null);
+        Set<String> miens = moi == null ? Set.of()
+                : likes.findByClientId(moi).stream().map(l -> l.equipmentId).collect(Collectors.toSet());
+        return likes.findAll().stream()
+                .collect(Collectors.groupingBy(l -> l.equipmentId, Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> new LikeState(e.getKey(), e.getValue(), miens.contains(e.getKey())))
+                .toList();
+    }
+
+    /** Aimer, ou retirer son « j'aime ». Le même geste dans les deux sens. */
+    @Transactional
+    public LikeState toggleLike(String equipmentId) {
+        UserAccount me = currentUser.require();
+        var existant = likes.findByEquipmentIdAndClientId(equipmentId, me.id);
+        if (existant.isPresent()) {
+            likes.delete(existant.get());
+            return new LikeState(equipmentId, likes.countByEquipmentId(equipmentId), false);
+        }
+        EquipmentLike l = new EquipmentLike();
+        l.id = "like-" + UUID.randomUUID().toString().substring(0, 8);
+        l.equipmentId = equipmentId;
+        l.clientId = me.id;
+        l.createdAt = Instant.now().toString();
+        likes.save(l);
+        return new LikeState(equipmentId, likes.countByEquipmentId(equipmentId), true);
     }
 
     private boolean aLoue(String equipmentId, UserAccount me) {

@@ -44,3 +44,23 @@ export const mayReview = (equipmentId: string) =>
 
 export const postReview = (equipmentId: string, rating: number, comment: string) =>
   apiPost<Review>(`/equipment/${equipmentId}/reviews`, { rating, comment })
+
+/**
+ * Le compteur public de « j'aime ».
+ *
+ * À ne pas confondre avec les favoris, qui rangent une machine dans la liste
+ * de celui qui l'a mise de côté. Celui-ci est un signal public : il dit aux
+ * autres que cette machine plaît. Un favori retiré ne doit pas faire baisser
+ * une note publique, ce que personne n'attend en vidant sa liste.
+ */
+export interface LikeState {
+  equipmentId: string
+  count: number
+  /** Vrai si l'appelant a déjà voté. Faux pour un visiteur sans compte. */
+  liked: boolean
+}
+
+export const listLikes = () => apiGet<LikeState[]>('/equipment/likes')
+
+export const toggleLike = (equipmentId: string) =>
+  apiPost<LikeState>(`/equipment/${equipmentId}/like`)

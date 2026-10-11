@@ -51,6 +51,17 @@ public class EquipmentReviewController {
         return service.submit(id, body);
     }
 
+    /** Les « j'aime » de tous les engins, et ceux de l'appelant. */
+    @GetMapping("/equipment/likes")
+    public List<EquipmentReviewService.LikeState> likes() {
+        return service.likeCounts();
+    }
+
+    @PostMapping("/equipment/{id}/like")
+    public EquipmentReviewService.LikeState toggleLike(@PathVariable String id) {
+        return service.toggleLike(id);
+    }
+
     public record HiddenBody(boolean hidden) {
     }
 

@@ -60,6 +60,7 @@ const AdminAudit = lazy(() => import('./pages/admin/AdminAudit'))
 const AdminMarket = lazy(() => import('./pages/admin/AdminMarket'))
 const AdminQuotes = lazy(() => import('./pages/admin/AdminQuotes'))
 const AdminCompanies = lazy(() => import('./pages/admin/AdminCompanies'))
+const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'))
 
 const TechnicalDashboard = lazy(() => import('./pages/technical/TechnicalDashboard'))
 const TechnicalMissions = lazy(() => import('./pages/technical/TechnicalMissions'))
@@ -175,6 +176,7 @@ export default function App() {
                 <Route path="/admin/market" element={<AdminMarket />} />
                 <Route path="/admin/devis" element={<AdminQuotes />} />
                 <Route path="/admin/entreprises" element={<AdminCompanies />} />
+                <Route path="/admin/categories" element={<AdminCategories />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/audit" element={<AdminAudit />} />
                 <Route path="/admin/notifications" element={<NotificationsPage />} />

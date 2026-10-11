@@ -1,6 +1,7 @@
 import {
   AlertOctagon,
   Bell,
+  Boxes,
   Building2,
   CalendarCheck,
   FileSignature,
@@ -134,6 +135,7 @@ const TREE: NavSection[] = [
       // celui-ci tranche, et un dossier non vu est un compte qui reste
       // fermé sans que personne ne sache pourquoi.
       { to: '/admin/entreprises', label: 'Clients entreprises', icon: Building2, roles: ['ADMIN'] },
+      { to: '/admin/categories', label: 'Catégories', icon: Boxes, roles: ['ADMIN'] },
       { to: '/admin/users', label: 'Utilisateurs', icon: Users, roles: ['ADMIN'] },
       { to: '/admin/audit', label: 'Journal d’audit', icon: ScrollText, roles: ['ADMIN'] },
     ],

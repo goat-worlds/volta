@@ -11,6 +11,7 @@ import { Card, EmptyState, LevelBadge, Modal, fmtPrice } from '../../components/
 import { useToast } from '../../components/feedback/Toaster'
 import TechnicalSpecs from '../../components/equipment/TechnicalSpecs'
 import EquipmentReviews from '../../components/equipment/EquipmentReviews'
+import LikeButton from '../../components/equipment/LikeButton'
 import { lienWhatsapp } from '../../lib/whatsapp'
 
 export default function EquipmentDetail() {
@@ -181,9 +182,14 @@ export default function EquipmentDetail() {
         </div>
 
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold">{eq.name}</h1>
-            <LevelBadge level={eq.level} />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold">{eq.name}</h1>
+              <LevelBadge level={eq.level} />
+            </div>
+            {/* Public, et distinct du favori : celui-ci dit aux autres que la
+                machine plaît, l'autre la range dans sa propre liste. */}
+            <LikeButton equipmentId={eq.id} />
           </div>
           <div className="mt-1 text-sm text-papier-600">
             {cat?.name} · {eq.brand} {eq.model}

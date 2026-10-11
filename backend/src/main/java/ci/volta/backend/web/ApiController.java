@@ -121,6 +121,32 @@ public class ApiController {
         return service.updateUser(id, body);
     }
 
+    public record CategoryImageBody(String image) {
+    }
+
+    /**
+     * La photo d'une catégorie.
+     *
+     * Le pictogramme suffit dans un filtre, pas sur une carte : « Niveleuse »
+     * et « Compacteur » se distinguent à l'image avant de se lire. L'adresse
+     * posée ici est celle d'une photo déjà téléversée — la catégorie ne porte
+     * pas le fichier, seulement son chemin.
+     *
+     * Réservée à l'administration par la règle « /api/admin/** » : une
+     * catégorie est une rubrique du catalogue, pas le bien d'un fournisseur —
+     * qui la changerait changerait la vitrine de tous les autres.
+     */
+    @PostMapping("/admin/categories/{id}/image")
+    public Category setCategoryImage(@PathVariable String id, @RequestBody CategoryImageBody body) {
+        Category c = categoryRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Catégorie introuvable : " + id));
+        String image = body == null || body.image() == null || body.image().isBlank()
+                ? null : body.image().trim();
+        c.image = image;
+        return categoryRepository.save(c);
+    }
+
     @GetMapping("/categories")
     public List<Category> categories() {
         return categoryRepository.findAll();

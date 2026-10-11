@@ -86,6 +86,12 @@ public class SecurityConfig {
                                  "/api/equipment/reviews/summaries").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/equipment/*/reviews").hasRole("CLIENT")
 
+                // Le compteur se lit sans compte — c'est un signal public.
+                // Voter en exige un : un compteur anonyme se gonfle en
+                // rechargeant la page.
+                .requestMatchers(HttpMethod.GET, "/api/equipment/likes").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/equipment/*/like").authenticated()
+
                 // Le prix plancher appartient au fournisseur qui l'a fixé ;
                 // l'administration le voit pour négocier. Jamais le client.
                 .requestMatchers("/api/equipment/*/price-floor").hasAnyRole("SUPPLIER", "ADMIN")

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { apiPost } from '../../store/api'
 import { useNavigate } from 'react-router-dom'
 import { FileText, Loader2, Upload, X } from 'lucide-react'
 import { photosForCategory } from '../../lib/enginPhotos'
@@ -26,6 +27,21 @@ export default function SupplierEquipmentNew() {
     withOperator: false,
     description: '',
     declaredCondition: 'Bon état',
+    // Les caractéristiques de plaque, telles qu'elles sont écrites sur l'engin.
+    power: '',
+    operatingWeight: '',
+    bucketCapacity: '',
+    dimensions: '',
+    otherSpecs: '',
+    /**
+     * Le prix sous lequel vous ne descendez pas.
+     *
+     * Vide par défaut : forcer une valeur ferait entrer un plancher que le
+     * fournisseur n'a pas choisi, et VOLTA négocierait contre une borne
+     * inventée. Chaîne et non nombre, pour distinguer « pas de plancher »
+     * d'un plancher à zéro.
+     */
+    priceFloor: '',
   })
   const [photos, setPhotos] = useState<string[]>([])
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([])
@@ -77,14 +93,30 @@ export default function SupplierEquipmentNew() {
   const finish = async (submit: boolean) => {
     setSaving(true)
     try {
+      const { priceFloor, ...fiche } = form
       const eq = await addEquipment({
-        ...form,
+        ...fiche,
         photos: photos.length ? photos : [gallery[0].src],
         documents,
         // Le serveur ignore ce champ et retient l'utilisateur authentifié ;
         // il reste envoyé pour que le contrat de l'API soit complet.
         supplierId: currentUser?.id ?? '',
       })
+
+      /*
+       * Le plancher voyage à part, et c'est voulu.
+       *
+       * Il est marqué « jamais sérialisé » côté serveur : il ne part avec
+       * aucune fiche, aucune liste, aucun catalogue — c'est le seul réglage
+       * qui résiste à un écran ajouté demain sans y penser. La contrepartie
+       * est qu'il ne rentre pas non plus par la fiche, et doit être posé par
+       * sa propre route.
+       */
+      const plancher = Number(priceFloor)
+      if (priceFloor.trim() && plancher > 0) {
+        await apiPost(`/equipment/${eq.id}/price-floor`, { amount: plancher })
+      }
+
       if (submit) await submitEquipment(eq.id)
       navigate('/supplier/equipment')
     } finally {
@@ -152,8 +184,29 @@ export default function SupplierEquipmentNew() {
                 <input type="number" className={input} value={form.hours} onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })} />
               </div>
               <div>
-                <label className={label}>Prix indicatif / heure (FCFA)</label>
-                <input type="number" className={input} value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: Number(e.target.value) })} />
+                <label className={label} htmlFor="eq-prix">Prix affiché / heure (FCFA)</label>
+                <input id="eq-prix" type="number" className={input} value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: Number(e.target.value) })} />
+                <p className="mt-1 text-xs text-slate-500">
+                  C’est la première proposition faite au client.
+                </p>
+              </div>
+              <div>
+                <label className={label} htmlFor="eq-plancher">Votre prix minimum / heure (FCFA)</label>
+                <input
+                  id="eq-plancher"
+                  type="number"
+                  min={0}
+                  placeholder="Facultatif"
+                  className={input}
+                  value={form.priceFloor}
+                  onChange={(e) => setForm({ ...form, priceFloor: e.target.value })}
+                />
+                {/* Dit explicitement, parce que c'est la question que se pose
+                    tout fournisseur avant de l'écrire : le client ne le voit
+                    jamais. Il ne part avec aucune fiche ni aucun catalogue. */}
+                <p className="mt-1 text-xs text-slate-500">
+                  Jamais montré au client. VOLTA ne négocie pas en dessous.
+                </p>
               </div>
               <div>
                 <label className={label}>Localisation</label>
@@ -169,9 +222,59 @@ export default function SupplierEquipmentNew() {
               </div>
             </div>
             <div>
-              <label className={label}>Description</label>
-              <textarea className={input} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <label className={label} htmlFor="eq-description">Description</label>
+              <textarea id="eq-description" className={input} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
+
+            {/* Les caractéristiques de plaque.
+                
+                Elles décident de la location : celui qui doit déplacer
+                3000 m³ d'argile compare des puissances et des godets, pas des
+                millésimes. Sans elles, il appelle pour les demander — ou il
+                va les chercher ailleurs.
+                
+                Aucune n'est obligatoire : un fournisseur qui n'a pas sa
+                documentation sous la main doit pouvoir enregistrer sa machine
+                et revenir les compléter, plutôt que d'abandonner le dépôt. */}
+            <fieldset className="rounded-lg border border-slate-200 p-4">
+              <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Caractéristiques techniques
+              </legend>
+              <p className="mb-3 text-xs text-slate-500">
+                Recopiez-les de votre documentation, avec leurs unités. Elles sont affichées telles
+                quelles sur la fiche.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={label} htmlFor="eq-puissance">Puissance</label>
+                  <input id="eq-puissance" className={input} placeholder="148 kW (198 ch)" value={form.power} onChange={(e) => setForm({ ...form, power: e.target.value })} />
+                </div>
+                <div>
+                  <label className={label} htmlFor="eq-poids">Poids opérationnel</label>
+                  <input id="eq-poids" className={input} placeholder="21 500 kg" value={form.operatingWeight} onChange={(e) => setForm({ ...form, operatingWeight: e.target.value })} />
+                </div>
+                <div>
+                  <label className={label} htmlFor="eq-godet">Capacité du godet</label>
+                  <input id="eq-godet" className={input} placeholder="1,20 m³" value={form.bucketCapacity} onChange={(e) => setForm({ ...form, bucketCapacity: e.target.value })} />
+                </div>
+                <div>
+                  <label className={label} htmlFor="eq-dimensions">Dimensions</label>
+                  <input id="eq-dimensions" className={input} placeholder="9,50 × 2,99 × 3,10 m" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} />
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className={label} htmlFor="eq-options">Équipements et options</label>
+                <textarea
+                  id="eq-options"
+                  className={input}
+                  rows={3}
+                  placeholder={'Attache rapide hydraulique\nFlèche 5,70 m\nClimatisation cabine'}
+                  value={form.otherSpecs}
+                  onChange={(e) => setForm({ ...form, otherSpecs: e.target.value })}
+                />
+                <p className="mt-1 text-xs text-slate-500">Une option par ligne.</p>
+              </div>
+            </fieldset>
             <div className="flex gap-6 text-sm">
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} />
