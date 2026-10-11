@@ -1,21 +1,27 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
-  BadgeCheck, Calendar, CheckCircle2, Gauge, HardHat, MapPin, Wrench, XCircle,
+  Calendar, CalendarCheck, CheckCircle2, Gauge, HardHat, MapPin, MessageCircle,
+  ShieldCheck, Wrench, XCircle,
 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { createRequest, type RequestReceipt } from '../../services/requests'
 import { equipmentRef } from '../../lib/references'
 import { Card, EmptyState, LevelBadge, Modal, fmtPrice } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
+import TechnicalSpecs from '../../components/equipment/TechnicalSpecs'
+import EquipmentReviews from '../../components/equipment/EquipmentReviews'
+import { lienWhatsapp } from '../../lib/whatsapp'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { equipment, categories, users, currentUser } = useStore()
+  const { equipment, categories, currentUser } = useStore()
   const eq = equipment.find((e) => e.id === id)
   const [modalOpen, setModalOpen] = useState(false)
+  /** La photo montrée en grand ; les vignettes la changent. */
+  const [photoActive, setPhotoActive] = useState(0)
   const toast = useToast()
   const [sending, setSending] = useState(false)
   const [form, setForm] = useState({
@@ -43,7 +49,6 @@ export default function EquipmentDetail() {
   }
 
   const cat = categories.find((c) => c.id === eq.categoryId)
-  const supplier = users.find((u) => u.id === eq.supplierId)
 
   /**
    * Un compte est exigé pour demander un prix.
@@ -125,28 +130,93 @@ export default function EquipmentDetail() {
 
   const input = 'w-full rounded-lg border border-papier-200 p-2 text-sm'
 
+  /* La photo regardée en grand.
+
+     La fiche posait la première photo en grand et les autres en vignettes
+     inertes : on voyait qu'il y en avait six, on n'en voyait qu'une. Cliquer
+     une vignette la met au-dessus — c'est le geste qu'on fait d'instinct, et
+     il ne coûte qu'un index. */
+  const photos = eq.photos.length > 0 ? eq.photos : ['/images/placeholders/equipment.svg']
+  const grande = photos[Math.min(photoActive, photos.length - 1)]
+
+  const lienWa = lienWhatsapp({
+    /* « Komatsu PC210LC-8 — Komatsu PC210LC-8 » : le nom porte déjà la marque
+       et le modèle sur la plupart des fiches. On ne les ajoute que s'ils
+       manquent, sinon le message s'ouvre sur une répétition. */
+    objet: eq.name.includes(eq.model) ? eq.name : `${eq.name} — ${eq.brand} ${eq.model}`,
+    reference: equipmentRef(eq.id),
+    precision: `Tarif affiché : ${fmtPrice(eq.pricePerDay)} / heure`,
+  })
+
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-8">
+    <div className="mx-auto max-w-6xl px-4 pb-16 pt-8">
       <Link to="/catalogue" className="text-sm font-medium text-blue-600 hover:underline">← Retour au catalogue</Link>
+
       <div className="mt-4 grid gap-6 lg:grid-cols-2">
         <div>
-          <img loading="lazy" src={eq.photos[0] || '/images/placeholders/equipment.svg'} alt={eq.name} className="h-80 w-full rounded-xl object-cover" />
-          <div className="mt-2 flex gap-2">
-            {eq.photos.map((p, i) => (
-              <img loading="lazy" key={i} src={p} alt="" className="h-16 w-24 rounded-lg object-cover" />
-            ))}
-          </div>
+          <img
+            loading="eager"
+            src={grande}
+            alt={eq.name}
+            className="h-72 w-full rounded-xl object-cover sm:h-80"
+          />
+          {photos.length > 1 && (
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+              {photos.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setPhotoActive(i)}
+                  aria-label={`Photo ${i + 1} sur ${photos.length}`}
+                  aria-current={i === photoActive ? 'true' : undefined}
+                  className={`shrink-0 overflow-hidden rounded-lg ring-2 transition ${
+                    i === photoActive ? 'ring-btp-500' : 'ring-transparent hover:ring-papier-300'
+                  }`}
+                >
+                  <img loading="lazy" src={p} alt="" className="h-16 w-24 object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold">{eq.name}</h1>
             <LevelBadge level={eq.level} />
           </div>
           <div className="mt-1 text-sm text-papier-600">
             {cat?.name} · {eq.brand} {eq.model}
           </div>
-          <div className="mt-3 text-2xl font-bold text-blue-700">{fmtPrice(eq.pricePerDay)} / heure</div>
-          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+
+          {/* Le tarif, et ce qu'il est.
+
+              Le chiffre seul se lisait comme un prix ferme : un client qui
+              trouvait ensuite autre chose sur son devis se sentait trompé.
+              C'est la première proposition — le devis part de là. */}
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-blue-700">
+              {fmtPrice(eq.pricePerDay)} <span className="text-base font-semibold">/ heure</span>
+            </div>
+            <p className="mt-0.5 text-xs text-papier-600">
+              Tarif de départ. Votre devis est établi sur la durée et le lieu du chantier.
+            </p>
+          </div>
+
+          {/* La disponibilité en tête, séparée du reste : c'est la première
+              chose qu'on vérifie, et elle décide si l'on lit la suite. */}
+          <div
+            className={`mt-4 flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold ${
+              eq.available
+                ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200'
+                : 'bg-red-50 text-red-800 ring-1 ring-red-200'
+            }`}
+          >
+            {eq.available ? <CheckCircle2 size={16} aria-hidden /> : <XCircle size={16} aria-hidden />}
+            {eq.available ? 'Disponible à la location' : 'Indisponible pour le moment'}
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <Card className="flex items-center gap-2 p-3">
               <MapPin size={15} className="shrink-0 text-papier-600" />
               {eq.location}
@@ -163,45 +233,73 @@ export default function EquipmentDetail() {
               <Wrench size={15} className="shrink-0 text-papier-600" />
               {eq.declaredCondition}
             </Card>
-            <Card className="flex items-center gap-2 p-3">
-              {eq.available ? (
-                <CheckCircle2 size={15} className="shrink-0 text-emerald-600" />
-              ) : (
-                <XCircle size={15} className="shrink-0 text-red-500" />
-              )}
-              {eq.available ? 'Disponible' : 'Indisponible'}
-            </Card>
-            <Card className="flex items-center gap-2 p-3">
-              <HardHat size={15} className="shrink-0 text-papier-600" />
-              Avec opérateur
-            </Card>
+            {eq.withOperator && (
+              <Card className="flex items-center gap-2 p-3">
+                <HardHat size={15} className="shrink-0 text-papier-600" />
+                Opérateur possible
+              </Card>
+            )}
+            {/* La date dit depuis quand la machine est contrôlée. Un parc
+                inspecté il y a trois ans et un parc inspecté le mois dernier
+                portent le même badge ; seule la date les sépare. */}
+            {eq.lastInspectionAt && (
+              <Card className="flex items-center gap-2 p-3">
+                <ShieldCheck size={15} className="shrink-0 text-emerald-600" />
+                Inspecté le {new Date(eq.lastInspectionAt).toLocaleDateString('fr-FR')}
+              </Card>
+            )}
           </div>
-          <p className="mt-4 text-sm text-papier-600">{eq.description}</p>
-          <Card className="mt-4 p-4 text-sm">
-            <div className="font-semibold">Fournisseur</div>
-            <div className="mt-1 text-papier-600">{supplier?.company} — {supplier?.city}</div>
-            <div className="mt-1 flex items-center gap-1.5 text-xs text-emerald-600">
-              <BadgeCheck size={14} />
-              Fournisseur vérifié VOLTA
-            </div>
+
+          <p className="mt-4 text-sm leading-relaxed text-papier-600">{eq.description}</p>
+
+          <Card className="mt-4 flex items-start gap-3 p-4 text-sm">
+            <ShieldCheck size={18} className="mt-0.5 shrink-0 text-btp-500" aria-hidden />
+            <span>
+              <span className="block font-semibold text-acier-900">Fournisseur vérifié par VOLTA</span>
+              {/* L'identité ne sort pas de la plateforme : le client sait qu'il
+                  y a un propriétaire contrôlé, et c'est VOLTA qui en répond. */}
+              <span className="mt-0.5 block text-papier-600">
+                Parc contrôlé avant mise en ligne. VOLTA reste votre interlocuteur du devis à la
+                restitution.
+              </span>
+            </span>
           </Card>
-          {/* Une seule action, et c'est VOLTA qui répond. La fiche proposait
-              aussi « Contacter le fournisseur », qui ouvrait ses coordonnées
-              directes : le client partait négocier hors plateforme, et VOLTA
-              sortait du circuit dès la première page. La demande passe
-              désormais par VOLTA, qui qualifie et revient vers le client. */}
-          <div className="mt-5">
+
+          {/* Deux voies vers la même équipe : le formulaire pour qui veut un
+              devis écrit, WhatsApp pour qui est sur un chantier et parle plus
+              vite qu'il n'écrit. Le message part déjà rempli de l'objet et de
+              la référence — sans quoi il faut trois échanges pour apprendre de
+              quelle machine on parle. */}
+          <div className="mt-5 grid gap-2">
             <button
               onClick={handleQuoteClick}
-              className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
-              Demander un devis
+              <CalendarCheck size={17} aria-hidden />
+              Demander un devis — choisir mes dates
             </button>
-            <p className="mt-2 text-center text-xs text-papier-600">
-              Décrivez votre besoin en quelques champs. VOLTA le confronte à son réseau d’engins vérifiés.
+            <a
+              href={lienWa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] py-3 font-semibold text-white transition hover:bg-[#1da851]"
+            >
+              <MessageCircle size={17} aria-hidden />
+              Écrire sur WhatsApp
+            </a>
+            <p className="text-center text-xs text-papier-600">
+              Décrivez votre besoin en quelques champs. VOLTA le confronte à son réseau d’engins
+              vérifiés.
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Sous le pli : ce qui se lit quand on a déjà décidé que la machine
+          pourrait convenir — les chiffres, puis l'avis de ceux qui l'ont eue. */}
+      <div className="mt-8 grid gap-5 lg:grid-cols-2">
+        <TechnicalSpecs eq={eq} />
+        <EquipmentReviews equipmentId={eq.id} equipmentName={eq.name} />
       </div>
 
       <Modal
