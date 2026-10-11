@@ -74,6 +74,19 @@ public class Equipment {
      * à chaque vignette coûterait une requête par engin pour une date qui ne
      * change que deux fois par an.
      */
+    /**
+     * Combien de fois l'engin a été annoncé disponible sans l'être.
+     *
+     * Une disponibilité affichée est une promesse : c'est sur elle que VOLTA
+     * engage un marché, et c'est elle qui s'effondre quand la machine n'est pas
+     * là. Un oubli se comprend ; trois ne sont plus un oubli.
+     *
+     * Au troisième, l'engin quitte le catalogue. Le fournisseur garde son
+     * compte et sa fiche — il peut corriger et resoumettre — mais sa machine ne
+     * s'affiche plus tant qu'elle n'a pas repassé le circuit.
+     */
+    public int unavailabilityStrikes;
+
     public String lastInspectionAt;
 
     /**

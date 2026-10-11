@@ -691,6 +691,64 @@ public class VoltaService {
                         "Engin introuvable : " + id));
     }
 
+    /**
+     * Au bout de combien de manquements l'engin quitte le catalogue.
+     *
+     * Trois, parce qu'un oubli se comprend, qu'une relance se tolère, et qu'au
+     * troisième ce n'est plus un accident. Le chiffre est dit au fournisseur
+     * dans le contrat qu'il signe : une sanction qu'on découvre en la
+     * recevant n'en est pas une, c'est une surprise.
+     */
+    public static final int MANQUEMENTS_AVANT_RETRAIT = 3;
+
+    /**
+     * VOLTA constate qu'un engin annoncé disponible ne l'était pas.
+     *
+     * <h2>Pourquoi cela compte</h2>
+     *
+     * Une disponibilité affichée est une promesse : c'est sur elle que VOLTA
+     * engage un marché auprès d'un client, et c'est elle qui s'effondre quand
+     * la machine n'est pas là. Le fournisseur perd une location ; VOLTA perd
+     * la confiance du client, qu'elle ne récupère pas en expliquant que ce
+     * n'était pas sa machine.
+     *
+     * <h2>Ce qui se passe au troisième</h2>
+     *
+     * L'engin quitte le catalogue. Le fournisseur garde son compte et sa
+     * fiche — il peut corriger et resoumettre — mais sa machine ne s'affiche
+     * plus tant qu'elle n'a pas repassé le circuit. On retire l'engin, pas le
+     * fournisseur : une machine mal suivie ne condamne pas un parc entier.
+     *
+     * Le compteur ne se remet pas à zéro tout seul. Le remettre à chaque
+     * publication permettrait d'absorber un manquement en dépubliant une
+     * journée.
+     */
+    public Equipment reportUnavailability(String equipmentId, String motif) {
+        currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        Equipment eq = requireEquipment(equipmentId);
+
+        eq.unavailabilityStrikes = eq.unavailabilityStrikes + 1;
+        eq.available = false;
+
+        boolean retire = eq.unavailabilityStrikes >= MANQUEMENTS_AVANT_RETRAIT
+                && EquipmentWorkflow.PUBLISHED.equals(eq.status);
+        if (retire) {
+            eq.status = EquipmentWorkflow.UNPUBLISHED;
+        }
+        eq = equipmentRepository.save(eq);
+
+        String raison = motif == null ? "" : motif.trim();
+        String detail = eq.unavailabilityStrikes + "/" + MANQUEMENTS_AVANT_RETRAIT
+                + (raison.isEmpty() ? "" : " — " + raison);
+        notify(CurrentUser.ROLE_SUPPLIER, retire
+                ? eq.name + " est retiré du catalogue après " + MANQUEMENTS_AVANT_RETRAIT
+                        + " manquements de disponibilité."
+                : eq.name + " : disponibilité non tenue (" + detail + ").");
+        audit.record(retire ? "EQUIPMENT_WITHDRAWN_UNAVAILABILITY" : "EQUIPMENT_UNAVAILABILITY",
+                "EQUIPMENT", eq.id, eq.reference, detail);
+        return eq;
+    }
+
     public Equipment addEquipment(Equipment equipment) {
         if (!currentUser.isAdmin() || equipment.supplierId == null || equipment.supplierId.isBlank()) {
             equipment.supplierId = currentUser.requireId();

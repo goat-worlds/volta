@@ -143,6 +143,27 @@ export default function EquipmentDetail() {
   const photos = eq.photos.length > 0 ? eq.photos : ['/images/placeholders/equipment.svg']
   const grande = photos[Math.min(photoActive, photos.length - 1)]
 
+  /** Aujourd'hui, au format du champ date : on ne loue pas dans le passé. */
+  const aujourdHui = new Date().toISOString().slice(0, 10)
+
+  /**
+   * L'estimation, à partir de la période saisie.
+   *
+   * Huit heures par jour : c'est la journée de chantier, et c'est sur elle que
+   * se facture une location. Compter vingt-quatre donnerait un chiffre que
+   * personne ne facture et qui ferait fuir avant la demande.
+   *
+   * Nulle tant que la période n'est pas complète ou cohérente — une estimation
+   * calculée sur des dates inversées vaudrait moins que pas d'estimation.
+   */
+  const estimation = (() => {
+    const debut = Date.parse(form.startDate)
+    const fin = Date.parse(form.endDate)
+    if (Number.isNaN(debut) || Number.isNaN(fin) || fin < debut) return null
+    const jours = Math.round((fin - debut) / 86_400_000) + 1
+    return { jours, total: eq.pricePerDay * 8 * jours * Math.max(1, form.quantity) }
+  })()
+
   const lienWa = lienWhatsapp({
     /* « Komatsu PC210LC-8 — Komatsu PC210LC-8 » : le nom porte déjà la marque
        et le modèle sur la plupart des fiches. On ne les ajoute que s'ils
@@ -350,20 +371,84 @@ export default function EquipmentDetail() {
           <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">
             Votre demande est traitée par VOLTA. Pas besoin de compte : vos coordonnées suffisent.
           </p>
+          {/* Le calendrier ne propose pas le passé, et la fin ne précède pas
+              le début : une période impossible part sinon au serveur, qui la
+              refuse — après que le visiteur a tout rempli. */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-papier-600">Date de début *</label>
-              <input required type="date" className={input} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+              <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-debut">
+                Date de début *
+              </label>
+              <input
+                id="devis-debut"
+                required
+                type="date"
+                min={aujourdHui}
+                className={input}
+                value={form.startDate}
+                onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+              />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-papier-600">Date de fin *</label>
-              <input required type="date" className={input} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+              <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-fin">
+                Date de fin *
+              </label>
+              <input
+                id="devis-fin"
+                required
+                type="date"
+                min={form.startDate || aujourdHui}
+                className={input}
+                value={form.endDate}
+                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+              />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-papier-600">Quantité *</label>
-            <input required type="number" min="1" className={input} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) || 1 })} />
+            <label className="mb-1 block text-xs font-medium text-papier-600" htmlFor="devis-quantite">
+              Quantité *
+            </label>
+            <input
+              id="devis-quantite"
+              required
+              type="number"
+              min="1"
+              className={input}
+              value={form.quantity}
+              onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) || 1 })}
+            />
           </div>
+
+          {/* L'estimation, dès que la période est saisie.
+              
+              Elle répond à la question qu'on se pose avant d'envoyer une
+              demande — « est-ce que c'est dans mes moyens ? » — et à laquelle
+              il fallait jusqu'ici attendre notre réponse. Elle n'engage
+              personne, et le dit : le tarif affiché est un départ, le devis
+              tient compte de la durée, du lieu et du transport.
+              
+              Huit heures par jour, qui est la journée de chantier. Compter
+              vingt-quatre donnerait un chiffre que personne ne facture. */}
+          {estimation && (
+            <div className="rounded-lg border border-btp-200 bg-btp-50 p-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-papier-600">
+                  Estimation indicative
+                </span>
+                <span className="text-lg font-bold text-btp-700">
+                  {fmtPrice(estimation.total)}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-papier-700">
+                {estimation.jours} jour{estimation.jours > 1 ? 's' : ''} × 8 h
+                {form.quantity > 1 ? ` × ${form.quantity} engins` : ''} au tarif affiché.
+              </p>
+              <p className="mt-1 text-xs text-papier-600">
+                Ce n’est pas un devis : le prix final tient compte du lieu, du transport et de
+                l’opérateur.
+              </p>
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-xs font-medium text-papier-600">Message ou détails supplémentaires</label>
             <textarea className={input} rows={2} placeholder="Ex: conditions d'accès, contraintes spéciales..." value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />

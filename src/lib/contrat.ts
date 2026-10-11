@@ -17,7 +17,7 @@
  * l'ancienne et qui doit relire. Changer le texte ci-dessous sans changer ce
  * numéro, c'est faire signer rétroactivement.
  */
-export const CONTRAT_VERSION = '2026-10'
+export const CONTRAT_VERSION = '2026-10-b'
 
 export interface ClauseContrat {
   titre: string
@@ -39,6 +39,18 @@ export const CONTRAT_CLAUSES: ClauseContrat[] = [
       'engins. Un matériel indisponible doit être retiré du catalogue sans ' +
       'délai. Une disponibilité annoncée et non tenue engage votre ' +
       'responsabilité auprès du client comme auprès de VOLTA.',
+  },
+  {
+    // Le chiffre est dit, et dit ici : une sanction qu'on découvre en la
+    // recevant n'en est pas une, c'est une surprise. Le fournisseur signe en
+    // sachant exactement ce qu'il risque et au bout de combien de fois.
+    titre: 'Trois manquements, et l’engin quitte le catalogue',
+    texte:
+      'Si un engin est annoncé disponible alors qu’il ne l’est pas, VOLTA le ' +
+      'consigne. Au troisième manquement constaté sur la même machine, elle ' +
+      'est retirée du catalogue et cesse d’être proposée aux clients. Votre ' +
+      'compte et votre fiche sont conservés : la machine peut être corrigée ' +
+      'et repasser notre circuit d’inspection pour être republiée.',
   },
   {
     titre: 'Confidentialité et intégrité des marchés',

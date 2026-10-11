@@ -59,7 +59,7 @@ public class CompanyContractService {
      * signé. Le jour où une clause change, c'est la seule chose qui permette
      * de dire qui est tenu par l'ancienne et qui doit relire.
      */
-    public static final String VERSION = "2026-10";
+    public static final String VERSION = "2026-10-b";
 
     private final UserRepository users;
     private final CompanyDocumentRepository documents;
@@ -111,13 +111,29 @@ public class CompanyContractService {
     /**
      * Vrai si ce compte peut engager quoi que ce soit.
      *
-     * Tout le monde le peut, sauf une entreprise dont le dossier n'a pas
-     * encore été validé. La règle est écrite dans ce sens — et non « seules
-     * les entreprises validées » — parce que c'est l'exception qui est
-     * nouvelle : un oubli doit laisser passer un particulier, pas le bloquer.
+     * <h2>L'entrée ne se mérite plus</h2>
+     *
+     * Une entreprise cliente attendait que VOLTA vérifie son RCCM, sa DFE et
+     * la pièce de son gérant avant de pouvoir déposer la moindre demande. Elle
+     * les fournit toujours — on sait à qui l'on a affaire — mais elle n'attend
+     * plus : elle signe le contrat et travaille, comme le fournisseur. Faire
+     * patienter un dirigeant pressé devant un contrôle de pièces, c'est le
+     * perdre avant de l'avoir servi.
+     *
+     * <h2>Ce qui se perd, en revanche</h2>
+     *
+     * Le droit d'y rester. Un compte suspendu n'engage plus rien : c'est la
+     * contrepartie de l'accès direct — ouvrir la porte à tous sans recours
+     * reviendrait à n'en avoir aucun.
+     *
+     * La règle est écrite en exceptions : un rôle ajouté demain passera, plutôt
+     * que d'être bloqué par un oubli.
      */
     public static boolean peutEngager(UserAccount u) {
-        return !estEntreprise(u) || u.contractValidatedAt != null;
+        if (u != null && u.suspendedAt != null) {
+            return false;
+        }
+        return !doitSigner(u) || u.contractAcceptedAt != null;
     }
 
     /**
@@ -132,9 +148,9 @@ public class CompanyContractService {
         if (me == null || peutEngager(me)) {
             return;
         }
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, me.contractAcceptedAt == null
-                ? "Signez le contrat de collaboration pour activer votre compte entreprise."
-                : "Votre dossier est en cours de vérification par VOLTA.");
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, me.suspendedAt != null
+                ? "Votre compte est suspendu. Contactez VOLTA."
+                : "Signez le contrat de collaboration pour activer votre compte.");
     }
 
     /** L'entreprise lit le contrat et le signe. */
@@ -189,11 +205,27 @@ public class CompanyContractService {
     public UserAccount revoke(String userId, String motif) {
         UserAccount admin = currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         UserAccount cible = load(userId);
+        // La signature est conservée : elle a eu lieu, et l'effacer
+        // permettrait de resigner pour contourner la suspension.
+        cible.suspendedAt = Instant.now().toString();
+        cible.suspendedReason = motif == null ? "" : motif.trim();
         cible.contractValidatedAt = null;
         cible.contractValidatedBy = null;
         cible = users.save(cible);
-        audit.record("CONTRACT_REVOKED", "USER", cible.id, cible.company,
-                motif == null ? "" : motif.trim());
+        audit.record("ACCOUNT_SUSPENDED", "USER", cible.id, cible.company,
+                admin.name + " — " + cible.suspendedReason);
+        return cible;
+    }
+
+    /** Lève la suspension. La signature n'a jamais été effacée. */
+    @Transactional
+    public UserAccount restore(String userId) {
+        UserAccount admin = currentUser.requireRole(CurrentUser.ROLE_ADMIN);
+        UserAccount cible = load(userId);
+        cible.suspendedAt = null;
+        cible.suspendedReason = null;
+        cible = users.save(cible);
+        audit.record("ACCOUNT_RESTORED", "USER", cible.id, cible.company, admin.name);
         return cible;
     }
 
@@ -221,9 +253,9 @@ public class CompanyContractService {
         UserAccount u = users.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Compte introuvable : " + userId));
-        if (!estEntreprise(u)) {
+        if (!doitSigner(u)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Ce compte n'est pas un client entreprise");
+                    "Ce compte n'est ni une entreprise cliente ni un fournisseur");
         }
         return u;
     }

@@ -65,6 +65,21 @@ public class UserAccount {
      */
     public String contractAcceptedAt;
 
+    /**
+     * Quand VOLTA a suspendu ce compte, et pourquoi.
+     *
+     * L'entrée sur la plateforme ne se mérite plus : une entreprise cliente
+     * comme un fournisseur signe le contrat et travaille. Ce qui se perd, en
+     * revanche, c'est le droit d'y rester — un prestataire qui n'honore pas la
+     * disponibilité qu'il affiche, une entreprise qui traite dehors les
+     * marchés qu'on lui apporte.
+     *
+     * La suspension est la contrepartie de l'accès direct : sans elle, ouvrir
+     * la porte à tous reviendrait à n'avoir aucun recours.
+     */
+    public String suspendedAt;
+    public String suspendedReason;
+
     /** Quand l'administration a validé le dossier, et qui l'a fait. */
     public String contractValidatedAt;
     public String contractValidatedBy;

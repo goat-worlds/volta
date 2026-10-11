@@ -187,6 +187,21 @@ public class ApiController {
     public record PriceFloorBody(Long amount) {
     }
 
+    public record MotifBody(String motif) {
+    }
+
+    /**
+     * VOLTA constate qu'un engin annoncé disponible ne l'était pas.
+     *
+     * Au troisième manquement, l'engin quitte le catalogue — le chiffre est dit
+     * au fournisseur dans le contrat qu'il signe.
+     */
+    @PostMapping("/admin/equipment/{id}/unavailability")
+    public Equipment reportUnavailability(@PathVariable String id,
+                                          @RequestBody(required = false) MotifBody body) {
+        return service.reportUnavailability(id, body == null ? null : body.motif());
+    }
+
     /**
      * Le prix plancher : son fournisseur et l'administration, personne d'autre.
      *

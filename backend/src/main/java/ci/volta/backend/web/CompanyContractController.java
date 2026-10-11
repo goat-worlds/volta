@@ -57,6 +57,12 @@ public class CompanyContractController {
         return service.revoke(id, body == null ? null : body.motif());
     }
 
+    /** Lève la suspension. La signature n'a jamais été effacée. */
+    @PostMapping("/admin/companies/{id}/restore")
+    public UserAccount restore(@PathVariable String id) {
+        return service.restore(id);
+    }
+
     /** La pièce du gérant, servie en pièce jointe pour être ouverte, pas devinée. */
     @GetMapping("/admin/companies/{id}/piece-gerant")
     public ResponseEntity<ByteArrayResource> managerId(@PathVariable String id) {
