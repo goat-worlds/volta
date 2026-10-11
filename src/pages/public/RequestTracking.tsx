@@ -3,9 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import { Search, SearchX } from 'lucide-react'
 import { trackRequest, type RequestTrackingInfo } from '../../services/requests'
 import { trackPurchase } from '../../services/market'
+import { PARCOURS_ACHAT, badgeDe, parcoursPour } from '../../lib/etapes'
 import RequestTimeline from '../../components/requests/RequestTimeline'
-import PurchaseTimeline from '../../components/market/PurchaseTimeline'
-import { PURCHASE_STAGE } from '../../lib/statuses'
+
 import { fmtPrice, CopyRef } from '../../components/ui'
 import type { PurchaseTracking } from '../../store/types'
 import { PRIORITY_LABELS, REQUEST_STATUS_LABELS } from '../../types/domain'
@@ -131,8 +131,8 @@ export default function RequestTracking() {
                   Commande — {purchase.listingTitle || 'annonce Volta Market'}
                 </h2>
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold ${PURCHASE_STAGE[purchase.status]?.className ?? 'bg-papier-100'}`}>
-                {PURCHASE_STAGE[purchase.status]?.label ?? purchase.status}
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${badgeDe(purchase.status, PARCOURS_ACHAT).classe}`}>
+                {badgeDe(purchase.status, PARCOURS_ACHAT).libelle}
               </span>
             </div>
             <dl className="mt-5 grid gap-4 border-t border-papier-100 pt-5 text-sm sm:grid-cols-3">
@@ -155,7 +155,7 @@ export default function RequestTracking() {
           <div className="rounded-lg border border-papier-200 bg-white p-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-papier-600">Avancement</h3>
             <div className="mt-5">
-              <PurchaseTimeline status={purchase.status} />
+              <RequestTimeline status={purchase.status} parcours={PARCOURS_ACHAT} />
             </div>
           </div>
         </div>
@@ -220,7 +220,7 @@ export default function RequestTracking() {
               Avancement
             </h3>
             <div className="mt-5">
-              <RequestTimeline status={request.status} intent={request.intent} />
+              <RequestTimeline status={request.status} parcours={parcoursPour(request.intent)} />
             </div>
           </div>
         </div>

@@ -2,11 +2,14 @@ package ci.volta.backend.service;
 
 import ci.volta.backend.domain.RequestWorkflow;
 import ci.volta.backend.model.Notification;
+import ci.volta.backend.domain.RentalWorkflow;
 import ci.volta.backend.model.PublicRequest;
+import ci.volta.backend.model.RentalRequest;
 import ci.volta.backend.model.RequestAttachment;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.NotificationRepository;
 import ci.volta.backend.repository.PublicRequestRepository;
+import ci.volta.backend.repository.RentalRequestRepository;
 import ci.volta.backend.repository.RequestAttachmentRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.security.CurrentUser;
@@ -241,12 +244,14 @@ public class PublicRequestService {
     private final AuthService authService;
     private final CurrentUser currentUser;
     private final CompanyContractService contracts;
+    private final RentalRequestRepository rentals;
     private final SecureRandom random = new SecureRandom();
 
     public PublicRequestService(PublicRequestRepository requests, RequestAttachmentRepository attachments,
                                 NotificationRepository notifications, UserRepository users,
                                 ReferenceService references, AuditService audit, AuthService authService,
-                                CurrentUser currentUser, CompanyContractService contracts) {
+                                CurrentUser currentUser, CompanyContractService contracts,
+                                RentalRequestRepository rentals) {
         this.requests = requests;
         this.attachments = attachments;
         this.notifications = notifications;
@@ -256,6 +261,7 @@ public class PublicRequestService {
         this.authService = authService;
         this.currentUser = currentUser;
         this.contracts = contracts;
+        this.rentals = rentals;
     }
 
     private static String today() {
@@ -540,26 +546,60 @@ public class PublicRequestService {
     }
 
     /** La demande n'ira pas plus loin. Elle reste chez son auteur, clôturée. */
-    public AdminView close(String id, String motif) {
+    public AdminView close(String id, String motif, boolean refus) {
         currentUser.requireRole(CurrentUser.ROLE_ADMIN);
         PublicRequest r = load(id);
         RequestWorkflow.checkTransition(r.status, RequestWorkflow.CLOSED);
 
         r.status = RequestWorkflow.CLOSED;
-        trace(r, "Clôturée" + (blank(motif) ? "" : " : " + motif.trim()));
+        // Écarter une demande à l'arrivée et refermer un dossier devenu sans
+        // objet sont deux décisions : la première juge le besoin, la seconde
+        // constate qu'il n'a plus de suite. Les compter ensemble empêcherait
+        // de voir qu'on refuse trop, ou qu'on laisse pourrir.
+        r.outcome = refus ? OUTCOME_REFUSED_BY_VOLTA : OUTCOME_ADMIN_CLOSED;
+        trace(r, (refus ? "Écartée par VOLTA" : "Clôturée")
+                + (blank(motif) ? "" : " : " + motif.trim()));
         r = requests.save(r);
         audit.record("REQUEST_CLOSED", "REQUEST", r.id, r.reference, blank(motif) ? "" : motif.trim());
         return AdminView.of(r);
     }
 
     /**
+     * Pourquoi un dossier s'est refermé.
+     *
+     * Trois décisions différentes, prises par deux personnes différentes, que
+     * {@code CLOSED} confondait : une demande refusée par le client et une
+     * demande qu'on n'a jamais voulu traiter se comptaient ensemble. Le statut
+     * visible reste « Annulée » dans les trois cas — le client n'a pas à lire
+     * nos catégories internes.
+     */
+    public static final String OUTCOME_REFUSED_BY_VOLTA = "REFUSED_BY_VOLTA";
+    public static final String OUTCOME_DECLINED_BY_CLIENT = "DECLINED_BY_CLIENT";
+    public static final String OUTCOME_ADMIN_CLOSED = "ADMIN_CLOSED";
+
+    /**
      * Le client accepte ou refuse la proposition.
      *
-     * C'est le seul moment où le dossier lui appartient : avant, VOLTA
-     * travaille ; après, la prestation court. Accepter mène à VALIDATED,
-     * refuser clôt — deux états que la machine portait déjà et qui attendaient
-     * quelqu'un pour les franchir.
+     * <h2>Accepter crée la réservation</h2>
+     *
+     * Jusqu'ici, accepter posait {@code VALIDATED} et rien d'autre : la
+     * prestation se démarrait sur la demande elle-même. Le même acte, dans
+     * l'autre moteur, créait une réservation avec sa propre référence. Selon
+     * la porte d'entrée, un marché conclu apparaissait ou non dans
+     * « Réservations », et les comptes de l'un ignoraient l'autre.
+     *
+     * Une acceptation crée donc toujours une réservation, portant la référence
+     * de la demande d'origine, le prix accepté, les deux parties et son propre
+     * état.
+     *
+     * <h2>Jamais deux</h2>
+     *
+     * Deux acceptations lancées en même temps — un double clic, une relance
+     * réseau — trouveraient toutes deux le dossier en « proposition envoyée ».
+     * Le lien vers la réservation est écrit dans la même transaction que le
+     * changement d'état, et sa présence suffit à refuser la seconde.
      */
+    @Transactional
     public MyRequestView respond(String id, boolean accepted, String motif) {
         UserAccount me = currentUser.require();
         PublicRequest r = load(id);
@@ -570,19 +610,91 @@ public class PublicRequestService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Aucune proposition n'attend votre réponse sur cette demande");
         }
+        if (r.rentalRequestId != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette proposition a déjà été acceptée");
+        }
+
         String target = accepted ? RequestWorkflow.VALIDATED : RequestWorkflow.CLOSED;
         RequestWorkflow.checkTransition(r.status, target);
 
         r.status = target;
-        trace(r, accepted
-                ? "Proposition acceptée par le client"
-                : "Proposition refusée par le client" + (blank(motif) ? "" : " : " + motif.trim()));
+        if (accepted) {
+            RentalRequest reservation = ouvrirReservation(r);
+            r.rentalRequestId = reservation.id;
+            trace(r, "Proposition acceptée par le client — réservation " + reservation.reference);
+        } else {
+            r.outcome = OUTCOME_DECLINED_BY_CLIENT;
+            trace(r, "Proposition refusée par le client"
+                    + (blank(motif) ? "" : " : " + motif.trim()));
+        }
         r = requests.save(r);
 
         notify(CurrentUser.ROLE_ADMIN,
                 (accepted ? "Proposition acceptée" : "Proposition refusée") + " — " + r.reference);
         audit.record("REQUEST_" + target, "REQUEST", r.id, r.reference, "réponse du client");
         return MyRequestView.of(r);
+    }
+
+    /**
+     * Ouvre la réservation née de l'acceptation.
+     *
+     * <h2>L'engin, quand il y en a un</h2>
+     *
+     * Une demande partie d'une fiche porte l'identifiant de la machine dans
+     * ses réponses de formulaire ; une demande de flotte ou de base vie n'en
+     * porte aucune. La réservation se crée dans les deux cas : refuser
+     * d'enregistrer un marché conclu parce qu'aucune machine précise n'a été
+     * choisie reviendrait à perdre les plus gros dossiers.
+     *
+     * <h2>Les dates</h2>
+     *
+     * Reprises du formulaire quand il les demande. À défaut, la date du jour :
+     * une réservation sans date ne se classe nulle part dans les plannings, et
+     * une date fausse se corrige, une date absente se cherche.
+     *
+     * <h2>L'identité</h2>
+     *
+     * Le nom du client est posé masqué, comme partout ailleurs : le
+     * fournisseur lit « Client VOLTA ». Les coordonnées réelles restent sur la
+     * demande, que l'administration consulte.
+     */
+    private RentalRequest ouvrirReservation(PublicRequest r) {
+        RentalRequest reservation = new RentalRequest();
+        reservation.id = shortId("loc");
+        reservation.reference = references.next(ReferenceService.RENTAL);
+        reservation.equipmentId = valeur(r, "equipmentId");
+        reservation.supplierId = r.supplierId;
+        reservation.clientId = r.clientId;
+        reservation.clientName = r.contactName;
+        reservation.clientPhone = r.contactPhone;
+        reservation.clientEmail = r.contactEmail;
+
+        String debut = valeur(r, "startDate");
+        String fin = valeur(r, "endDate");
+        reservation.startDate = blank(debut) ? today() : debut;
+        reservation.endDate = blank(fin) ? reservation.startDate : fin;
+        reservation.location = blank(r.location) ? valeur(r, "siteLocation") : r.location;
+
+        // Le prix accepté et la demande d'origine, pour que la réservation se
+        // lise seule : sans eux, il faudrait rouvrir la demande pour savoir
+        // sur quoi les parties se sont entendues.
+        reservation.comment = "Demande " + r.reference + " — " + r.subject
+                + " — " + r.offerAmount + " FCFA accepté le " + today();
+        reservation.status = RentalWorkflow.CONFIRMED;
+        reservation.createdAt = today();
+        reservation.updatedAt = today();
+        reservation = rentals.save(reservation);
+
+        audit.record("RENTAL_OPENED", "RENTAL", reservation.id, reservation.reference,
+                "depuis " + r.reference);
+        return reservation;
+    }
+
+    /** Une réponse du formulaire, ou vide : le payload n'a pas de schéma garanti. */
+    private static String valeur(PublicRequest r, String cle) {
+        String v = r.payload == null ? null : r.payload.get(cle);
+        return v == null ? "" : v.trim();
     }
 
     /** La prestation commence, puis s'achève. Même main que la proposition. */

@@ -19,9 +19,10 @@ import type { PublicListing, PurchaseRequest } from '../../store/types'
 import { getListing, requestOffer } from '../../services/market'
 import { LISTING_CONDITION } from '../../lib/statuses'
 import { TextAreaField, TextField } from '../../components/requests/fields'
-import PurchaseTimeline from '../../components/market/PurchaseTimeline'
 import { fmtPrice } from '../../components/ui'
 import { NotFound } from '../errors'
+import RequestTimeline from '../../components/requests/RequestTimeline'
+import { PARCOURS_ACHAT } from '../../lib/etapes'
 
 /**
  * Fiche d'une annonce Volta Market et commande.
@@ -320,7 +321,7 @@ export default function MarketListing() {
                   </div>
                 </div>
                 <div className="mt-5">
-                  <PurchaseTimeline status={done.status} />
+                  <RequestTimeline status={done.status} parcours={PARCOURS_ACHAT} />
                 </div>
                 <Link
                   to={`/suivi?ref=${done.reference}`}

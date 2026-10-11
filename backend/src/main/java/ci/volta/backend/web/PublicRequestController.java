@@ -68,6 +68,10 @@ public class PublicRequestController {
     public record NoteBody(String note) {
     }
 
+    /** Écarter n'est pas refermer : la raison est portée par l'appelant. */
+    public record CloseBody(String note, boolean refus) {
+    }
+
     public record ProposeBody(Long amount, String note) {
     }
 
@@ -89,8 +93,8 @@ public class PublicRequestController {
 
     @PostMapping("/admin/requests/{id}/close")
     public PublicRequestService.AdminView close(@PathVariable String id,
-                                                @RequestBody(required = false) NoteBody body) {
-        return service.close(id, body == null ? null : body.note());
+                                                @RequestBody(required = false) CloseBody body) {
+        return service.close(id, body == null ? null : body.note(), body != null && body.refus());
     }
 
     /**

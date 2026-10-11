@@ -8,7 +8,8 @@ import { useToast } from '../../components/feedback/Toaster'
 import { quoteRequestRef } from '../../lib/references'
 import { respondToRequest, type MyRequestView } from '../../services/requests'
 import { useLiveResource } from '../../store/useLiveResource'
-import { requestStatusLabel, type IntentId } from '../../types/domain'
+import type { IntentId } from '../../types/domain'
+import { badgeDe, parcoursPour } from '../../lib/etapes'
 import { intentById } from '../../lib/intents'
 import { LinkButton } from '../../components/ui'
 
@@ -183,7 +184,7 @@ Indiquez brièvement pourquoi (facultatif).`,
                     <div className="flex flex-wrap items-center gap-2">
                       <CopyRef value={d.reference} />
                       <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
-                        {requestStatusLabel(d.status, d.intent)}
+                        {badgeDe(d.status, parcoursPour(d.intent)).libelle}
                       </span>
                     </div>
                     <div className="mt-1 font-semibold text-acier-900">{d.subject}</div>

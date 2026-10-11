@@ -7,6 +7,7 @@ import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, EmptyState, Modal, PageTitle, StatCard, fmtPrice } from '../../components/ui'
 import { useStore } from '../../store/StoreContext'
+import { parcoursPour } from '../../lib/etapes'
 import RequestTimeline from '../../components/requests/RequestTimeline'
 import { journeyFor } from '../../lib/journeys'
 import {
@@ -193,7 +194,7 @@ export default function AdminSubmissions() {
                   </td>
                   <td className="px-4 py-3 text-xs">{PRIORITY_LABELS[r.priority]}</td>
                   <td className="px-4 py-3">
-                    <RequestTimeline status={r.status} compact intent={r.intent} />
+                    <RequestTimeline status={r.status} compact parcours={parcoursPour(r.intent)} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button size="sm" onClick={() => setOpenId(r.id)}>
@@ -732,7 +733,7 @@ function RequestDetailModal({
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Avancement</div>
             <div className="mt-2">
-              <RequestTimeline status={request.status} intent={request.intent} />
+              <RequestTimeline status={request.status} parcours={parcoursPour(request.intent)} />
             </div>
           </div>
         </div>

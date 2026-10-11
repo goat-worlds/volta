@@ -5,7 +5,6 @@ import { useStore } from '../../store/StoreContext'
 import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, EmptyState, LiveBadge, Modal, PageTitle, StatCard, fmtPrice } from '../../components/ui'
-import PurchaseTimeline from '../../components/market/PurchaseTimeline'
 import { LISTING_CONDITION, LISTING_STATUS, PURCHASE_FLOW, PURCHASE_STAGE } from '../../lib/statuses'
 import {
   featureListing,
@@ -15,6 +14,8 @@ import {
   rejectListing,
 } from '../../services/market'
 import type { PurchaseRequest, PurchaseStage, SaleListing } from '../../store/types'
+import RequestTimeline from '../../components/requests/RequestTimeline'
+import { PARCOURS_ACHAT } from '../../lib/etapes'
 
 /**
  * Administration — Volta Market.
@@ -255,7 +256,7 @@ export default function AdminMarket() {
       <Modal open={Boolean(detail)} onClose={() => setDetail(null)} title={detail ? `Suivi ${detail.reference}` : ''}>
         {detail && (
           <div>
-            <PurchaseTimeline status={detail.status} />
+            <RequestTimeline status={detail.status} parcours={PARCOURS_ACHAT} />
             {detail.notes && (
               <pre className="mt-4 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-sans text-xs text-slate-600">{detail.notes}</pre>
             )}

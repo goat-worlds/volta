@@ -1,13 +1,27 @@
 import { Check } from 'lucide-react'
-import { etapeDe, flowFor, requestStatusLabel, type RequestStatus } from '../../types/domain'
+import { PARCOURS_DEMANDE, type Parcours } from '../../lib/etapes'
 
 /**
- * Frise de suivi d'une demande.
+ * Frise de suivi d'un dossier.
  *
- * Une demande déposée disparaît, du point de vue du client, dans un délai qu'il
- * ne maîtrise pas : il ne sait ni si elle a été lue, ni ce qui reste à faire.
- * La frise montre les dix étapes du traitement et où en est la sienne — ce qui
- * répond d'avance à l'appel « alors, ça avance ? ».
+ * <h2>Cinq étapes, jamais plus</h2>
+ *
+ * Elle montrait les dix états du serveur — qualification, recherche, devis en
+ * préparation, proposition, validée, appariée, mission, terminée. Ce sont des
+ * rouages : ils disent où en est le traitement, pas où en est le dossier. Le
+ * client y lisait des étapes dont il n'avait rien à faire, et attendait devant
+ * une frise qui n'avançait pas pendant que trois d'entre elles se succédaient.
+ *
+ * Les états se replient sur cinq étapes, portées par {@link Parcours} — une
+ * table par nature de dossier, puisqu'une demande de prestation, un achat et
+ * un engin ne traversent pas les mêmes temps.
+ *
+ * <h2>Un dossier arrêté s'arrête</h2>
+ *
+ * Un refus, une annulation, une clôture n'allongent pas le parcours : ils
+ * l'interrompent. La frise reste grise à partir de là plutôt que d'inventer
+ * une sixième étape « annulée » — ce qui laisserait croire qu'on y arrive
+ * normalement.
  *
  * Les étapes à venir restent visibles en gris : les masquer donnerait
  * l'impression d'un parcours plus court qu'il n'est, et chaque étape franchie
@@ -16,69 +30,74 @@ import { etapeDe, flowFor, requestStatusLabel, type RequestStatus } from '../../
 export default function RequestTimeline({
   status,
   compact = false,
-  intent,
+  /**
+   * La nature du dossier. Par défaut une demande de prestation, qui est le cas
+   * de loin le plus fréquent.
+   */
+  parcours = PARCOURS_DEMANDE,
 }: {
-  status: RequestStatus
+  status: string
   /** Version en ligne pour les tableaux ; sinon, liste verticale détaillée. */
   compact?: boolean
-  /** Une candidature porte les mots du recrutement, pas ceux du devis. */
-  intent?: string | null
+  parcours?: Parcours
 }) {
-  // Les étapes montrées dépendent de ce que la demande est : une candidature
-  // en connaît dix, un devis six. Le statut stocké reste le même.
-  const etapes = flowFor(intent)
-  // La frise courte replie dix états sur cinq repères ; la longue, celle du
-  // recrutement, les porte tous et traverse ce repli sans y toucher.
-  const repere = etapes.includes(status) ? status : etapeDe(status)
-  const current = etapes.indexOf(repere)
-  // Une demande clôturée l'est quel qu'ait été son chemin : toutes les étapes
-  // se lisent alors comme derrière soi.
-  const reached = (index: number) => (status === 'CLOSED' ? true : index <= current)
+  const etapes = parcours.etapes
+  // 0 quand le dossier s'est arrêté : aucune étape n'est alors « courante ».
+  const courante = parcours.etape(status)
+  const arrete = courante === 0
 
   if (compact) {
     return (
-      <ol className="flex flex-wrap items-center gap-1.5" aria-label="Avancement de la demande">
-        {etapes.map((step, index) => (
-          <li
-            key={step}
-            title={requestStatusLabel(step, intent)}
-            aria-current={step === repere ? 'step' : undefined}
-            className={`h-1.5 w-6 rounded-full ${
-              step === repere ? 'bg-btp-500' : reached(index) ? 'bg-acier-700' : 'bg-slate-200'
-            }`}
-          />
-        ))}
+      <ol className="flex flex-wrap items-center gap-1.5" aria-label="Avancement du dossier">
+        {etapes.map((etape, index) => {
+          const rang = index + 1
+          return (
+            <li
+              key={etape}
+              title={etape}
+              aria-current={rang === courante ? 'step' : undefined}
+              className={`h-1.5 w-6 rounded-full ${
+                rang === courante
+                  ? 'bg-btp-500'
+                  : rang < courante
+                    ? 'bg-acier-700'
+                    : 'bg-slate-200'
+              }`}
+            />
+          )
+        })}
         <li className="ml-2 text-xs font-semibold text-acier-800">
-          {requestStatusLabel(status, intent)}
+          {arrete ? 'Dossier clos' : etapes[courante - 1]}
         </li>
       </ol>
     )
   }
 
   return (
-    <ol className="space-y-0" aria-label="Avancement de la demande">
-      {etapes.map((step, index) => {
-        const done = reached(index) && step !== repere
-        const active = step === repere
-        const last = index === etapes.length - 1
+    <ol className="space-y-0" aria-label="Avancement du dossier">
+      {etapes.map((etape, index) => {
+        const rang = index + 1
+        const faite = rang < courante
+        const active = rang === courante
+        const derniere = index === etapes.length - 1
 
         return (
-          <li key={step} className="flex gap-3">
+          <li key={etape} className="flex gap-3">
             <div className="flex flex-col items-center">
               <span
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                   active
                     ? 'bg-btp-500 text-white ring-4 ring-btp-100'
-                    : done
+                    : faite
                       ? 'bg-acier-900 text-white'
                       : 'bg-slate-200 text-slate-500'
                 }`}
               >
-                {done ? <Check size={14} /> : index + 1}
+                {faite ? <Check size={14} /> : rang}
               </span>
-              {!last && (
+              {!derniere && (
                 <span
-                  className={`w-px flex-1 ${done ? 'bg-acier-900' : 'bg-slate-200'}`}
+                  className={`w-px flex-1 ${faite ? 'bg-acier-900' : 'bg-slate-200'}`}
                   aria-hidden
                 />
               )}
@@ -88,12 +107,12 @@ export default function RequestTimeline({
               className={`pb-5 pt-1 text-sm ${
                 active
                   ? 'font-bold text-acier-900'
-                  : done
+                  : faite
                     ? 'font-medium text-slate-700'
                     : 'text-slate-400'
               }`}
             >
-              {requestStatusLabel(step, intent)}
+              {etape}
             </span>
           </li>
         )

@@ -108,6 +108,9 @@ export default function EquipmentDetail() {
           city: form.contactCity,
         },
         payload: {
+          // L'identifiant, et non la seule référence d'affichage : c'est par
+          // lui que la réservation née de l'acceptation retrouve la machine.
+          equipmentId: eq.id,
           equipmentRef: equipmentRef(eq.id),
           equipmentName: eq.name,
           brandModel: `${eq.brand} ${eq.model}`,

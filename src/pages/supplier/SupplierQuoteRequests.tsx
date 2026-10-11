@@ -17,7 +17,7 @@ import {
   startRequest,
   type AdminRequestView,
 } from '../../services/requests'
-import { requestStatusLabel } from '../../types/domain'
+import { badgeDe, parcoursPour } from '../../lib/etapes'
 
 /**
  * Demandes de devis reçues, et réponse du fournisseur.
@@ -94,7 +94,7 @@ function DemandesTransmises() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs font-bold text-slate-500">{r.reference}</span>
                     <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
-                      {requestStatusLabel(r.status, r.intent)}
+                      {badgeDe(r.status, parcoursPour(r.intent)).libelle}
                     </span>
                   </div>
                   <div className="mt-1 font-semibold text-acier-900">{r.subject}</div>

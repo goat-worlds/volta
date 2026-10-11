@@ -139,6 +139,37 @@ public class PublicRequest {
      */
     public String orientation;
 
+    /**
+     * Pourquoi le dossier s'est refermé.
+     *
+     * {@code CLOSED} servait à trois choses : VOLTA écarte la demande à
+     * l'arrivée, le client refuse la proposition qu'on lui a faite, et
+     * l'administration referme un dossier devenu sans objet. Trois décisions
+     * différentes, prises par deux personnes différentes, qu'aucune donnée ne
+     * séparait — une demande refusée par le client et une demande qu'on n'a
+     * jamais voulu traiter se comptaient ensemble.
+     *
+     * Le statut visible reste « Annulée » dans les trois cas : le client n'a
+     * pas à lire nos catégories internes. C'est ici qu'elles vivent.
+     *
+     * Nul tant que le dossier est ouvert.
+     */
+    public String outcome;
+
+    /**
+     * La réservation née de l'acceptation.
+     *
+     * Elle sert d'abord de garde : deux acceptations lancées en même temps
+     * trouveraient toutes deux le dossier en « proposition envoyée » et
+     * créeraient chacune leur réservation. Le champ est écrit dans la même
+     * transaction que le changement d'état, et sa présence suffit à refuser la
+     * seconde.
+     *
+     * Nul pour une demande non acceptée, et pour celles acceptées avant
+     * l'existence de ce champ.
+     */
+    public String rentalRequestId;
+
     public String createdAt;
     public String updatedAt;
 }

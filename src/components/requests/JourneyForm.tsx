@@ -5,6 +5,7 @@ import type { Journey, FieldDef } from '../../lib/journeys'
 import { createRequest, type RequestAttachmentInput, type RequestReceipt } from '../../services/requests'
 import { attachmentPayload, parseAttachment } from '../../services/attachments'
 import { contactDefaults, firstName, forgetVisitor, readVisitor, rememberVisitor } from '../../services/profile'
+import { parcoursPour } from '../../lib/etapes'
 import RequestTimeline from './RequestTimeline'
 import { useStore } from '../../store/StoreContext'
 import type { FieldOption } from './fields'
@@ -332,7 +333,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
         <div className="mt-6 rounded-2xl border border-papier-200 bg-white p-6 shadow-sm">
           <h2 className="volta-display text-lg text-acier-900">Avancement du dossier</h2>
           <div className="mt-5">
-            <RequestTimeline status={submitted.status} intent={journey.intent} />
+            <RequestTimeline status={submitted.status} parcours={parcoursPour(journey.intent)} />
           </div>
         </div>
 

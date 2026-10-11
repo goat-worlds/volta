@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Send, AlertCircle, Loader2 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
-import { quoteRequestsClient } from '../../store/quotesClient'
+import { createRequest } from '../../services/requests'
 import { Card, PageTitle } from '../../components/ui'
 
 /**
@@ -46,18 +46,44 @@ export default function ClientNewQuoteRequest() {
     setError(null)
 
     try {
-      // Le clientId n'est pas transmis : le backend l'établit depuis le jeton.
-      const created = await quoteRequestsClient.create({
-        equipmentId,
-        quantity,
-        startDate,
-        endDate,
-        message: message.trim(),
-        clientName: currentUser.name,
-        clientPhone: currentUser.phone ?? '',
-        clientEmail: currentUser.email,
+      /*
+       * Un seul moteur pour toutes les demandes de devis.
+       *
+       * Cet écran déposait dans l'ancienne table ; la fiche d'un engin, dans
+       * le moteur de parcours. Même phrase à l'écran — « Demander un devis » —
+       * deux tables, deux vocabulaires d'états, deux files à surveiller. Le
+       * client ne pouvait pas le savoir, et son dossier n'apparaissait pas au
+       * même endroit selon le bouton qu'il avait pressé.
+       *
+       * Le moteur de parcours l'emporte : c'est lui qui porte le suivi par
+       * référence, les pièces jointes et le masquage des identités.
+       *
+       * Le contact n'est pas demandé ici : le compte le porte déjà.
+       */
+      const engin = equipment.find((e) => e.id === equipmentId)
+      await createRequest({
+        kind: 'RENTAL',
+        intent: 'RENT_EQUIPMENT',
+        subject: `Devis location — ${engin?.name ?? 'engin'}`,
+        location: engin?.location ?? currentUser.city ?? '',
+        contact: {
+          name: currentUser.name,
+          company: currentUser.company,
+          phone: currentUser.phone ?? '',
+          email: currentUser.email,
+          city: currentUser.city ?? '',
+        },
+        payload: {
+          equipmentId,
+          equipmentName: engin?.name ?? '',
+          brandModel: engin ? `${engin.brand} ${engin.model}` : '',
+          quantity: String(quantity),
+          startDate,
+          endDate,
+          description: message.trim(),
+        },
       })
-      navigate(`/client/demandes/${created.id}`)
+      navigate('/client/demandes')
     } catch (err) {
       setError(err instanceof Error ? err.message : "La demande n'a pas pu être envoyée")
       setSubmitting(false)
