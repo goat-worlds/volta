@@ -9,6 +9,7 @@ import { Button, Card, EmptyState, Modal, PageTitle, StatCard, fmtPrice } from '
 import { useStore } from '../../store/StoreContext'
 import { parcoursPour } from '../../lib/etapes'
 import RequestTimeline from '../../components/requests/RequestTimeline'
+import ProofPanel from '../../components/requests/ProofPanel'
 import { journeyFor } from '../../lib/journeys'
 import {
   PRIORITY_LABELS,
@@ -358,8 +359,17 @@ function DecisionBox({
 
   if (fini) {
     return (
-      <div className="border-t border-slate-100 pt-4 text-sm text-slate-500">
-        Ce dossier est {statut === 'DONE' ? 'terminé' : 'clôturé'}. Il n’attend plus rien.
+      <div className="border-t border-slate-100 pt-4">
+        <p className="text-sm text-slate-500">
+          Ce dossier est {statut === 'DONE' ? 'terminé' : 'clôturé'}. Il n’attend plus rien.
+        </p>
+        {/* Les pièces restent consultables après la clôture : c'est même là
+            qu'on vient les relire, le jour où quelqu'un conteste. */}
+        {statut === 'DONE' && (
+          <div className="mt-3">
+            <ProofPanel requestId={request.id} peutDeposer={false} />
+          </div>
+        )}
       </div>
     )
   }
@@ -391,6 +401,14 @@ function DecisionBox({
         {accepte && 'Le client a accepté. La prestation peut démarrer.'}
         {enCours && 'La prestation est en cours.'}
       </p>
+
+      {/* Les pièces, dès que la prestation court : c'est le moment où elles se
+          produisent, et c'est leur absence qui bloquera la clôture. */}
+      {enCours && (
+        <div className="mt-3">
+          <ProofPanel requestId={request.id} peutDeposer />
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {(aLArrivee || transmis) && (

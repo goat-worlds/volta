@@ -18,6 +18,7 @@ import {
   type AdminRequestView,
 } from '../../services/requests'
 import { badgeDe, parcoursPour } from '../../lib/etapes'
+import ProofPanel from '../../components/requests/ProofPanel'
 
 /**
  * Demandes de devis reçues, et réponse du fournisseur.
@@ -162,6 +163,14 @@ function DemandesTransmises() {
                   )}
                 </div>
               </div>
+
+              {/* Les pièces n'apparaissent qu'une fois la prestation lancée :
+                  avant, il n'y a rien à prouver. */}
+              {(enCours || r.status === 'DONE') && (
+                <div className="mt-3">
+                  <ProofPanel requestId={r.id} peutDeposer />
+                </div>
+              )}
             </Card>
           )
         })}

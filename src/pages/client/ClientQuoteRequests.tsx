@@ -12,6 +12,7 @@ import type { IntentId } from '../../types/domain'
 import { badgeDe, parcoursPour } from '../../lib/etapes'
 import { intentById } from '../../lib/intents'
 import { LinkButton } from '../../components/ui'
+import ProofPanel from '../../components/requests/ProofPanel'
 
 /**
  * Liste des demandes de devis du client.
@@ -236,6 +237,15 @@ Indiquez brièvement pourquoi (facultatif).`,
                       Suivre
                     </LinkButton>
                   </div>
+
+                  {/* Le client lit les pièces de sa prestation — elles le
+                      concernent — mais ne les verse pas : il la reçoit, il ne
+                      l'atteste pas lui-même. */}
+                  {(d.status === 'MISSION' || d.status === 'DONE') && (
+                    <div className="mt-3 w-full">
+                      <ProofPanel requestId={d.id} peutDeposer={false} />
+                    </div>
+                  )}
                 </Card>
               )
             })}
