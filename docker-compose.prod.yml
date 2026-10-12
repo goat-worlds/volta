@@ -130,9 +130,18 @@ services:
     ports:
       # Le seul port ouvert sur Internet.
       #
+      # Réglable, parce que le 80 n'est pas toujours libre : sur une machine où
+      # Dokploy tourne, son Traefik tient déjà le 80 et le 443, et le conteneur
+      # refusait de démarrer sur « port is already allocated ».
+      #
+      # WEB_PORT=8080 dans le .env place alors le site sur
+      # http://adresse:8080. SITE_ORIGIN doit porter le même port, sans quoi la
+      # liste des origines autorisées ne correspond plus à ce que le navigateur
+      # envoie.
+      #
       # Pour HTTPS, voir DEPLOIEMENT-HOSTINGER.md : il faut un nom de domaine,
       # un certificat ne pouvant être délivré pour une adresse IP nue.
-      - "80:80"
+      - "${WEB_PORT:-80}:80"
     networks:
       - volta
 
