@@ -28,6 +28,21 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<!--
+			Tomcat relevé au-dessus de ce que gère Spring Boot 4.1.1 (11.0.24).
+			Trois failles critiques y sont corrigées en 11.0.25 : contournement
+			de contrainte de sécurité (CVE-2026-65182), contournement
+			d'authentification (CVE-2026-65905) et accès à une ressource
+			protégée par le formulaire de connexion (CVE-2026-68525).
+
+			Les deux premières portent précisément sur ce que fait cette
+			application : des comptes, des rôles, et des routes réservées. La
+			barrière Trivy de la CI les signalait à chaque poussée.
+
+			À retirer dès que la version de Spring Boot embarque 11.0.25 ou
+			plus : une version figée à la main finit par retarder les suivantes.
+		-->
+		<tomcat.version>11.0.25</tomcat.version>
 	</properties>
 	<dependencies>
 		<dependency>
