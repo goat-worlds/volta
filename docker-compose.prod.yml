@@ -9,9 +9,14 @@
 # `build:` n'aurait pas de sources sous la main. Elles sont construites et
 # publiées par .github/workflows/images.yml.
 #
-# ATTENTION — remplacer toutes les valeurs marquées CHANGEZ_MOI avant de
-# déployer. Ce fichier n'est pas un secret tant qu'il porte ces marqueurs ; il
-# en devient un dès qu'il porte le vrai mot de passe.
+# Les secrets ne sont PAS dans ce fichier : ils arrivent d'un .env placé à côté,
+# que git ignore. Ce fichier-ci se lit, se relit et se versionne sans risque.
+#
+# La syntaxe ${VAR:?message} refuse de démarrer quand la variable manque, avec
+# le message en clair. Une valeur oubliée arrête donc le déploiement au lieu de
+# produire une base dont le mot de passe est vide.
+#
+# Partir de .env.prod.example, voir DEPLOIEMENT-HOSTINGER.md.
 
 services:
   # ------------------------------------------------------------------
@@ -22,7 +27,7 @@ services:
     environment:
       POSTGRES_DB: volta
       POSTGRES_USER: volta
-      POSTGRES_PASSWORD: CHANGEZ_MOI_MOT_DE_PASSE_BASE
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?mot de passe de la base absent du .env}
       # Sans cela, l'initialisation écrit directement dans le point de montage
       # du volume, ce qui échoue sur certains systèmes de fichiers.
       PGDATA: /var/lib/postgresql/data/pgdata
@@ -41,7 +46,7 @@ services:
 
   # ------------------------------------------------------------------
   backend:
-    image: ghcr.io/goat-worlds/volta-backend:latest
+    image: ghcr.io/goat-worlds/volta-backend:${VOLTA_VERSION:-latest}
     container_name: volta-backend
     restart: unless-stopped
     depends_on:
@@ -51,6 +56,8 @@ services:
       PORT: "9000"
 
       # La base, jointe par le nom du service sur le réseau privé.
+      # Le mot de passe vient de la même variable que celle du service db :
+      # deux valeurs saisies séparément finissent toujours par diverger.
       #
       # Le profil « render » n'est PAS activé : il compose l'URL à partir de
       # variables PG* prévues pour un fournisseur externe. Ici les trois
@@ -58,7 +65,7 @@ services:
       # d'œil.
       DB_URL: jdbc:postgresql://db:5432/volta
       DB_USER: volta
-      DB_PASSWORD: CHANGEZ_MOI_MOT_DE_PASSE_BASE
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?mot de passe de la base absent du .env}
       HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
 
       # PREMIER démarrage : « update », pour qu'Hibernate crée les tables — le
@@ -68,7 +75,7 @@ services:
       # redéployer : Hibernate contrôlera alors la correspondance sans jamais
       # toucher au schéma. Laisser « update » l'autoriserait à modifier la base
       # à chaque déploiement, y compris sur un déploiement raté.
-      DDL_AUTO: update
+      DDL_AUTO: ${DDL_AUTO:-update}
 
       # Les comptes de démonstration ont leur mot de passe en clair dans les
       # sources d'un dépôt public. Sur une instance joignable, les laisser
@@ -81,8 +88,8 @@ services:
       #
       # L'amorçage ne joue que tant qu'aucun administrateur n'existe. Le mot de
       # passe doit être changé depuis l'application dès la première connexion.
-      VOLTA_ADMIN_EMAIL: CHANGEZ_MOI@votredomaine.ci
-      VOLTA_ADMIN_PASSWORD: CHANGEZ_MOI_MOT_DE_PASSE_ADMIN
+      VOLTA_ADMIN_EMAIL: ${VOLTA_ADMIN_EMAIL:?adresse du premier administrateur absente du .env}
+      VOLTA_ADMIN_PASSWORD: ${VOLTA_ADMIN_PASSWORD:?mot de passe administrateur absent du .env}
       VOLTA_ADMIN_NAME: Administration
 
       # Les fichiers téléversés vivent sur le volume, pas dans le conteneur :
@@ -95,7 +102,7 @@ services:
       # n'est inter-origines et cette liste ne sert qu'en secours. Y mettre
       # l'adresse publique du VPS, jamais « * » — les requêtes portent des
       # identifiants de session.
-      VOLTA_CORS_ALLOWED_ORIGINS: http://CHANGEZ_MOI_IP_DU_VPS
+      VOLTA_CORS_ALLOWED_ORIGINS: ${SITE_ORIGIN:?adresse publique du site absente du .env}
 
       SESSION_DURATION_DAYS: "7"
       VOLTA_TELEPHONE: "05 00 99 13 13"
@@ -115,7 +122,7 @@ services:
 
   # ------------------------------------------------------------------
   web:
-    image: ghcr.io/goat-worlds/volta-frontend:latest
+    image: ghcr.io/goat-worlds/volta-frontend:${VOLTA_VERSION:-latest}
     container_name: volta-web
     restart: unless-stopped
     depends_on:

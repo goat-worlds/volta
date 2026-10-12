@@ -42,16 +42,18 @@ sans la moindre erreur dans les journaux du site.
 - Un VPS Hostinger avec Docker et Docker Compose (gabarit « Ubuntu + Docker »).
 - **2 Go de RAM au minimum.** Spring Boot met une à deux minutes à démarrer sur
   une petite machine ; en dessous, le conteneur est tué avant d'avoir fini.
-- Un accès SSH au VPS, pour les sauvegardes et le diagnostic. Docker Manager
-  seul ne suffit pas à administrer une installation.
+- **Un accès SSH.** Il n'est pas optionnel : sur Ubuntu 26.04, hPanel ne prend
+  pas en charge Docker Manager, et c'est de toute façon le seul moyen de
+  sauvegarder et de diagnostiquer.
 
 ---
 
 ## Étape 1 — Publier les images
 
-Docker Manager **ne sait pas cloner un dépôt** : un `build:` dans le compose
-n'aurait pas de sources sous la main. Les images sont donc construites ailleurs
-et récupérées depuis un registre.
+Rien n'est compilé sur le VPS. Construire un projet Spring Boot et un projet
+Vite demanderait Maven, Node, et plusieurs minutes de calcul à chaque
+déploiement sur une machine qui a mieux à faire. Les images sont construites
+par la CI et seulement récupérées.
 
 Sur GitHub, onglet **Actions** → « Images Docker » → **Run workflow**. Le
 workflow construit et pousse :
@@ -85,43 +87,78 @@ echo "VOTRE_JETON" | docker login ghcr.io -u VOTRE_COMPTE --password-stdin
 
 ---
 
-## Étape 2 — Préparer le compose
+## Étape 2 — Déployer, en SSH
 
-Ouvrir `docker-compose.prod.yml` et remplacer **toutes** les valeurs marquées
-`CHANGEZ_MOI` :
+**Docker Manager ne convient pas ici.** hPanel ne le prend pas en charge sur
+Ubuntu 26.04, même quand Docker est installé sur la machine. Le déploiement se
+fait donc en ligne de commande, par SSH.
 
-| Marqueur | Ce qu'on y met |
-|---|---|
-| `CHANGEZ_MOI_MOT_DE_PASSE_BASE` | Un mot de passe fort, **aux deux endroits** (service `db` et service `backend`) — ce sont les deux bouts de la même connexion |
-| `CHANGEZ_MOI@votredomaine.ci` | L'adresse du premier administrateur |
-| `CHANGEZ_MOI_MOT_DE_PASSE_ADMIN` | Son mot de passe, à changer depuis l'application à la première connexion |
-| `CHANGEZ_MOI_IP_DU_VPS` | L'adresse publique du VPS, par exemple `http://168.231.x.x` |
+Ce n'est pas une rétrogradation. L'interface aurait gardé les mots de passe
+dans un champ de formulaire ; en SSH ils vivent dans un fichier que vous seul
+lisez.
 
-Un mot de passe solide, depuis le VPS :
+### Fermer la machine avant de l'ouvrir
+
+UFW est inactif sur une installation Hostinger par défaut, et aucun groupe de
+pare-feu n'est associé au VPS. Rien ne filtre donc les ports que l'on
+publierait par mégarde.
+
+Compose ne publie que le 80, mais la première commande Docker lancée à la main
+avec un `-p` de trop exposerait la base au monde entier. Le pare-feu rattrape
+cette erreur-là ; sans lui, personne ne la rattrape.
 
 ```bash
-openssl rand -base64 24
+ufw allow 22/tcp     # AVANT d'activer, sous peine de se verrouiller dehors
+ufw allow 80/tcp
+ufw --force enable
+ufw status
 ```
 
-> **À savoir** — Docker Manager garde le YAML collé, mots de passe compris. Si
-> cela vous gêne, déployez par SSH : placez le compose et un fichier `.env` sur
-> le VPS, et lancez `docker compose up -d` depuis le dossier. Les secrets
-> restent alors dans un fichier que vous contrôlez.
+Ne jamais ouvrir 5432 ni 9000 : ces services se parlent sur le réseau privé de
+Docker, qui ne passe pas par le pare-feu de l'hôte.
 
----
+### Déployer
 
-## Étape 3 — Déployer
+```bash
+ssh root@ADRESSE_DU_VPS
 
-Dans Hostinger : **VPS** → **Docker Manager** → **Create project** → éditeur
-YAML. Coller le contenu de `docker-compose.prod.yml`, nommer le projet `volta`,
-déployer.
+# Le dossier du déploiement. Rien d'autre n'y est nécessaire : les images sont
+# déjà construites, il n'y a pas de sources à cloner.
+mkdir -p /opt/volta && cd /opt/volta
 
-Le premier démarrage prend quelques minutes : téléchargement des images,
-initialisation de PostgreSQL, création du schéma par Hibernate.
+curl -fsSLO https://raw.githubusercontent.com/goat-worlds/volta/main/docker-compose.prod.yml
+curl -fsSL  https://raw.githubusercontent.com/goat-worlds/volta/main/.env.prod.example -o .env
 
----
+# Un mot de passe que personne n'a choisi de tête
+openssl rand -base64 24
 
-## Étape 4 — Vérifier
+nano .env          # remplir les quatre valeurs
+chmod 600 .env     # lisible par le seul propriétaire
+
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Si une variable manque, Compose refuse de démarrer et **nomme laquelle** :
+
+```
+required variable VOLTA_ADMIN_PASSWORD is missing a value:
+mot de passe administrateur absent du .env
+```
+
+C'est voulu. Une valeur oubliée arrête le déploiement au lieu de créer une base
+dont le mot de passe est vide.
+
+### Suivre le premier démarrage
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f backend
+```
+
+Attendre `Started VoltaBackendApplication`. Compter une à deux minutes : c'est
+le temps que prend Hibernate pour créer les vingt-trois tables sur une base
+vide.
+
+## Étape 3 — Vérifier
 
 ```bash
 # Le backend répond
@@ -146,17 +183,17 @@ couvre le relais `/uploads`.
 
 ---
 
-## Étape 5 — Figer le schéma
+## Étape 4 — Figer le schéma
 
 Au premier démarrage, `DDL_AUTO` vaut `update` : la base arrive vide et le
 projet n'embarque aucun outil de migration, Hibernate doit donc créer les
 tables.
 
-**Une fois le site vérifié**, repasser à `validate` dans le compose et
-redéployer :
+**Une fois le site vérifié**, mettre `validate` dans le `.env` et relancer :
 
-```yaml
-DDL_AUTO: validate
+```bash
+sed -i 's/^DDL_AUTO=.*/DDL_AUTO=validate/' .env
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 Hibernate contrôlera alors que le schéma correspond aux entités, sans jamais le
@@ -192,7 +229,7 @@ une adresse IP nue. Le jour où le domaine est prêt :
 ```
 
 3. Retirer le bloc `ports:` du service `web` — Caddy devient la seule porte.
-4. Mettre `VOLTA_CORS_ALLOWED_ORIGINS: https://volta.ci`.
+4. Mettre `SITE_ORIGIN=https://volta.ci` dans le `.env`.
 5. Reconstruire l'image frontend n'est **pas** nécessaire : `VITE_API_URL` vaut
    `/api`, un chemin relatif, qui suit le domaine quel qu'il soit.
 
@@ -231,7 +268,9 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-Dans Docker Manager, le bouton **Redeploy** fait la même chose.
+Pour revenir en arrière, il faut que la version soit nommée : mettre
+`VOLTA_VERSION=1.0.0` dans le `.env` et relancer. Avec `latest`, l'image d'hier
+et celle d'aujourd'hui portent le même nom et plus rien ne dit laquelle tourne.
 
 ### Lire les journaux
 
