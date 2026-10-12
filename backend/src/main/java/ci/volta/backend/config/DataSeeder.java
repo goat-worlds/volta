@@ -61,7 +61,6 @@ public class DataSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
-
     static UserAccount user(String id, String name, String role, String company, String email, String phone, String city) {
         UserAccount u = new UserAccount();
         u.id = id;
@@ -260,12 +259,11 @@ public class DataSeeder {
              * sûreté, et le site est resté vide.
              */
             if (seedCatalog) {
-                CatalogSeeder.seed(users, equipment);
+                CatalogSeeder.seed(users, equipment, listings, referenceService);
             }
 
             if (seedDemo) {
                 seedDemoData(users, equipment, inspections, reports, rentalRequests, notifications, authService);
-                seedDemoListings(listings, referenceService);
             } else {
                 log.info("Jeu de démonstration désactivé (volta.seed.demo=false) : "
                         + "aucun compte de test n'est créé.");
@@ -357,7 +355,6 @@ public class DataSeeder {
             users.save(u);
         });
 
-
         Inspection insp1 = new Inspection();
         insp1.id = "insp-1";
         insp1.equipmentId = "eq-6";
@@ -416,76 +413,5 @@ public class DataSeeder {
      * le Market vient d'être introduit doit tout de même montrer des annonces.
      * La garde porte donc sur la table des annonces elle-même.
      */
-    private static void seedDemoListings(SaleListingRepository listings, ReferenceService references) {
-        if (listings.count() > 0) {
-            return;
-        }
-        listings.saveAll(List.of(
-                sale("sale-1", references.next(ReferenceService.LISTING),
-                        "Pelle hydraulique Komatsu PC210LC-8", "c-pelle", "Komatsu", "PC210LC-8", 2018, 3900,
-                        "Abidjan, Côte d'Ivoire", "OCCASION", 68_000_000L, true,
-                        "Pelle 21 tonnes révisée, chaîne cinématique contrôlée, godet 1,2 m³. Carnet d'entretien complet.",
-                        List.of(CatalogSeeder.IMG_PELLE_KOMATSU),
-                        List.of(new DocumentInfo("Carte grise", "PDF"), new DocumentInfo("Rapport d'inspection 2025", "PDF")),
-                        "eq-1", "u-sup-1", "PUBLISHED", true, "2026-08-20"),
-                sale("sale-2", references.next(ReferenceService.LISTING),
-                        "Camion benne Kamaz 65115 6x4", "c-camion", "Kamaz", "65115", 2019, 2800,
-                        "Abidjan, Côte d'Ivoire", "OCCASION", 32_000_000L, true,
-                        "Benne 15 m³, moteur révisé à 2 500 h, pneus neufs. Dédouané, documents à jour.",
-                        List.of(CatalogSeeder.IMG_CAMION_KAMAZ),
-                        List.of(new DocumentInfo("Carte grise", "PDF"), new DocumentInfo("Documents douaniers", "PDF")),
-                        "eq-3", "u-sup-1", "PUBLISHED", true, "2026-08-22"),
-                sale("sale-3", references.next(ReferenceService.LISTING),
-                        "Compacteur Caterpillar CS56B", "c-compacteur", "Caterpillar", "CS56B", 2016, 4100,
-                        "Bouaké, Côte d'Ivoire", "OCCASION", 24_500_000L, false,
-                        "Compacteur monocylindre vibrant 12 tonnes. Bille lisse, kit patins disponible.",
-                        List.of(CatalogSeeder.IMG_COMPACTEUR_CAT),
-                        List.of(new DocumentInfo("Certificat CE", "PDF")),
-                        "eq-4", "u-sup-2", "PUBLISHED", false, "2026-08-25"),
-                sale("sale-4", references.next(ReferenceService.LISTING),
-                        "Groupe électrogène Atlas Copco QAS 150", "c-groupe", "Atlas Copco", "QAS 150", 2023, 0,
-                        "Abidjan, Côte d'Ivoire", "NEUF", 18_900_000L, false,
-                        "Groupe 150 kVA neuf, capotage insonorisé, livraison sur site possible.",
-                        List.of(CatalogSeeder.IMG_GROUPE_MOBILE),
-                        List.of(new DocumentInfo("Fiche technique", "PDF"), new DocumentInfo("Garantie constructeur", "PDF")),
-                        null, "u-sup-2", "PUBLISHED", true, "2026-08-28"),
-                sale("sale-5", references.next(ReferenceService.LISTING),
-                        "Grue mobile Liebherr LTM 1050", "c-grue", "Liebherr", "LTM 1050", 2014, 8000,
-                        "Yamoussoukro, Côte d'Ivoire", "OCCASION", 145_000_000L, true,
-                        "Grue mobile 50 tonnes, flèche 38 m. Annonce en attente d'examen par l'équipe VOLTA.",
-                        List.of(CatalogSeeder.IMG_GRUE_MOBILE),
-                        List.of(),
-                        "eq-7", "u-sup-1", "SUBMITTED", false, null)));
-    }
-
-    private static SaleListing sale(String id, String reference, String title, String categoryId, String brand,
-            String model, int year, int hours, String location, String condition, long askingPrice,
-            boolean negotiable, String description, List<String> photos, List<DocumentInfo> documents,
-            String equipmentId, String sellerId, String status, boolean featured, String publishedAt) {
-        SaleListing l = new SaleListing();
-        l.id = id;
-        l.reference = reference;
-        l.title = title;
-        l.categoryId = categoryId;
-        l.brand = brand;
-        l.model = model;
-        l.year = year;
-        l.hours = hours;
-        l.location = location;
-        l.condition = condition;
-        l.askingPrice = askingPrice;
-        l.negotiable = negotiable;
-        l.description = description;
-        l.photos = photos;
-        l.documents = documents;
-        l.equipmentId = equipmentId;
-        l.sellerId = sellerId;
-        l.status = status;
-        l.featured = featured;
-        l.createdAt = "2026-08-18";
-        l.updatedAt = publishedAt == null ? "2026-08-18" : publishedAt;
-        l.publishedAt = publishedAt;
-        return l;
-    }
 
 }

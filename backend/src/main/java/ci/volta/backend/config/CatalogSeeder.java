@@ -2,9 +2,12 @@ package ci.volta.backend.config;
 
 import ci.volta.backend.model.DocumentInfo;
 import ci.volta.backend.model.Equipment;
+import ci.volta.backend.model.SaleListing;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.EquipmentRepository;
+import ci.volta.backend.repository.SaleListingRepository;
 import ci.volta.backend.repository.UserRepository;
+import ci.volta.backend.service.ReferenceService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,6 +127,57 @@ final class CatalogSeeder {
                         "u-sup-2", "PENDING_ADMIN_REVIEW", null, "Bon état", "2026-08-08"));
     }
 
+
+    /**
+     * Les annonces de Volta Market.
+     *
+     * Même raison que les engins : elles vivaient derrière le drapeau de
+     * démonstration, et le Market restait vide sur une instance qui refusait
+     * de créer des comptes au mot de passe public. Un site qui propose de
+     * louer et d'acheter doit montrer les deux.
+     *
+     * Quatre sont publiées, la cinquième est soumise à l'examen de VOLTA :
+     * la vitrine montre aussi que les annonces passent par une validation.
+     */
+    static List<SaleListing> annonces(ReferenceService references) {
+        return List.of(
+                sale("sale-1", references.next(ReferenceService.LISTING),
+                        "Pelle hydraulique Komatsu PC210LC-8", "c-pelle", "Komatsu", "PC210LC-8", 2018, 3900,
+                        "Abidjan, Côte d'Ivoire", "OCCASION", 68_000_000L, true,
+                        "Pelle 21 tonnes révisée, chaîne cinématique contrôlée, godet 1,2 m³. Carnet d'entretien complet.",
+                        List.of(CatalogSeeder.IMG_PELLE_KOMATSU),
+                        List.of(new DocumentInfo("Carte grise", "PDF"), new DocumentInfo("Rapport d'inspection 2025", "PDF")),
+                        "eq-1", "u-sup-1", "PUBLISHED", true, "2026-08-20"),
+                sale("sale-2", references.next(ReferenceService.LISTING),
+                        "Camion benne Kamaz 65115 6x4", "c-camion", "Kamaz", "65115", 2019, 2800,
+                        "Abidjan, Côte d'Ivoire", "OCCASION", 32_000_000L, true,
+                        "Benne 15 m³, moteur révisé à 2 500 h, pneus neufs. Dédouané, documents à jour.",
+                        List.of(CatalogSeeder.IMG_CAMION_KAMAZ),
+                        List.of(new DocumentInfo("Carte grise", "PDF"), new DocumentInfo("Documents douaniers", "PDF")),
+                        "eq-3", "u-sup-1", "PUBLISHED", true, "2026-08-22"),
+                sale("sale-3", references.next(ReferenceService.LISTING),
+                        "Compacteur Caterpillar CS56B", "c-compacteur", "Caterpillar", "CS56B", 2016, 4100,
+                        "Bouaké, Côte d'Ivoire", "OCCASION", 24_500_000L, false,
+                        "Compacteur monocylindre vibrant 12 tonnes. Bille lisse, kit patins disponible.",
+                        List.of(CatalogSeeder.IMG_COMPACTEUR_CAT),
+                        List.of(new DocumentInfo("Certificat CE", "PDF")),
+                        "eq-4", "u-sup-2", "PUBLISHED", false, "2026-08-25"),
+                sale("sale-4", references.next(ReferenceService.LISTING),
+                        "Groupe électrogène Atlas Copco QAS 150", "c-groupe", "Atlas Copco", "QAS 150", 2023, 0,
+                        "Abidjan, Côte d'Ivoire", "NEUF", 18_900_000L, false,
+                        "Groupe 150 kVA neuf, capotage insonorisé, livraison sur site possible.",
+                        List.of(CatalogSeeder.IMG_GROUPE_MOBILE),
+                        List.of(new DocumentInfo("Fiche technique", "PDF"), new DocumentInfo("Garantie constructeur", "PDF")),
+                        null, "u-sup-2", "PUBLISHED", true, "2026-08-28"),
+                sale("sale-5", references.next(ReferenceService.LISTING),
+                        "Grue mobile Liebherr LTM 1050", "c-grue", "Liebherr", "LTM 1050", 2014, 8000,
+                        "Yamoussoukro, Côte d'Ivoire", "OCCASION", 145_000_000L, true,
+                        "Grue mobile 50 tonnes, flèche 38 m. Annonce en attente d'examen par l'équipe VOLTA.",
+                        List.of(CatalogSeeder.IMG_GRUE_MOBILE),
+                        List.of(),
+                        "eq-7", "u-sup-1", "SUBMITTED", false, null));
+    }
+
     /**
      * Amorce ce qui manque, ne touche à rien d'autre.
      *
@@ -131,7 +185,8 @@ final class CatalogSeeder {
      * le journaliser : un amorçage silencieux ne se distingue pas d'un amorçage
      * qui n'a pas eu lieu.
      */
-    static int seed(UserRepository users, EquipmentRepository equipment) {
+    static int seed(UserRepository users, EquipmentRepository equipment,
+                    SaleListingRepository listings, ReferenceService references) {
         for (UserAccount s : vitrineSuppliers()) {
             if (!users.existsById(s.id)) {
                 // Sans empreinte : le compte porte les engins, il ne se
@@ -148,8 +203,27 @@ final class CatalogSeeder {
                 crees++;
             }
         }
-        if (crees > 0) {
-            log.info("Catalogue de présentation : {} engin(s) ajouté(s).", crees);
+        /*
+         * Les annonces, après les engins : plusieurs s'y rattachent par
+         * leur equipmentId, et une annonce qui pointe vers un engin absent
+         * n'ouvre sur rien.
+         *
+         * La référence n'est tirée que pour une annonce réellement créée :
+         * l'appeler pour une annonce déjà présente consommerait un numéro
+         * de la séquence à chaque démarrage, et la numérotation du Market
+         * se mettrait à sauter sans que rien ne l'explique.
+         */
+        int annoncesCreees = 0;
+        for (SaleListing l : annonces(references)) {
+            if (!listings.existsById(l.id)) {
+                listings.save(l);
+                annoncesCreees++;
+            }
+        }
+
+        if (crees > 0 || annoncesCreees > 0) {
+            log.info("Catalogue de présentation : {} engin(s) et {} annonce(s) ajoutés.",
+                    crees, annoncesCreees);
         }
         return crees;
     }
@@ -179,5 +253,35 @@ final class CatalogSeeder {
         e.declaredCondition = declaredCondition;
         e.createdAt = createdAt;
         return e;
+    }
+
+    private static SaleListing sale(String id, String reference, String title, String categoryId, String brand,
+            String model, int year, int hours, String location, String condition, long askingPrice,
+            boolean negotiable, String description, List<String> photos, List<DocumentInfo> documents,
+            String equipmentId, String sellerId, String status, boolean featured, String publishedAt) {
+        SaleListing l = new SaleListing();
+        l.id = id;
+        l.reference = reference;
+        l.title = title;
+        l.categoryId = categoryId;
+        l.brand = brand;
+        l.model = model;
+        l.year = year;
+        l.hours = hours;
+        l.location = location;
+        l.condition = condition;
+        l.askingPrice = askingPrice;
+        l.negotiable = negotiable;
+        l.description = description;
+        l.photos = photos;
+        l.documents = documents;
+        l.equipmentId = equipmentId;
+        l.sellerId = sellerId;
+        l.status = status;
+        l.featured = featured;
+        l.createdAt = "2026-08-18";
+        l.updatedAt = publishedAt == null ? "2026-08-18" : publishedAt;
+        l.publishedAt = publishedAt;
+        return l;
     }
 }

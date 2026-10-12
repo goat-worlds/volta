@@ -3,7 +3,9 @@ package ci.volta.backend.config;
 import ci.volta.backend.model.Equipment;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.EquipmentRepository;
+import ci.volta.backend.repository.SaleListingRepository;
 import ci.volta.backend.repository.UserRepository;
+import ci.volta.backend.service.ReferenceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,8 @@ class CatalogSeederTest {
 
     @Autowired UserRepository users;
     @Autowired EquipmentRepository equipment;
+    @Autowired SaleListingRepository listings;
+    @Autowired ReferenceService references;
 
     @Nested
     @DisplayName("Contenu")
@@ -114,7 +118,7 @@ class CatalogSeederTest {
         @DisplayName("Un second amorçage ne crée aucun doublon")
         void pasDeDoublon() {
             long avant = equipment.count();
-            int crees = CatalogSeeder.seed(users, equipment);
+            int crees = CatalogSeeder.seed(users, equipment, listings, references);
             assertThat(crees).as("engins créés au second passage").isZero();
             assertThat(equipment.count()).isEqualTo(avant);
         }
@@ -129,7 +133,7 @@ class CatalogSeederTest {
             e.pricePerDay = 999_999;
             equipment.save(e);
 
-            CatalogSeeder.seed(users, equipment);
+            CatalogSeeder.seed(users, equipment, listings, references);
 
             assertThat(equipment.findById("eq-1").orElseThrow().pricePerDay)
                     .as("prix modifié à la main")
@@ -148,10 +152,58 @@ class CatalogSeederTest {
             equipment.findById("eq-8").ifPresent(equipment::delete);
             assertThat(equipment.existsById("eq-8")).isFalse();
 
-            int crees = CatalogSeeder.seed(users, equipment);
+            int crees = CatalogSeeder.seed(users, equipment, listings, references);
 
             assertThat(crees).as("engin manquant recréé").isEqualTo(1);
             assertThat(equipment.existsById("eq-8")).isTrue();
         }
     }
+
+    @Nested
+    @DisplayName("Volta Market")
+    class Market {
+
+        @Test
+        @DisplayName("Les cinq annonces sont en base, avec leurs photos")
+        void cinqAnnonces() {
+            for (String id : List.of("sale-1", "sale-2", "sale-3", "sale-4", "sale-5")) {
+                assertThat(listings.findById(id)).as("annonce " + id).isPresent();
+                assertThat(listings.findById(id).orElseThrow().photos)
+                        .as("photos de " + id).isNotEmpty();
+            }
+        }
+
+        @Test
+        @DisplayName("Le site propose à la fois de louer et d'acheter")
+        void louerEtAcheter() {
+            // Ce que la vitrine doit montrer : un catalogue de location ET un
+            // Market. Un site qui annonce les deux et n'en sert qu'un donne
+            // l'impression d'être à moitié construit.
+            assertThat(equipment.findAll().stream().filter(e -> "PUBLISHED".equals(e.status)))
+                    .as("engins à louer").isNotEmpty();
+            assertThat(listings.findAll().stream().filter(l -> "PUBLISHED".equals(l.status)))
+                    .as("annonces à vendre").isNotEmpty();
+        }
+
+        @Test
+        @DisplayName("Une annonce rattachée à un engin pointe vers un engin qui existe")
+        void rattachementValide() {
+            // Une annonce dont l'equipmentId ne résout rien ouvre sur une page
+            // vide : l'acheteur clique et ne trouve pas la machine.
+            CatalogSeeder.annonces(references).stream()
+                    .filter(l -> l.equipmentId != null)
+                    .forEach(l -> assertThat(equipment.existsById(l.equipmentId))
+                            .as("engin " + l.equipmentId + " cité par " + l.id)
+                            .isTrue());
+        }
+
+        @Test
+        @DisplayName("Un second amorçage ne duplique pas les annonces")
+        void pasDeDoublon() {
+            long avant = listings.count();
+            CatalogSeeder.seed(users, equipment, listings, references);
+            assertThat(listings.count()).isEqualTo(avant);
+        }
+    }
+
 }
