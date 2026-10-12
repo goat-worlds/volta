@@ -61,15 +61,8 @@ public class DataSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
-    private static final String IMG_PELLE_KOMATSU = "/engins/pelle-komatsu.jpeg";
-    private static final String IMG_PELLE_CAT_336E = "/engins/pelle-cat-336e.jpeg";
-    private static final String IMG_PELLE_CAT_6015B = "/engins/pelle-cat-6015b.jpeg";
-    private static final String IMG_COMPACTEUR_CAT = "/engins/compacteur-cat.jpeg";
-    private static final String IMG_CAMION_KAMAZ = "/engins/camion-kamaz.jpeg";
-    private static final String IMG_GRUE_MOBILE = "/engins/grue-mobile.jpeg";
-    private static final String IMG_GROUPE_MOBILE = "/engins/groupe-mobile.jpeg";
 
-    private static UserAccount user(String id, String name, String role, String company, String email, String phone, String city) {
+    static UserAccount user(String id, String name, String role, String company, String email, String phone, String city) {
         UserAccount u = new UserAccount();
         u.id = id;
         u.name = name;
@@ -240,6 +233,7 @@ public class DataSeeder {
             AuthService authService,
             ReferenceService referenceService,
             @Value("${volta.seed.demo:false}") boolean seedDemo,
+            @Value("${volta.seed.catalog:true}") boolean seedCatalog,
             @Value("${volta.admin.email:}") String adminEmail,
             @Value("${volta.admin.password:}") String adminPassword,
             @Value("${volta.admin.name:Administration}") String adminName) {
@@ -255,6 +249,19 @@ public class DataSeeder {
                 categories.saveAll(catalogCategories());
             }
             bootstrapAdmin(users, authService, adminEmail, adminPassword, adminName);
+
+            /*
+             * Le catalogue de présentation, hors du jeu d'essai.
+             *
+             * Il vivait derrière volta.seed.demo, lequel crée des comptes
+             * au mot de passe écrit en clair dans un dépôt public. Une
+             * instance en ligne devait donc choisir entre un catalogue et
+             * un accès d'administration ouvert à tous. Elle a choisi la
+             * sûreté, et le site est resté vide.
+             */
+            if (seedCatalog) {
+                CatalogSeeder.seed(users, equipment);
+            }
 
             if (seedDemo) {
                 seedDemoData(users, equipment, inspections, reports, rentalRequests, notifications, authService);
@@ -317,72 +324,39 @@ public class DataSeeder {
             users.save(techUser);
         }
 
-        // La garde porte sur le catalogue, pas sur les comptes : les trois
-        // comptes de test créés ci-dessus la déclenchaient et le matériel
-        // n'était jamais seedé.
-        if (equipment.count() > 0) {
-            return;
+        /*
+         * Le catalogue n'est plus ici : il est amorcé à part, par
+         * CatalogSeeder, et vaut aussi en production. Ne restent sous ce
+         * drapeau que les comptes au mot de passe public et les pièces qui
+         * n'ont de sens qu'en démonstration — inspections, rapports,
+         * demandes de location.
+         *
+         * La garde globale « s'il existe déjà un engin, ne rien faire » a
+         * disparu avec lui : chaque élément vérifie sa propre présence, si
+         * bien qu'un jeu à moitié amorcé se complète au lieu de rester tel
+         * quel.
+         */
+        // Les fournisseurs de vitrine existent sans mot de passe. En
+        // démonstration, on leur en pose un pour pouvoir s'y connecter.
+        for (String id : List.of("u-sup-1", "u-sup-2")) {
+            users.findById(id).filter(u -> u.passwordHash == null).ifPresent(u -> {
+                u.passwordHash = defaultHash;
+                users.save(u);
+            });
         }
 
+        // u-sup-1 et u-sup-2 ne figurent plus ici : CatalogSeeder les a
+        // posés, et les réenregistrer écraserait ce que l'administration
+        // aurait pu y changer.
         List<UserAccount> seededUsers = List.of(
                 user("u-admin", "Kouadio Félix", "ADMIN", "VOLTA", "admin@volta.ci", "+225 07 00 00 03", "Abidjan"),
-                user("u-sup-1", "Boss Diarra", "SUPPLIER", "BTP CI SARL", "contact@btpci.ci", "+225 07 00 00 04", "Abidjan"),
-                user("u-sup-2", "Awa Koné", "SUPPLIER", "Afrique Matériel", "contact@afriquemateriel.ci", "+225 07 00 00 05", "Yamoussoukro"),
                 user("u-tech-1", "Yao Kouassi", "TECHNICAL", "Société Technique ABC", "inspection@abc.ci", "+225 07 00 00 06", "Abidjan"),
                 user("u-client-1", "Jean Konan", "CLIENT", "Entreprise BTP Konan", "jean@konan.ci", "+225 07 00 00 07", "Abidjan"));
-        seededUsers.forEach(u -> u.passwordHash = defaultHash);
-        users.saveAll(seededUsers);
+        seededUsers.stream().filter(u -> !users.existsById(u.id)).forEach(u -> {
+            u.passwordHash = defaultHash;
+            users.save(u);
+        });
 
-        equipment.saveAll(List.of(
-                eq("eq-1", "Komatsu PC210LC-8", "c-pelle", "Komatsu", "PC210LC-8", 2018, 3900,
-                        "Abidjan, Côte d'Ivoire", 250000, true, true,
-                        "Pelle hydraulique fiable, puissante et économique en carburant. Idéale pour les travaux de terrassement, carrières et grands chantiers.",
-                        List.of(IMG_PELLE_KOMATSU),
-                        List.of(new DocumentInfo("Certificat CE", "PDF"), new DocumentInfo("Facture d'achat", "PDF"),
-                                new DocumentInfo("Rapport d'inspection 2025", "PDF")),
-                        "u-sup-1", "PUBLISHED", "GOLD", "Très bon état", "2026-05-10"),
-                eq("eq-2", "Caterpillar 336E L", "c-pelle", "Caterpillar", "336E L", 2017, 5200,
-                        "Abidjan, Côte d'Ivoire", 270000, true, false,
-                        "Pelle hydraulique polyvalente, entretien à jour, prête pour chantier.",
-                        List.of(IMG_PELLE_CAT_336E),
-                        List.of(new DocumentInfo("Certificat CE", "PDF")),
-                        "u-sup-2", "PUBLISHED", "SILVER", "Bon état", "2026-05-12"),
-                eq("eq-3", "Kamaz 65115", "c-camion", "Kamaz", "65115", 2019, 2800,
-                        "Abidjan, Côte d'Ivoire", 200000, true, true,
-                        "Camion benne 6x4 grande capacité pour transport de matériaux.",
-                        List.of(IMG_CAMION_KAMAZ),
-                        List.of(new DocumentInfo("Manuel d'utilisation", "PDF")),
-                        "u-sup-1", "PUBLISHED", "GOLD", "Très bon état", "2026-05-14"),
-                eq("eq-4", "Caterpillar CS56B", "c-compacteur", "Caterpillar", "CS56B", 2016, 4100,
-                        "Bouaké, Côte d'Ivoire", 120000, true, false,
-                        "Compacteur monocylindre vibrant pour travaux de compactage de sols.",
-                        List.of(IMG_COMPACTEUR_CAT),
-                        List.of(new DocumentInfo("Certificat CE", "PDF")),
-                        "u-sup-2", "PUBLISHED", "BASIC", "Bon état", "2026-05-15"),
-                eq("eq-5", "Caterpillar 6015B", "c-pelle", "Caterpillar", "6015B", 2015, 6100,
-                        "Yamoussoukro, Côte d'Ivoire", 800000, true, true,
-                        "Pelle minière lourde, soumise pour vérification VOLTA.",
-                        List.of(IMG_PELLE_CAT_6015B),
-                        List.of(new DocumentInfo("Facture d'achat", "PDF")),
-                        "u-sup-1", "SUBMITTED", null, "Bon état", "2026-08-10"),
-                eq("eq-6", "Atlas Copco XRVS 476", "c-groupe", "Atlas Copco", "XRVS 476", 2020, 1800,
-                        "Abidjan, Côte d'Ivoire", 90000, true, false,
-                        "Compresseur mobile sur remorque en cours de vérification.",
-                        List.of(IMG_GROUPE_MOBILE),
-                        List.of(),
-                        "u-sup-1", "PENDING_INSPECTION", null, "Très bon état", "2026-08-11"),
-                eq("eq-7", "Liebherr LTM 1050", "c-grue", "Liebherr", "LTM 1050", 2014, 8000,
-                        "Yamoussoukro, Côte d'Ivoire", 500000, true, true,
-                        "Grue mobile 50 tonnes. Brouillon en cours de complétion.",
-                        List.of(IMG_GRUE_MOBILE),
-                        List.of(),
-                        "u-sup-1", "DRAFT", null, "État moyen", "2026-08-13"),
-                eq("eq-8", "Grove GMK4100", "c-grue", "Grove", "GMK4100", 2016, 5400,
-                        "Bouaké, Côte d'Ivoire", 450000, true, false,
-                        "Grue mobile 100 tonnes, rapport transmis, en attente de décision.",
-                        List.of(IMG_GRUE_MOBILE),
-                        List.of(new DocumentInfo("Certificat CE", "PDF")),
-                        "u-sup-2", "PENDING_ADMIN_REVIEW", null, "Bon état", "2026-08-08")));
 
         Inspection insp1 = new Inspection();
         insp1.id = "insp-1";
@@ -399,7 +373,7 @@ public class DataSeeder {
         insp2.assignedAt = "2026-08-09";
         insp2.status = "DONE";
         insp2.checklist = checklist("CONFORME");
-        insp2.photos = List.of(IMG_GRUE_MOBILE);
+        insp2.photos = List.of(CatalogSeeder.IMG_GRUE_MOBILE);
         inspections.saveAll(List.of(insp1, insp2));
 
         Report rep1 = new Report();
@@ -451,35 +425,35 @@ public class DataSeeder {
                         "Pelle hydraulique Komatsu PC210LC-8", "c-pelle", "Komatsu", "PC210LC-8", 2018, 3900,
                         "Abidjan, Côte d'Ivoire", "OCCASION", 68_000_000L, true,
                         "Pelle 21 tonnes révisée, chaîne cinématique contrôlée, godet 1,2 m³. Carnet d'entretien complet.",
-                        List.of(IMG_PELLE_KOMATSU),
+                        List.of(CatalogSeeder.IMG_PELLE_KOMATSU),
                         List.of(new DocumentInfo("Carte grise", "PDF"), new DocumentInfo("Rapport d'inspection 2025", "PDF")),
                         "eq-1", "u-sup-1", "PUBLISHED", true, "2026-08-20"),
                 sale("sale-2", references.next(ReferenceService.LISTING),
                         "Camion benne Kamaz 65115 6x4", "c-camion", "Kamaz", "65115", 2019, 2800,
                         "Abidjan, Côte d'Ivoire", "OCCASION", 32_000_000L, true,
                         "Benne 15 m³, moteur révisé à 2 500 h, pneus neufs. Dédouané, documents à jour.",
-                        List.of(IMG_CAMION_KAMAZ),
+                        List.of(CatalogSeeder.IMG_CAMION_KAMAZ),
                         List.of(new DocumentInfo("Carte grise", "PDF"), new DocumentInfo("Documents douaniers", "PDF")),
                         "eq-3", "u-sup-1", "PUBLISHED", true, "2026-08-22"),
                 sale("sale-3", references.next(ReferenceService.LISTING),
                         "Compacteur Caterpillar CS56B", "c-compacteur", "Caterpillar", "CS56B", 2016, 4100,
                         "Bouaké, Côte d'Ivoire", "OCCASION", 24_500_000L, false,
                         "Compacteur monocylindre vibrant 12 tonnes. Bille lisse, kit patins disponible.",
-                        List.of(IMG_COMPACTEUR_CAT),
+                        List.of(CatalogSeeder.IMG_COMPACTEUR_CAT),
                         List.of(new DocumentInfo("Certificat CE", "PDF")),
                         "eq-4", "u-sup-2", "PUBLISHED", false, "2026-08-25"),
                 sale("sale-4", references.next(ReferenceService.LISTING),
                         "Groupe électrogène Atlas Copco QAS 150", "c-groupe", "Atlas Copco", "QAS 150", 2023, 0,
                         "Abidjan, Côte d'Ivoire", "NEUF", 18_900_000L, false,
                         "Groupe 150 kVA neuf, capotage insonorisé, livraison sur site possible.",
-                        List.of(IMG_GROUPE_MOBILE),
+                        List.of(CatalogSeeder.IMG_GROUPE_MOBILE),
                         List.of(new DocumentInfo("Fiche technique", "PDF"), new DocumentInfo("Garantie constructeur", "PDF")),
                         null, "u-sup-2", "PUBLISHED", true, "2026-08-28"),
                 sale("sale-5", references.next(ReferenceService.LISTING),
                         "Grue mobile Liebherr LTM 1050", "c-grue", "Liebherr", "LTM 1050", 2014, 8000,
                         "Yamoussoukro, Côte d'Ivoire", "OCCASION", 145_000_000L, true,
                         "Grue mobile 50 tonnes, flèche 38 m. Annonce en attente d'examen par l'équipe VOLTA.",
-                        List.of(IMG_GRUE_MOBILE),
+                        List.of(CatalogSeeder.IMG_GRUE_MOBILE),
                         List.of(),
                         "eq-7", "u-sup-1", "SUBMITTED", false, null)));
     }
@@ -514,30 +488,4 @@ public class DataSeeder {
         return l;
     }
 
-    private static Equipment eq(String id, String name, String categoryId, String brand, String model, int year,
-            int hours, String location, long pricePerDay, boolean available, boolean withOperator, String description,
-            List<String> photos, List<DocumentInfo> documents, String supplierId, String status, String level,
-            String declaredCondition, String createdAt) {
-        Equipment e = new Equipment();
-        e.id = id;
-        e.name = name;
-        e.categoryId = categoryId;
-        e.brand = brand;
-        e.model = model;
-        e.year = year;
-        e.hours = hours;
-        e.location = location;
-        e.pricePerDay = pricePerDay;
-        e.available = available;
-        e.withOperator = withOperator;
-        e.description = description;
-        e.photos = photos;
-        e.documents = documents;
-        e.supplierId = supplierId;
-        e.status = status;
-        e.level = level;
-        e.declaredCondition = declaredCondition;
-        e.createdAt = createdAt;
-        return e;
-    }
 }
