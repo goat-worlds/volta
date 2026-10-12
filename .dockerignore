@@ -1,0 +1,33 @@
+# Ce qui ne doit pas entrer dans le contexte de construction du frontend.
+#
+# Le contexte est envoyé au démon Docker avant toute étape : sans ce fichier,
+# node_modules et le target du backend — plusieurs centaines de mégaoctets —
+# partent à chaque construction, y compris quand rien n'a changé.
+
+node_modules
+dist
+dist-ssr
+
+# Le backend a son propre Dockerfile et son propre contexte.
+backend
+
+# Secrets : le .env réel ne doit jamais se retrouver dans une couche d'image,
+# d'où quiconque dispose de l'image peut le relire.
+.env
+*.local
+
+.git
+.github
+.claude
+sauvegardes
+outils
+images
+volta
+
+*.log
+__pycache__
+.DS_Store
+
+# Documentation : elle n'est pas servie par le site.
+*.md
+!README.md

@@ -1,0 +1,15 @@
+# Contexte de construction du backend.
+#
+# target/ contient le jar et les classes d'une compilation locale : les
+# embarquer ferait partir dans l'image un artefact construit sur une autre
+# machine, avec un autre JDK, au lieu de celui que le Dockerfile compile.
+
+target
+.mvn/wrapper/maven-wrapper.jar
+
+.env
+*.log
+
+# Les fichiers téléversés en développement : ils n'ont rien à faire dans
+# l'image, le volume persistant les porte en production.
+uploads

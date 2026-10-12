@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Pièce jointe d'une demande de parcours public — le CV d'une candidature,
@@ -35,7 +36,19 @@ public class RequestAttachment {
 
     /** Contenu encodé en base64. Jamais renvoyé tel quel : voir le contrôleur de téléchargement. */
     @JsonIgnore
-    @Lob
-    @Column(columnDefinition = "LONGTEXT")
+    /*
+     * Le type est choisi par le dialecte, pas écrit à la main.
+     *
+     * « LONGTEXT » est un type MySQL : sur PostgreSQL, la création de la table
+     * échouait sur « type longtext does not exist ». L'application démarrait
+     * quand même — Hibernate ne fait qu'avertir — et la table manquait, si
+     * bien que le premier dépôt de pièce échouait en production sur une base
+     * qui paraissait saine.
+     *
+     * LONG32VARCHAR demande « le plus grand texte du moteur » : longtext sur
+     * MySQL et MariaDB, text sur PostgreSQL. Le schéma MySQL existant est
+     * inchangé.
+     */
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     public String contentBase64;
 }

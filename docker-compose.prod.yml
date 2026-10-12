@@ -1,0 +1,138 @@
+# VOLTA en production — Hostinger VPS, Docker Compose.
+#
+# Trois services. Un seul port est publié : celui de nginx, qui sert le site et
+# relaie vers le backend ce qui lui revient. Le backend et la base n'ont aucun
+# port exposé — ils ne sont joignables que depuis le réseau privé de Docker,
+# donc pas depuis Internet.
+#
+# Les images viennent de GHCR : Docker Manager ne sait pas cloner un dépôt, un
+# `build:` n'aurait pas de sources sous la main. Elles sont construites et
+# publiées par .github/workflows/images.yml.
+#
+# ATTENTION — remplacer toutes les valeurs marquées CHANGEZ_MOI avant de
+# déployer. Ce fichier n'est pas un secret tant qu'il porte ces marqueurs ; il
+# en devient un dès qu'il porte le vrai mot de passe.
+
+services:
+  # ------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: volta-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: volta
+      POSTGRES_USER: volta
+      POSTGRES_PASSWORD: CHANGEZ_MOI_MOT_DE_PASSE_BASE
+      # Sans cela, l'initialisation écrit directement dans le point de montage
+      # du volume, ce qui échoue sur certains systèmes de fichiers.
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - volta-db:/var/lib/postgresql/data
+    # Aucun `ports:` — la base n'est jamais jointe depuis l'extérieur. Pour
+    # l'administrer, passer par un tunnel SSH vers le VPS.
+    networks:
+      - volta
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U volta -d volta"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ------------------------------------------------------------------
+  backend:
+    image: ghcr.io/goat-worlds/volta-backend:latest
+    container_name: volta-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "9000"
+
+      # La base, jointe par le nom du service sur le réseau privé.
+      #
+      # Le profil « render » n'est PAS activé : il compose l'URL à partir de
+      # variables PG* prévues pour un fournisseur externe. Ici les trois
+      # variables ordinaires suffisent, et ce qu'elles valent se lit d'un coup
+      # d'œil.
+      DB_URL: jdbc:postgresql://db:5432/volta
+      DB_USER: volta
+      DB_PASSWORD: CHANGEZ_MOI_MOT_DE_PASSE_BASE
+      HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+      # PREMIER démarrage : « update », pour qu'Hibernate crée les tables — le
+      # projet n'embarque aucun outil de migration et la base arrive vide.
+      #
+      # Une fois le site en ligne et vérifié, repasser à « validate » et
+      # redéployer : Hibernate contrôlera alors la correspondance sans jamais
+      # toucher au schéma. Laisser « update » l'autoriserait à modifier la base
+      # à chaque déploiement, y compris sur un déploiement raté.
+      DDL_AUTO: update
+
+      # Les comptes de démonstration ont leur mot de passe en clair dans les
+      # sources d'un dépôt public. Sur une instance joignable, les laisser
+      # reviendrait à publier un accès administrateur.
+      VOLTA_SEED_DEMO: "false"
+
+      # Le premier administrateur. Sans lui, une base vide n'a personne pour
+      # référencer un engin : l'inscription par le site ne délivre que des
+      # comptes clients.
+      #
+      # L'amorçage ne joue que tant qu'aucun administrateur n'existe. Le mot de
+      # passe doit être changé depuis l'application dès la première connexion.
+      VOLTA_ADMIN_EMAIL: CHANGEZ_MOI@votredomaine.ci
+      VOLTA_ADMIN_PASSWORD: CHANGEZ_MOI_MOT_DE_PASSE_ADMIN
+      VOLTA_ADMIN_NAME: Administration
+
+      # Les fichiers téléversés vivent sur le volume, pas dans le conteneur :
+      # sans cela, chaque redéploiement effacerait les photos des fournisseurs
+      # et les pièces jointes des inspections.
+      UPLOAD_DIR: /data/uploads/equipment
+      INSPECTION_UPLOAD_DIR: /data/uploads/inspections
+
+      # Le site et l'API partagent une origine derrière nginx : aucune requête
+      # n'est inter-origines et cette liste ne sert qu'en secours. Y mettre
+      # l'adresse publique du VPS, jamais « * » — les requêtes portent des
+      # identifiants de session.
+      VOLTA_CORS_ALLOWED_ORIGINS: http://CHANGEZ_MOI_IP_DU_VPS
+
+      SESSION_DURATION_DAYS: "7"
+      VOLTA_TELEPHONE: "05 00 99 13 13"
+    volumes:
+      - volta-uploads:/data/uploads
+    networks:
+      - volta
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9000/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      # Spring Boot met une minute à démarrer sur un petit VPS : une période de
+      # grâce trop courte ferait redémarrer le conteneur en boucle avant qu'il
+      # ait fini de se lever.
+      retries: 5
+      start_period: 120s
+
+  # ------------------------------------------------------------------
+  web:
+    image: ghcr.io/goat-worlds/volta-frontend:latest
+    container_name: volta-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      # Le seul port ouvert sur Internet.
+      #
+      # Pour HTTPS, voir DEPLOIEMENT-HOSTINGER.md : il faut un nom de domaine,
+      # un certificat ne pouvant être délivré pour une adresse IP nue.
+      - "80:80"
+    networks:
+      - volta
+
+networks:
+  volta:
+    driver: bridge
+
+volumes:
+  volta-db:
+  volta-uploads:
