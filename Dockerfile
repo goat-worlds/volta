@@ -38,5 +38,10 @@ COPY --from=build /build/dist /usr/share/nginx/html
 EXPOSE 80
 
 # wget est présent dans l'image alpine de nginx ; curl ne l'est pas.
+#
+# 127.0.0.1 et non « localhost » : dans le conteneur, localhost résout d'abord
+# vers ::1, et nginx n'écoute qu'en IPv4. La sonde recevait « Connection
+# refused » et marquait « unhealthy » un conteneur qui servait parfaitement le
+# site. Un diagnostic faux est pire qu'une absence de diagnostic.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -q --spider http://localhost/index.html || exit 1
+    CMD wget -q --spider http://127.0.0.1/index.html || exit 1
