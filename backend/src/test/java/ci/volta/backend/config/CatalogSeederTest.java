@@ -2,7 +2,9 @@ package ci.volta.backend.config;
 
 import ci.volta.backend.model.Equipment;
 import ci.volta.backend.model.UserAccount;
+import ci.volta.backend.repository.EquipmentLikeRepository;
 import ci.volta.backend.repository.EquipmentRepository;
+import ci.volta.backend.repository.EquipmentReviewRepository;
 import ci.volta.backend.repository.SaleListingRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.service.ReferenceService;
@@ -31,6 +33,8 @@ class CatalogSeederTest {
     @Autowired UserRepository users;
     @Autowired EquipmentRepository equipment;
     @Autowired SaleListingRepository listings;
+    @Autowired EquipmentReviewRepository reviews;
+    @Autowired EquipmentLikeRepository likes;
     @Autowired ReferenceService references;
 
     @Nested
@@ -118,7 +122,7 @@ class CatalogSeederTest {
         @DisplayName("Un second amorçage ne crée aucun doublon")
         void pasDeDoublon() {
             long avant = equipment.count();
-            int crees = CatalogSeeder.seed(users, equipment, listings, references);
+            int crees = CatalogSeeder.seed(users, equipment, listings, references, reviews, likes);
             assertThat(crees).as("engins créés au second passage").isZero();
             assertThat(equipment.count()).isEqualTo(avant);
         }
@@ -133,7 +137,7 @@ class CatalogSeederTest {
             e.pricePerDay = 999_999;
             equipment.save(e);
 
-            CatalogSeeder.seed(users, equipment, listings, references);
+            CatalogSeeder.seed(users, equipment, listings, references, reviews, likes);
 
             assertThat(equipment.findById("eq-1").orElseThrow().pricePerDay)
                     .as("prix modifié à la main")
@@ -152,7 +156,7 @@ class CatalogSeederTest {
             equipment.findById("eq-8").ifPresent(equipment::delete);
             assertThat(equipment.existsById("eq-8")).isFalse();
 
-            int crees = CatalogSeeder.seed(users, equipment, listings, references);
+            int crees = CatalogSeeder.seed(users, equipment, listings, references, reviews, likes);
 
             assertThat(crees).as("engin manquant recréé").isEqualTo(1);
             assertThat(equipment.existsById("eq-8")).isTrue();
@@ -201,8 +205,84 @@ class CatalogSeederTest {
         @DisplayName("Un second amorçage ne duplique pas les annonces")
         void pasDeDoublon() {
             long avant = listings.count();
-            CatalogSeeder.seed(users, equipment, listings, references);
+            CatalogSeeder.seed(users, equipment, listings, references, reviews, likes);
             assertThat(listings.count()).isEqualTo(avant);
+        }
+    }
+
+
+    @Nested
+    @DisplayName("Avis et j'aime")
+    class AvisEtJaime {
+
+        @Test
+        @DisplayName("Les avis sont en base et portent sur des engins publiés")
+        void avisEnBase() {
+            assertThat(reviews.count()).as("avis").isPositive();
+            CatalogSeeder.avis().forEach(a -> {
+                assertThat(reviews.findById(a.id)).as("avis " + a.id).isPresent();
+                // Un avis sur une machine que le public ne voit pas ne se lit
+                // nulle part : il occupe la base sans rien montrer.
+                assertThat(equipment.findById(a.equipmentId).orElseThrow().status)
+                        .as("statut de l'engin commenté par " + a.id)
+                        .isEqualTo("PUBLISHED");
+            });
+        }
+
+        @Test
+        @DisplayName("Les notes ne sont pas toutes maximales")
+        void notesNuancees() {
+            // Un catalogue où tout est à cinq étoiles ne se croit pas, et une
+            // plateforme qui dit mesurer la fiabilité doit pouvoir afficher une
+            // réserve.
+            assertThat(CatalogSeeder.avis().stream().map(a -> a.rating).distinct())
+                    .as("notes distinctes").hasSizeGreaterThan(1);
+            assertThat(CatalogSeeder.avis().stream().anyMatch(a -> a.rating < 5))
+                    .as("au moins un avis réservé").isTrue();
+            CatalogSeeder.avis().forEach(a ->
+                    assertThat(a.rating).as("note de " + a.id).isBetween(1, 5));
+        }
+
+        @Test
+        @DisplayName("Un auteur ne commente pas deux fois le même engin")
+        void pasDeDoubleAvis() {
+            // C'est la règle du service : le couple engin-client est unique.
+            // L'amorçage ne doit pas la violer, sinon il crée un état que
+            // l'application elle-même refuserait de produire.
+            long couples = CatalogSeeder.avis().stream()
+                    .map(a -> a.equipmentId + "/" + a.clientId).distinct().count();
+            assertThat(couples).isEqualTo(CatalogSeeder.avis().size());
+        }
+
+        @Test
+        @DisplayName("Les auteurs existent et ne peuvent pas se connecter")
+        void auteursSansAcces() {
+            CatalogSeeder.avis().forEach(a -> {
+                var auteur = users.findById(a.clientId).orElse(null);
+                assertThat(auteur).as("auteur de " + a.id).isNotNull();
+                assertThat(auteur.role).as("rôle de l'auteur").isEqualTo("CLIENT");
+                assertThat(auteur.passwordHash)
+                        .as("un compte de vitrine ne se connecte pas").isNull();
+            });
+        }
+
+        @Test
+        @DisplayName("Les j'aime sont en base, un par couple engin-client")
+        void jaimeEnBase() {
+            assertThat(likes.count()).as("j'aime").isPositive();
+            long couples = CatalogSeeder.jaime().stream()
+                    .map(l -> l.equipmentId + "/" + l.clientId).distinct().count();
+            assertThat(couples).isEqualTo(CatalogSeeder.jaime().size());
+        }
+
+        @Test
+        @DisplayName("Un second amorçage ne duplique ni avis ni j'aime")
+        void pasDeDoublon() {
+            long a = reviews.count();
+            long j = likes.count();
+            CatalogSeeder.seed(users, equipment, listings, references, reviews, likes);
+            assertThat(reviews.count()).isEqualTo(a);
+            assertThat(likes.count()).isEqualTo(j);
         }
     }
 

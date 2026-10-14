@@ -2,9 +2,13 @@ package ci.volta.backend.config;
 
 import ci.volta.backend.model.DocumentInfo;
 import ci.volta.backend.model.Equipment;
+import ci.volta.backend.model.EquipmentLike;
+import ci.volta.backend.model.EquipmentReview;
 import ci.volta.backend.model.SaleListing;
 import ci.volta.backend.model.UserAccount;
+import ci.volta.backend.repository.EquipmentLikeRepository;
 import ci.volta.backend.repository.EquipmentRepository;
+import ci.volta.backend.repository.EquipmentReviewRepository;
 import ci.volta.backend.repository.SaleListingRepository;
 import ci.volta.backend.repository.UserRepository;
 import ci.volta.backend.service.ReferenceService;
@@ -178,6 +182,115 @@ final class CatalogSeeder {
                         "eq-7", "u-sup-1", "SUBMITTED", false, null));
     }
 
+
+    /**
+     * Les clients de vitrine, auteurs des avis.
+     *
+     * Le modèle exige un auteur : c'est le couple engin-client qui empêche le
+     * doublon, et un avis sans client passerait deux fois. Ces comptes existent
+     * donc, sans empreinte de mot de passe comme les fournisseurs.
+     *
+     * Ils ne sont jamais montrés : ReviewView ne rend que la note, le
+     * commentaire et la date. Aucun avis ne se présente donc sous l'identité
+     * d'une entreprise réelle.
+     *
+     * Le domaine « .invalid » est réservé par le RFC 2606 : ces adresses ne
+     * peuvent pas exister, et personne ne recevra de courrier par erreur.
+     */
+    private static List<UserAccount> vitrineClients() {
+        return List.of(
+                DataSeeder.user("u-cli-v1", "Client vitrine 1", "CLIENT", "Entreprise A",
+                        "vitrine1@exemple.invalid", "+225 07 00 00 20", "Abidjan"),
+                DataSeeder.user("u-cli-v2", "Client vitrine 2", "CLIENT", "Entreprise B",
+                        "vitrine2@exemple.invalid", "+225 07 00 00 21", "Bouaké"),
+                DataSeeder.user("u-cli-v3", "Client vitrine 3", "CLIENT", "Entreprise C",
+                        "vitrine3@exemple.invalid", "+225 07 00 00 22", "San-Pédro"));
+    }
+
+    /**
+     * Les avis de présentation.
+     *
+     * Ils portent sur les quatre engins publiés : commenter une machine que
+     * personne ne voit n'apprendrait rien au visiteur.
+     *
+     * Les notes ne sont pas toutes à cinq. Un catalogue où tout est parfait ne
+     * se croit pas, et une plateforme qui dit mesurer la fiabilité doit pouvoir
+     * afficher une réserve.
+     */
+    static List<EquipmentReview> avis() {
+        return List.of(
+                avis("av-1", "eq-1", "u-cli-v1", 5,
+                        "Pelle livrée à l'heure sur notre chantier de Yopougon. "
+                        + "Chauffeur expérimenté, aucune panne sur trois semaines.",
+                        "2026-06-14"),
+                avis("av-2", "eq-1", "u-cli-v2", 4,
+                        "Bon matériel, bien entretenu. La livraison a pris une demi-journée "
+                        + "de plus que prévu, sans conséquence sur le planning.",
+                        "2026-07-02"),
+                avis("av-3", "eq-2", "u-cli-v1", 5,
+                        "Rendement supérieur à ce que nous attendions sur du terrassement "
+                        + "en terre rouge. Nous la reprendrons.",
+                        "2026-07-19"),
+                avis("av-4", "eq-2", "u-cli-v3", 4,
+                        "Machine solide. Prévoir le ravitaillement en carburant : "
+                        + "la consommation est à la hauteur de la puissance.",
+                        "2026-08-03"),
+                avis("av-5", "eq-3", "u-cli-v2", 5,
+                        "Benne disponible au jour près pendant la saison des pluies, "
+                        + "ce qui n'est pas si courant. Documents en règle.",
+                        "2026-08-21"),
+                avis("av-6", "eq-3", "u-cli-v3", 3,
+                        "Camion correct, mais arrivé avec un pneu en fin de vie, "
+                        + "remplacé par le loueur dès le signalement.",
+                        "2026-09-05"),
+                avis("av-7", "eq-4", "u-cli-v1", 4,
+                        "Compactage régulier sur deux kilomètres de piste. Rien à redire "
+                        + "sur la machine ni sur le suivi.",
+                        "2026-09-17"));
+    }
+
+    private static EquipmentReview avis(String id, String equipmentId, String clientId,
+                                        int rating, String comment, String jour) {
+        EquipmentReview r = new EquipmentReview();
+        r.id = id;
+        r.equipmentId = equipmentId;
+        r.clientId = clientId;
+        r.rating = rating;
+        r.comment = comment;
+        r.createdAt = jour;
+        r.updatedAt = jour;
+        r.hidden = false;
+        return r;
+    }
+
+    /**
+     * Les « j'aime », en petit nombre et assumé.
+     *
+     * Trois clients de vitrine, donc trois au plus par engin. Gonfler ce
+     * compteur à coups de comptes fictifs donnerait un chiffre flatteur et
+     * faux ; un compteur public ne vaut que s'il compte quelque chose.
+     */
+    static List<EquipmentLike> jaime() {
+        return List.of(
+                jaime("lk-1", "eq-1", "u-cli-v1", "2026-06-14"),
+                jaime("lk-2", "eq-1", "u-cli-v2", "2026-07-02"),
+                jaime("lk-3", "eq-1", "u-cli-v3", "2026-07-30"),
+                jaime("lk-4", "eq-2", "u-cli-v1", "2026-07-19"),
+                jaime("lk-5", "eq-2", "u-cli-v3", "2026-08-03"),
+                jaime("lk-6", "eq-3", "u-cli-v2", "2026-08-21"),
+                jaime("lk-7", "eq-4", "u-cli-v1", "2026-09-17"),
+                jaime("lk-8", "eq-4", "u-cli-v2", "2026-09-20"));
+    }
+
+    private static EquipmentLike jaime(String id, String equipmentId, String clientId, String jour) {
+        EquipmentLike l = new EquipmentLike();
+        l.id = id;
+        l.equipmentId = equipmentId;
+        l.clientId = clientId;
+        l.createdAt = jour;
+        return l;
+    }
+
     /**
      * Amorce ce qui manque, ne touche à rien d'autre.
      *
@@ -186,7 +299,15 @@ final class CatalogSeeder {
      * qui n'a pas eu lieu.
      */
     static int seed(UserRepository users, EquipmentRepository equipment,
-                    SaleListingRepository listings, ReferenceService references) {
+                    SaleListingRepository listings, ReferenceService references,
+                    EquipmentReviewRepository reviews, EquipmentLikeRepository likes) {
+        for (UserAccount s : vitrineClients()) {
+            if (!users.existsById(s.id)) {
+                s.passwordHash = null;
+                users.save(s);
+            }
+        }
+
         for (UserAccount s : vitrineSuppliers()) {
             if (!users.existsById(s.id)) {
                 // Sans empreinte : le compte porte les engins, il ne se
@@ -218,6 +339,24 @@ final class CatalogSeeder {
             if (!listings.existsById(l.id)) {
                 listings.save(l);
                 annoncesCreees++;
+            }
+        }
+
+        /*
+         * Avis et « j'aime » après les engins, pour la même raison que les
+         * annonces : un avis sur un engin absent ne s'affiche nulle part.
+         *
+         * Garde par identifiant, donc un avis masqué par l'administration
+         * reste masqué au redémarrage suivant.
+         */
+        for (EquipmentReview r : avis()) {
+            if (equipment.existsById(r.equipmentId) && !reviews.existsById(r.id)) {
+                reviews.save(r);
+            }
+        }
+        for (EquipmentLike l : jaime()) {
+            if (equipment.existsById(l.equipmentId) && !likes.existsById(l.id)) {
+                likes.save(l);
             }
         }
 

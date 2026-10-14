@@ -9,7 +9,22 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:9000',
+        /*
+         * Le port du backend se règle, parce qu'il n'est pas toujours
+         * disponible.
+         *
+         * Windows réserve des plages entières pour Hyper-V et Docker —
+         * « netsh interface ipv4 show excludedportrange protocol=tcp » les
+         * liste — et le 9000 tombe dans l'une d'elles sur certaines machines.
+         * Le backend échoue alors sur « Port 9000 was already in use » alors
+         * que rien n'écoute, ce qui envoie chercher un processus fantôme.
+         *
+         * Lancer le backend avec PORT=9100 et Vite avec
+         * VITE_BACKEND_URL=http://localhost:9100 contourne la réservation sans
+         * toucher au service winnat, dont l'arrêt couperait les conteneurs en
+         * cours.
+         */
+        target: process.env.VITE_BACKEND_URL ?? 'http://localhost:9000',
         changeOrigin: true,
         // Le serveur écoute sur toutes les interfaces pour être ouvert depuis
         // un téléphone sur le même réseau. Le navigateur envoie alors

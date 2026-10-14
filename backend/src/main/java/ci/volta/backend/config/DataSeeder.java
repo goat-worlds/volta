@@ -12,7 +12,9 @@ import ci.volta.backend.model.Report;
 import ci.volta.backend.model.SaleListing;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.CategoryRepository;
+import ci.volta.backend.repository.EquipmentLikeRepository;
 import ci.volta.backend.repository.EquipmentRepository;
+import ci.volta.backend.repository.EquipmentReviewRepository;
 import ci.volta.backend.repository.InspectionRepository;
 import ci.volta.backend.repository.NotificationRepository;
 import ci.volta.backend.repository.RentalRequestRepository;
@@ -229,6 +231,8 @@ public class DataSeeder {
             RentalRequestRepository rentalRequests,
             NotificationRepository notifications,
             SaleListingRepository listings,
+            EquipmentReviewRepository reviews,
+            EquipmentLikeRepository likes,
             AuthService authService,
             ReferenceService referenceService,
             @Value("${volta.seed.demo:false}") boolean seedDemo,
@@ -259,7 +263,7 @@ public class DataSeeder {
              * sûreté, et le site est resté vide.
              */
             if (seedCatalog) {
-                CatalogSeeder.seed(users, equipment, listings, referenceService);
+                CatalogSeeder.seed(users, equipment, listings, referenceService, reviews, likes);
             }
 
             if (seedDemo) {
