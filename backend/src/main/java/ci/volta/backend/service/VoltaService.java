@@ -766,7 +766,7 @@ public class VoltaService {
                     "Le tarif et le compteur horaire ne peuvent pas être négatifs");
         }
         equipment.id = newId("eq");
-        equipment.reference = references.next(ReferenceService.RESOURCE);
+        equipment.reference = references.next(ReferenceService.EQUIPMENT);
         equipment.status = "DRAFT";
         equipment.level = null;
         equipment.createdAt = today();
@@ -1115,7 +1115,7 @@ public class VoltaService {
                     "Les dates de début et de fin sont requises et la fin ne peut précéder le début");
         }
         request.id = newId("req");
-        request.reference = references.next(ReferenceService.RENTAL);
+        request.reference = references.next(ReferenceService.RESERVATION);
         request.supplierId = eq.supplierId;
         if (!currentUser.isAdmin() || request.clientId == null || request.clientId.isBlank()) {
             request.clientId = me.id;
@@ -1522,7 +1522,7 @@ public class VoltaService {
          */
         RentalRequest rental = new RentalRequest();
         rental.id = newId("rental");
-        rental.reference = references.next(ReferenceService.RENTAL);
+        rental.reference = references.next(ReferenceService.RESERVATION);
         rental.clientId = qreq.clientId;
         rental.equipmentId = qreq.equipmentId;
         rental.supplierId = qreq.supplierId;

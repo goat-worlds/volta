@@ -8,7 +8,6 @@ import {
 } from '../../store/quotesClient'
 import { Card, CopyRef, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus, fmtDate } from '../../components/ui'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
-import { quoteRef, quoteRequestRef } from '../../lib/references'
 
 /**
  * Détail d'une demande et comparaison des devis reçus.
@@ -135,7 +134,7 @@ export default function ClientQuoteRequestDetail() {
       />
       {/* La référence que VOLTA cite au téléphone : la même que dans la console admin. */}
       <div className="-mt-3 flex items-center gap-2 text-sm text-slate-500">
-        Référence de la demande <CopyRef value={quoteRequestRef(request.id)} />
+        Référence de la demande <CopyRef value={request.reference} />
       </div>
 
       <Card className="p-5">
@@ -224,7 +223,7 @@ export default function ClientQuoteRequestDetail() {
                           référence n'étant qu'un repère pour la citer. */}
                       <SupplierIdentityCompact supplier={supplierOf(q.supplierId)} />
                       <div className="mt-1 font-mono text-[11px] font-normal text-slate-400">
-                        <CopyRef value={quoteRef(q.id, q.createdAt)} />
+                        <CopyRef value={q.reference} />
                       </div>
                       <div className="mt-1"><QuoteStatusBadge status={q.status} /></div>
                     </th>

@@ -668,7 +668,7 @@ public class PublicRequestService {
     private RentalRequest ouvrirReservation(PublicRequest r) {
         RentalRequest reservation = new RentalRequest();
         reservation.id = shortId("loc");
-        reservation.reference = references.next(ReferenceService.RENTAL);
+        reservation.reference = references.next(ReferenceService.RESERVATION);
         reservation.equipmentId = valeur(r, "equipmentId");
         reservation.supplierId = r.supplierId;
         reservation.clientId = r.clientId;

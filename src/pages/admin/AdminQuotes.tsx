@@ -6,7 +6,6 @@ import { useLiveResource } from '../../store/useLiveResource'
 import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, CopyRef, EmptyState, Modal, PageTitle, QuoteStatusBadge, StatCard, fmtPrice } from '../../components/ui'
 import { quoteRequestsClient, type Quote, type QuoteRequest } from '../../store/quotesClient'
-import { quoteRef, quoteRequestRef } from '../../lib/references'
 import type { AdminRequestView } from '../../services/requests'
 
 /**
@@ -219,7 +218,7 @@ export default function AdminQuotes() {
                             À traiter en premier
                           </span>
                         )}
-                        <CopyRef value={quoteRequestRef(r.id)} />
+                        <CopyRef value={r.reference} />
                         <QuoteStatusBadge status={r.status} />
                       </div>
 
@@ -325,7 +324,7 @@ export default function AdminQuotes() {
                   return (
                     <tr key={r.id} className="align-top">
                       <td className="px-4 py-3">
-                        <CopyRef value={quoteRequestRef(r.id)} />
+                        <CopyRef value={r.reference} />
                         <div className="text-xs text-slate-400">{fmtDateTime(r.createdAt)}</div>
                       </td>
                       <td className="px-4 py-3">
@@ -344,7 +343,7 @@ export default function AdminQuotes() {
                         ) : (
                           qs.map((q) => (
                             <div key={q.id} className="text-xs">
-                              <span className="font-mono text-[11px] text-slate-400">{quoteRef(q.id)}</span> <span className="font-semibold">{fmtPrice(q.price)}</span> · {q.deliveryTime} j ·{' '}
+                              <span className="font-mono text-[11px] text-slate-400">{q.reference}</span> <span className="font-semibold">{fmtPrice(q.price)}</span> · {q.deliveryTime} j ·{' '}
                               <QuoteStatusBadge status={q.status} />
                             </div>
                           ))

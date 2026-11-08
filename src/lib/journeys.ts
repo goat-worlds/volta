@@ -218,7 +218,9 @@ const CONTACT_STEP: StepDef = {
       label: 'Téléphone',
       kind: 'tel',
       required: true,
-      placeholder: '+225 07 00 00 00 00',
+      // Pas d'exemple chiffré : un numéro écrit en exemple finit par être
+      // composé, et le seul que le site affiche est celui de VOLTA.
+      placeholder: 'Votre numéro, 10 chiffres',
     },
     { name: 'contactEmail', label: 'Email', kind: 'email', required: true },
     { name: 'contactCity', label: 'Localisation', kind: 'text', required: true },

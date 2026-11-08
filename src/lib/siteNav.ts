@@ -24,20 +24,25 @@ export interface SiteLink {
 }
 
 /**
- * Le numéro de la maison, écrit une seule fois.
+ * Le numéro de la plateforme — le seul que le site affiche.
  *
- * Il figurait dans le pied de page et dans le formulaire de parcours, à
- * deux endroits sans lien : le jour où il change, l'un des deux reste en
- * arrière et renvoie les appels dans le vide.
- */
-/**
- * Le numéro de la plateforme.
+ * C'est celui qu'on publie et qu'on appelle en citant sa référence. Des lignes
+ * personnelles l'ont remplacé par moments, et l'une d'elles a survécu dans le
+ * formulaire de parcours après avoir été retirée partout ailleurs : le client
+ * qui lit deux numéros finit par composer le mauvais, et une ligne personnelle
+ * n'a pas de standard derrière elle.
  *
- * C'est celui qu'on publie et qu'on appelle en citant sa référence. Il a été
- * remplacé un temps par une ligne personnelle : celle-ci sert au développement,
- * elle n'a rien à faire sur un site public où un client la composerait.
+ * Écrit une seule fois : l'en-tête, le pied de page, les cartes d'urgence, le
+ * lien WhatsApp et les filigranes (outils/filigrane.py) le lisent ici. Le
+ * serveur en garde une copie, `volta.telephone`, pour les photos qu'il
+ * filigrane lui-même. `npm run lint` vérifie que les deux concordent et
+ * qu'aucun autre numéro n'apparaît dans ce que le site sert.
  */
-export const TELEPHONE = { affiche: '05 00 99 13 13', lien: 'tel:+2250500991313' }
+export const TELEPHONE = {
+  affiche: '05 00 99 13 13',
+  international: '+225 05 00 99 13 13',
+  lien: 'tel:+2250500991313',
+}
 
 export const PRIMARY_LINKS: SiteLink[] = [
   // L'ordre est celui de la maquette : Volta Market avant le catalogue.

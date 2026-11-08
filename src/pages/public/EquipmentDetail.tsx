@@ -6,7 +6,6 @@ import {
 } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { createRequest, type RequestReceipt } from '../../services/requests'
-import { equipmentRef } from '../../lib/references'
 import { Card, EmptyState, LevelBadge, Modal, fmtPrice } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 import TechnicalSpecs from '../../components/equipment/TechnicalSpecs'
@@ -111,7 +110,7 @@ export default function EquipmentDetail() {
           // L'identifiant, et non la seule référence d'affichage : c'est par
           // lui que la réservation née de l'acceptation retrouve la machine.
           equipmentId: eq.id,
-          equipmentRef: equipmentRef(eq.id),
+          equipmentRef: eq.reference,
           equipmentName: eq.name,
           brandModel: `${eq.brand} ${eq.model}`,
           quantity: String(form.quantity),
@@ -169,7 +168,7 @@ export default function EquipmentDetail() {
        et le modèle sur la plupart des fiches. On ne les ajoute que s'ils
        manquent, sinon le message s'ouvre sur une répétition. */
     objet: eq.name.includes(eq.model) ? eq.name : `${eq.name} — ${eq.brand} ${eq.model}`,
-    reference: equipmentRef(eq.id),
+    reference: eq.reference,
     precision: `Tarif affiché : ${fmtPrice(eq.pricePerDay)} / heure`,
   })
 

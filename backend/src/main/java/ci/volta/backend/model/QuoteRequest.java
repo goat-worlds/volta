@@ -10,6 +10,14 @@ import jakarta.persistence.Table;
 public class QuoteRequest {
     @Id
     public String id;
+    /**
+     * « DEM-26-0012 » : ce que le client cite au téléphone.
+     *
+     * Du même compteur que les demandes des parcours, qu'il retrouve dans la
+     * même liste : deux numérotations parallèles y auraient produit deux
+     * « DEM-26-0012 ».
+     */
+    public String reference;
     public String equipmentId;
     public String clientId;
     public String supplierId;

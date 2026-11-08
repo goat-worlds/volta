@@ -5,7 +5,6 @@ import { useStore } from '../../store/StoreContext'
 import { quoteRequestsClient, quotesClient, type Quote, type QuoteRequest } from '../../store/quotesClient'
 import { Card, CopyRef, EmptyState, PageTitle, QuoteStatusBadge, displayQuoteRequestStatus, fmtPrice } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
-import { quoteRequestRef } from '../../lib/references'
 import { respondToRequest, type MyRequestView } from '../../services/requests'
 import { useLiveResource } from '../../store/useLiveResource'
 import type { IntentId } from '../../types/domain'
@@ -322,7 +321,7 @@ Indiquez brièvement pourquoi (facultatif).`,
               <tbody className="divide-y divide-slate-100">
                 {visible.map((r) => (
                   <tr key={r.id} className="transition hover:bg-slate-50">
-                    <td className="px-5 py-3"><CopyRef value={quoteRequestRef(r.id)} /></td>
+                    <td className="px-5 py-3"><CopyRef value={r.reference} /></td>
                     <td className="px-5 py-3 font-medium text-slate-900">{equipmentName(r.equipmentId)}</td>
                     <td className="px-5 py-3 text-slate-600">{r.startDate} → {r.endDate}</td>
                     <td className="px-5 py-3 text-slate-600">{r.quantity}</td>

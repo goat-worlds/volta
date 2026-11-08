@@ -13,7 +13,6 @@ import {
 } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 import WorkflowTimeline, { SupplierNextAction } from '../../components/WorkflowTimeline'
-import { equipmentRef } from '../../lib/references'
 import type { EquipmentStatus } from '../../store/types'
 import VerrouDossier from '../../components/supplier/VerrouDossier'
 
@@ -113,7 +112,7 @@ export default function SupplierEquipment() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-acier-900">{e.name}</span>
                       <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">
-                        {equipmentRef(e.id)}
+                        {e.reference}
                       </span>
                       <StatusBadge status={e.status} />
                       <LevelBadge level={e.level} />

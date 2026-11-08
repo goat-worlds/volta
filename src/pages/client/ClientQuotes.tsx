@@ -11,7 +11,6 @@ import {
 import { Button, Card, EmptyState, LinkButton, PageTitle, QuoteStatusBadge, CopyRef } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 import SupplierIdentity, { SupplierIdentityCompact } from '../../components/SupplierIdentity'
-import { quoteRef, quoteRequestRef } from '../../lib/references'
 
 /**
  * Les statuts d'une demande qui ne bougera plus.
@@ -110,10 +109,10 @@ export default function ClientQuotes() {
     try {
       if (accept) {
         await quotesClient.accept(quote.id)
-        toast.success('Devis accepté', `${quoteRef(quote.id, quote.createdAt)} — le fournisseur est notifié.`)
+        toast.success('Devis accepté', `${quote.reference} — le fournisseur est notifié.`)
       } else {
         await quotesClient.reject(quote.id)
-        toast.info('Devis refusé', `${quoteRef(quote.id, quote.createdAt)} a été refusé.`)
+        toast.info('Devis refusé', `${quote.reference} a été refusé.`)
       }
       await load()
     } catch (e) {
@@ -217,7 +216,7 @@ export default function ClientQuotes() {
                     />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <CopyRef value={quoteRequestRef(d.id, d.createdAt)} />
+                        <CopyRef value={d.reference} />
                         <QuoteStatusBadge status={d.status} />
                       </div>
                       <div className="mt-1 font-semibold text-acier-900">
@@ -338,14 +337,14 @@ export default function ClientQuotes() {
               <Card key={quote.id} className="overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-5 py-2.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <CopyRef value={quoteRef(quote.id, quote.createdAt)} />
+                    <CopyRef value={quote.reference} />
                     <span className="text-xs text-slate-500">
                       pour la demande{' '}
                       <Link
                         to={`/client/demandes/${request.id}`}
                         className="font-mono font-medium text-acier-700 hover:underline"
                       >
-                        {quoteRequestRef(request.id, request.createdAt)}
+                        {request.reference}
                       </Link>
                     </span>
                   </div>

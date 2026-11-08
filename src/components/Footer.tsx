@@ -110,7 +110,7 @@ export default function Footer() {
               <li className="flex items-center gap-2">
                 <Phone size={14} className="shrink-0 text-btp-400" aria-hidden />
                 <a href={TELEPHONE.lien} className="hover:text-white">
-                  +225 {TELEPHONE.affiche}
+                  {TELEPHONE.international}
                 </a>
               </li>
               <li className="flex items-center gap-2">

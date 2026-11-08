@@ -19,6 +19,7 @@ import {
 } from '../../services/requests'
 import { badgeDe, parcoursPour } from '../../lib/etapes'
 import ProofPanel from '../../components/requests/ProofPanel'
+import ContactVolta from '../../components/ContactVolta'
 
 /**
  * Demandes de devis reçues, et réponse du fournisseur.
@@ -369,13 +370,11 @@ export default function SupplierQuoteRequests() {
                     <dt className="text-xs text-slate-500">Client</dt>
                     <dd className="font-medium text-slate-900">{r.clientName || '—'}</dd>
                   </div>
-                  <div>
-                    <dt className="text-xs text-slate-500">Téléphone</dt>
-                    <dd className="font-medium text-slate-900">{r.clientPhone || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-slate-500">Email</dt>
-                    <dd className="truncate font-medium text-slate-900">{r.clientEmail || '—'}</dd>
+                  <div className="sm:col-span-2">
+                    <dt className="text-xs text-slate-500">Contact</dt>
+                    <dd>
+                      <ContactVolta reference={r.reference} />
+                    </dd>
                   </div>
                 </dl>
 

@@ -53,6 +53,16 @@ export interface Category {
 export interface Equipment {
   id: string
   name: string
+  /**
+   * La référence que le serveur a attribuée — « ENG-26-0042 ».
+   *
+   * Elle vient d'un compteur en base, pas d'un calcul dans le navigateur.
+   * Les écrans affichaient jusqu'ici une empreinte de l'identifiant,
+   * « VOL-ENG-00182 », qui ne correspondait à rien de ce que le serveur
+   * connaissait : un client citant sa référence au téléphone nommait un
+   * dossier introuvable.
+   */
+  reference: string
   categoryId: string
   brand: string
   model: string
@@ -108,6 +118,8 @@ export interface ChecklistItem {
 export interface Inspection {
   id: string
   equipmentId: string
+  /** La référence attribuée par le serveur. */
+  reference: string
   technicalTeamId: string
   assignedAt: string
   status: 'ASSIGNED' | 'IN_PROGRESS' | 'DONE'
@@ -263,6 +275,8 @@ export type QuoteRequestStatus = 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' 
 export interface QuoteRequest {
   id: string
   equipmentId: string
+  /** La référence attribuée par le serveur. */
+  reference: string
   clientId: string
   supplierId: string
   status: QuoteRequestStatus
@@ -281,6 +295,8 @@ export type QuoteStatus = 'SENT' | 'ACCEPTED' | 'REJECTED'
 export interface Quote {
   id: string
   quoteRequestId: string
+  /** La référence attribuée par le serveur. */
+  reference: string
   supplierId: string
   price: number
   deliveryTime: number

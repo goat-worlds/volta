@@ -74,7 +74,7 @@ class ReservationWorkflowHttpTest {
 
         RentalRequest r = new RentalRequest();
         r.id = "req-resa-" + System.nanoTime();
-        r.reference = "VOL-LOC-TEST-" + System.nanoTime();
+        r.reference = "RES-26-" + (System.nanoTime() % 100000);
         r.equipmentId = eq.id;
         r.supplierId = owner.id;
         r.clientId = client.id;

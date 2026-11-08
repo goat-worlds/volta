@@ -10,6 +10,8 @@ import jakarta.persistence.Table;
 public class Quote {
     @Id
     public String id;
+    /** « DEV-26-0007 » : la référence du prix proposé, distincte de celle de la demande. */
+    public String reference;
     public String quoteRequestId;
     public String supplierId;
     public long price;

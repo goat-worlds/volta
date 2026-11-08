@@ -4,7 +4,6 @@ import { ClipboardCheck, Gavel, Inbox, UserCheck } from 'lucide-react'
 import { useStore } from '../../store/StoreContext'
 import { Card, EmptyState, PageTitle, StatusBadge } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
-import { equipmentRef, inspectionRef } from '../../lib/references'
 
 const LABEL = { ASSIGNED: 'Assignée', IN_PROGRESS: 'En cours', DONE: 'Terminée' } as const
 
@@ -87,7 +86,7 @@ export default function AdminInspections() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-acier-900">{e.name}</span>
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">
-                      {equipmentRef(e.id)}
+                      {e.reference}
                     </span>
                     <StatusBadge status={e.status} />
                   </div>
@@ -148,7 +147,7 @@ export default function AdminInspections() {
                   const filled = i.checklist.filter((c) => c.result !== null).length
                   return (
                     <tr key={i.id}>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-500">{inspectionRef(i.id)}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-slate-500">{i.reference}</td>
                       <td className="px-4 py-3 font-medium text-acier-900">{eq?.name ?? '—'}</td>
                       <td className="px-4 py-3">{team?.company || team?.name || '—'}</td>
                       <td className="px-4 py-3 text-slate-600">{i.assignedAt}</td>

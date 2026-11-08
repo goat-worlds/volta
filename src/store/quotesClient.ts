@@ -20,6 +20,15 @@ export type QuoteRequestStatus = 'AWAITING_VALIDATION' | 'PENDING' | 'ACCEPTED' 
 export interface QuoteRequest {
   id: string
   equipmentId: string
+  /**
+   * La référence attribuée par le serveur — « DEM-26-0042 ».
+   *
+   * Les écrans affichaient une empreinte calculée dans le navigateur,
+   * « VOL-REQ-00491 », qui ne correspondait à rien de ce que le serveur
+   * connaissait : un client citant sa référence au téléphone nommait un
+   * dossier introuvable.
+   */
+  reference: string
   clientId: string
   supplierId: string
   status: QuoteRequestStatus
@@ -40,6 +49,8 @@ export interface QuoteRequest {
 export interface Quote {
   id: string
   quoteRequestId: string
+  /** La référence attribuée par le serveur. */
+  reference: string
   supplierId: string
   /** Montant en FCFA, entier : le modèle backend n'utilise pas de décimales. */
   price: number

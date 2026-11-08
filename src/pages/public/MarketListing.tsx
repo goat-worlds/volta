@@ -342,7 +342,7 @@ export default function MarketListing() {
                 <TextField name="contactName" label="Nom et prénom" required value={values.contactName} onChange={set('contactName')} error={errors.contactName} />
                 <TextField name="contactCompany" label="Entreprise" value={values.contactCompany} onChange={set('contactCompany')} />
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField name="contactPhone" label="Téléphone" type="tel" required placeholder="+225 07 00 00 00 00" value={values.contactPhone} onChange={set('contactPhone')} error={errors.contactPhone} />
+                  <TextField name="contactPhone" label="Téléphone" type="tel" required placeholder="Votre numéro, 10 chiffres" value={values.contactPhone} onChange={set('contactPhone')} error={errors.contactPhone} />
                   <TextField name="contactEmail" label="Email" type="email" required value={values.contactEmail} onChange={set('contactEmail')} error={errors.contactEmail} />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store/StoreContext'
 import { useToast } from '../../components/feedback/Toaster'
 import { Button, Card, EmptyState, PageTitle, RentalStatusBadge } from '../../components/ui'
+import ContactVolta from '../../components/ContactVolta'
 
 /**
  * Réservations reçues par le fournisseur.
@@ -37,6 +38,7 @@ export default function SupplierRequests() {
   return (
     <div>
       <PageTitle title="Réservations" subtitle="Les demandes de location qui concernent vos engins, et où elles en sont." />
+      <ContactVolta className="mb-4" />
       {mine.length === 0 ? (
         <EmptyState title="Aucune réservation" subtitle="Les demandes de location de vos engins apparaîtront ici." />
       ) : (
@@ -58,10 +60,7 @@ export default function SupplierRequests() {
                 <tr key={r.id}>
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-btp-700">{r.reference}</td>
                   <td className="px-4 py-3">{equipment.find((e) => e.id === r.equipmentId)?.name}</td>
-                  <td className="px-4 py-3">
-                    <div>{r.clientName}</div>
-                    <div className="text-xs text-slate-400">{r.clientPhone}</div>
-                  </td>
+                  <td className="px-4 py-3">{r.clientName}</td>
                   <td className="whitespace-nowrap px-4 py-3">{r.startDate} → {r.endDate}</td>
                   <td className="px-4 py-3">{r.location}</td>
                   <td className="px-4 py-3">

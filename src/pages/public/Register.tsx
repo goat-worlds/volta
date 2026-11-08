@@ -468,7 +468,7 @@ export default function Register() {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="05 00 00 00 00"
+                      placeholder="Votre numéro, 10 chiffres"
                       className={champ}
                     />
                   </div>

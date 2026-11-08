@@ -272,33 +272,7 @@ public class DataSeeder {
                 log.info("Jeu de démonstration désactivé (volta.seed.demo=false) : "
                         + "aucun compte de test n'est créé.");
             }
-
-            // Migration de données : les lignes créées avant l'introduction des
-            // références métier en reçoivent une, jeu d'essai ou données réelles.
-            backfillReferences(equipment, inspections, rentalRequests, referenceService);
         };
-    }
-
-    private static void backfillReferences(EquipmentRepository equipment, InspectionRepository inspections,
-                                           RentalRequestRepository rentalRequests, ReferenceService references) {
-        equipment.findAll().stream()
-                .filter(e -> e.reference == null || e.reference.isBlank())
-                .forEach(e -> {
-                    e.reference = references.next(ReferenceService.RESOURCE);
-                    equipment.save(e);
-                });
-        inspections.findAll().stream()
-                .filter(i -> i.reference == null || i.reference.isBlank())
-                .forEach(i -> {
-                    i.reference = references.next(ReferenceService.VERIFICATION);
-                    inspections.save(i);
-                });
-        rentalRequests.findAll().stream()
-                .filter(r -> r.reference == null || r.reference.isBlank())
-                .forEach(r -> {
-                    r.reference = references.next(ReferenceService.RENTAL);
-                    rentalRequests.save(r);
-                });
     }
 
     private static void seedDemoData(UserRepository users, EquipmentRepository equipment,
@@ -310,8 +284,14 @@ public class DataSeeder {
 
         String defaultHash = authService.encodePassword("password123");
 
+        /*
+         * Les comptes de l'équipe VOLTA n'ont pas de numéro propre : on la
+         * joint au numéro de la plateforme, le seul que le site affiche. Le leur
+         * donner — à tous, puisque c'est le même — rendrait la connexion par
+         * téléphone ambiguë : la clé désignerait trois comptes à la fois.
+         */
         if (users.findByEmailIgnoreCase("dg@volta.com").isEmpty()) {
-            UserAccount dgUser = user("u-dg", "Direction", "ADMIN", "VOLTA", "dg@volta.com", "+225 07 00 00 00", "Abidjan");
+            UserAccount dgUser = user("u-dg", "Direction", "ADMIN", "VOLTA", "dg@volta.com", "", "Abidjan");
             dgUser.passwordHash = defaultHash;
             users.save(dgUser);
         }
@@ -321,7 +301,7 @@ public class DataSeeder {
             users.save(supplierUser);
         }
         if (users.findByEmailIgnoreCase("verificateur@volta.com").isEmpty()) {
-            UserAccount techUser = user("u-tech", "Équipe technique", "TECHNICAL", "VOLTA", "verificateur@volta.com", "+225 07 00 00 02", "Abidjan");
+            UserAccount techUser = user("u-tech", "Équipe technique", "TECHNICAL", "VOLTA", "verificateur@volta.com", "", "Abidjan");
             techUser.passwordHash = defaultHash;
             users.save(techUser);
         }
@@ -351,7 +331,7 @@ public class DataSeeder {
         // posés, et les réenregistrer écraserait ce que l'administration
         // aurait pu y changer.
         List<UserAccount> seededUsers = List.of(
-                user("u-admin", "Kouadio Félix", "ADMIN", "VOLTA", "admin@volta.ci", "+225 07 00 00 03", "Abidjan"),
+                user("u-admin", "Kouadio Félix", "ADMIN", "VOLTA", "admin@volta.ci", "", "Abidjan"),
                 user("u-tech-1", "Yao Kouassi", "TECHNICAL", "Société Technique ABC", "inspection@abc.ci", "+225 07 00 00 06", "Abidjan"),
                 user("u-client-1", "Jean Konan", "CLIENT", "Entreprise BTP Konan", "jean@konan.ci", "+225 07 00 00 07", "Abidjan"));
         seededUsers.stream().filter(u -> !users.existsById(u.id)).forEach(u -> {

@@ -6,6 +6,7 @@ import { createRequest, type RequestAttachmentInput, type RequestReceipt } from 
 import { attachmentPayload, parseAttachment } from '../../services/attachments'
 import { contactDefaults, firstName, forgetVisitor, readVisitor, rememberVisitor } from '../../services/profile'
 import { parcoursPour } from '../../lib/etapes'
+import { TELEPHONE } from '../../lib/siteNav'
 import RequestTimeline from './RequestTimeline'
 import { useStore } from '../../store/StoreContext'
 import type { FieldOption } from './fields'
@@ -296,7 +297,7 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
               values.contactPhone
                 ? `Un conseiller vous rappelle au ${values.contactPhone} pour préciser le besoin.`
                 : 'Un conseiller vous rappelle pour préciser le besoin.',
-              'Vous recevez une proposition chiffrée, que vous êtes libre de refuser.',
+              'Vous recevez une proposition chiffrée, sans engagement de votre part.',
             ].map((line, index) => (
               <li key={line} className="flex gap-3">
                 <span className="volta-display flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-acier-900 text-xs text-white">
@@ -310,8 +311,8 @@ export default function JourneyForm({ journey }: { journey: Journey }) {
           <div className="mt-5 flex items-center gap-2 border-t border-papier-200 pt-4 text-sm text-papier-600">
             <Phone size={14} className="shrink-0 text-btp-600" />
             Une urgence ? Appelez le{' '}
-            <a href="tel:+2250748634853" className="font-semibold text-acier-900 hover:text-btp-700">
-              07 48 63 48 53
+            <a href={TELEPHONE.lien} className="font-semibold text-acier-900 hover:text-btp-700">
+              {TELEPHONE.affiche}
             </a>{' '}
             en citant votre référence.
           </div>

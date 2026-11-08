@@ -82,7 +82,7 @@ interface Store {
   unreadNotifications: Notification[]
   /** Appelé à l'ouverture de l'onglet : remet le compteur à zéro. */
   markNotificationsRead: () => void
-  addEquipment: (e: Omit<Equipment, 'id' | 'status' | 'level' | 'createdAt'>) => Promise<Equipment>
+  addEquipment: (e: Omit<Equipment, 'id' | 'reference' | 'status' | 'level' | 'createdAt'>) => Promise<Equipment>
   submitEquipment: (equipmentId: string) => Promise<void>
   assignInspection: (equipmentId: string, technicalTeamId: string) => Promise<void>
   startInspection: (inspectionId: string) => Promise<void>

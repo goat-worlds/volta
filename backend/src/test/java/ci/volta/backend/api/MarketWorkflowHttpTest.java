@@ -1,5 +1,6 @@
 package ci.volta.backend.api;
 
+import ci.volta.backend.service.ReferenceService;
 import ci.volta.backend.model.UserAccount;
 import ci.volta.backend.repository.PurchaseRequestRepository;
 import ci.volta.backend.repository.SaleListingRepository;
@@ -200,7 +201,8 @@ class MarketWorkflowHttpTest {
         String body = requested.getResponse().getContentAsString();
         String requestId = extract(body, "\"id\":\"([^\"]+)\"");
         String reference = extract(body, "\"reference\":\"([^\"]+)\"");
-        assertThat(reference).startsWith("VOL-ACH-");
+        // Le format court : famille, millésime, rang — « ACH-26-0001 ».
+        assertThat(reference).startsWith(ReferenceService.PURCHASE + "-");
 
         // Le suivi public ne livre que l'avancement.
         mvc.perform(get("/api/market/requests/track/" + reference))
