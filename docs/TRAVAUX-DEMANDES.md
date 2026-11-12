@@ -170,3 +170,88 @@ d'un statut, ou plutôt du drapeau `available` qui existe déjà sur le modèle.
 4. « À louer » : statut du cycle de vie ou disponibilité commerciale (point 7).
 5. Pour les images d'inspection : pièces réservées aux rôles habilités, ou
    lisibles par quiconque a le lien (point 2).
+
+---
+
+## 8. Vérification de l'adresse email à l'inscription
+
+Demandé le 12 novembre : après la première inscription, envoyer un **code de
+vérification par email**, puis les messages qui suivent.
+
+La plateforme **n'envoie aucun email aujourd'hui** : ni `JavaMailSender`, ni
+dépendance mail au `pom.xml`, ni configuration SMTP. C'est une brique à
+construire entièrement.
+
+Elle ouvre aussi une porte qui manque cruellement : aucun mot de passe ne peut
+être réinitialisé aujourd'hui, administrateur compris. La seule sortie passe par
+`psql` dans le conteneur.
+
+> **À trancher** : l'expéditeur et le service d'envoi. `volta@genieselect.com`
+> avait été indiqué pour les contrats. Un envoi SMTP direct depuis le VPS finit
+> souvent en indésirables, faute de réputation ; un service d'envoi — Brevo,
+> Resend, Mailgun — y remédie et remplace les identifiants SMTP par une clé
+> d'API. Dans les deux cas : **variables d'environnement, jamais le dépôt**, qui
+> est public.
+
+Conséquence sur l'inscription : un compte non vérifié doit-il pouvoir se
+connecter en attendant, ou rester bloqué ? Les deux se défendent ; le second
+refuse l'accès à quelqu'un dont l'email a simplement mis dix minutes à arriver.
+
+## 9. Climatisation — les relevés visibles par le technicien
+
+Complément au point 3. Au-delà d'ajouter « Climatisation » comme spécialité, le
+technicien doit **voir les relevés de climatisation des véhicules** dans son
+espace.
+
+Cela touche la grille d'inspection : `VoltaService.CHECKLIST_TEMPLATE` porte
+vingt et un points en cinq familles, et aucun ne concerne la climatisation. Un
+point ajouté s'applique à tous les engins, pelles comprises.
+
+> **À trancher** : la climatisation est-elle un point de contrôle de plus pour
+> tout le parc, ou une famille qui n'apparaît que pour les véhicules — cars de
+> transport de personnel, véhicules de liaison ? La grille est aujourd'hui la
+> même pour tous ; la rendre dépendante de la catégorie est un travail distinct.
+
+## 10. Tout verrouiller derrière l'inscription ⚠️
+
+Demandé le 12 novembre : **chaque clic sur les fonctionnalités doit ramener au
+formulaire d'inscription**. Pas de réservation ni de fonctionnalité pour qui
+n'est pas inscrit.
+
+Ce qui est public aujourd'hui, et que ce changement fermerait :
+
+| Route | Ce qu'elle permet |
+|---|---|
+| `GET /api/equipment` | Voir le catalogue des engins |
+| `GET /api/categories` | Voir les familles d'engins |
+| `GET /api/market/listings` | Voir les annonces de vente |
+| `GET /uploads/equipment/**` | Afficher les photos des engins |
+| `GET /api/equipment/reviews`, `/likes` | Lire les avis et les compteurs |
+| `POST /api/public/requests` | Déposer une demande sans compte |
+| `POST /api/market/listings/*/requests` | Demander une offre d'achat |
+| `GET /api/public/requests/track/*` | **Suivre sa demande par sa référence** |
+
+> **À confirmer avant de coder — trois conséquences.**
+>
+> **Le suivi par référence disparaît.** Un client dépose sa demande, note sa
+> référence, revient la consulter : c'est le parcours que la page de suivi
+> dessert aujourd'hui, et il ne demande aucun compte. Tout verrouiller oblige
+> cette personne à s'inscrire pour lire l'avancement de sa propre demande.
+>
+> **Le site devient invisible.** Un catalogue derrière authentification n'est
+> indexé par aucun moteur de recherche. Les vignettes de partage posées la
+> semaine dernière ne montreraient plus qu'une page de connexion — quelqu'un qui
+> reçoit un lien d'engin sur WhatsApp tomberait sur un formulaire.
+>
+> **Le cahier des charges décrit l'inverse.** Le §6.3 donne pour exemple « je
+> cherche une niveleuse à Abidjan disponible pendant 7 jours », et le §4.4 fait
+> du client un visiteur qui consulte avant de demander.
+>
+> Une voie intermédiaire existe et se pratique partout : **le catalogue reste
+> visible, l'action demande un compte.** On regarde, on compare, et c'est au
+> moment de réserver ou de demander un devis qu'on s'inscrit. Le site reste
+> trouvable, et aucune action n'échappe à l'identification.
+>
+> Dites lequel des deux vous voulez. Le second se construit en modifiant les
+> écrans ; le premier demande en plus de fermer huit routes publiques et de
+> repenser le suivi.
