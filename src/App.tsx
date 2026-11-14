@@ -106,6 +106,7 @@ export default function App() {
                 <Route path="/demande/formation" element={<JourneyPage intent="TRAIN_TEAM" />} />
                 <Route path="/demande/base-vie" element={<JourneyPage intent="BUILD_BASE_LIFE" />} />
                 <Route path="/demande/flotte" element={<JourneyPage intent="FLEET_NEED" />} />
+                <Route path="/demande/pieces" element={<JourneyPage intent="BUY_PARTS" />} />
                 {/* Volta Market : la vitrine d'abord, le formulaire libre pour
                     qui n'a pas trouvé. « demande » précède « :id ». */}
                 <Route path="/market" element={<Market />} />

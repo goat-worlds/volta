@@ -399,6 +399,101 @@ const BUY: Journey = {
   ],
 }
 
+/*
+ * Les pièces de rechange.
+ *
+ * La carte promettait « indiquez la pièce et la machine concernée, VOLTA la
+ * recherche et vous répond », et menait au catalogue des machines à vendre :
+ * on cherchait un joint de vérin, on tombait sur des pelles de vingt tonnes.
+ * Le formulaire n'avait jamais été écrit, et le lien vers le Market tenait
+ * lieu de pis-aller.
+ *
+ * Ce que demande une pièce et que ne demande pas une machine : la machine
+ * d'abord. Une référence de filtre ne veut rien dire seule — c'est le couple
+ * marque-modèle-année qui dit lequel convient. Un fournisseur à qui l'on
+ * transmet « filtre hydraulique » sans la machine répond par une question, et
+ * la demande perd deux jours.
+ */
+const PIECES: Journey = {
+  intent: 'BUY_PARTS',
+  kind: 'PURCHASE',
+  title: 'Acheter des pièces de rechange',
+  subtitle:
+    'Indiquez la pièce et la machine concernée. VOLTA la recherche et vous répond.',
+  promise:
+    'VOLTA interroge ses fournisseurs, vérifie la compatibilité avec votre machine, puis vous adresse une proposition chiffrée.',
+  subject: (v) => `Pièces — ${v.partName || 'pièce'}${v.machineModel ? ` pour ${v.machineModel}` : ''}`,
+  recap: (v) => [
+    `Je cherche ${said(v.partName, 'une pièce').toLowerCase()}${
+      Number(v.quantity) > 1 ? ` — ${v.quantity} unités` : ''
+    }${v.partReference ? `, référence ${v.partReference}` : ''}.`,
+    v.machineModel
+      ? `Pour ${v.machineModel}${v.machineYear ? ` (${v.machineYear})` : ''}.`
+      : null,
+    v.serialNumber ? `Numéro de série ou de châssis : ${v.serialNumber}.` : null,
+    v.condition ? `Je l'accepte en ${v.condition.toLowerCase()}.` : null,
+    v.deadline ? `Mon délai : ${v.deadline.toLowerCase()}.` : null,
+    v.details ? `Précision : ${v.details}` : null,
+  ],
+  steps: [
+    {
+      title: 'La machine concernée',
+      /* Avant la pièce : sans la machine, aucune référence ne se vérifie. */
+      fields: [
+        {
+          name: 'machineModel',
+          label: 'Marque et modèle de la machine',
+          kind: 'text',
+          required: true,
+          help: 'Par exemple : Komatsu PC210LC-8.',
+        },
+        {
+          name: 'category',
+          label: 'Catégorie',
+          kind: 'select',
+          options: EQUIPMENT_CATEGORIES,
+          required: true,
+        },
+        { name: 'machineYear', label: 'Année', kind: 'text' },
+        {
+          name: 'serialNumber',
+          label: 'Numéro de série ou de châssis',
+          kind: 'text',
+          help: 'Facultatif, mais c’est lui qui lève les doutes sur les séries proches.',
+        },
+      ],
+    },
+    {
+      title: 'La pièce recherchée',
+      fields: [
+        { name: 'partName', label: 'Pièce', kind: 'text', required: true },
+        {
+          name: 'partReference',
+          label: 'Référence constructeur',
+          kind: 'text',
+          help: 'Si vous l’avez relevée sur l’ancienne pièce ou au catalogue.',
+        },
+        { name: 'quantity', label: 'Quantité', kind: 'number', required: true },
+        {
+          name: 'condition',
+          label: 'État accepté',
+          kind: 'select',
+          options: opts('Neuve d’origine', 'Adaptable', 'Occasion', 'Indifférent'),
+        },
+        { name: 'deadline', label: 'Délai souhaité', kind: 'select', options: URGENCY },
+        {
+          name: 'details',
+          label: 'Informations complémentaires',
+          kind: 'textarea',
+          full: true,
+          help: 'Une photo de la pièce usée vaut souvent mieux qu’une description.',
+        },
+      ],
+    },
+    CONTACT_STEP,
+  ],
+}
+
 const TECHNICIAN: Journey = {
   intent: 'FIND_TECHNICIAN',
   kind: 'TECHNICIAN',
@@ -1344,6 +1439,7 @@ export const JOURNEYS: Journey[] = [
   FLEET,
   BASE_VIE,
   BUY,
+  PIECES,
   TECHNICIAN,
   OFFER_EQUIPMENT,
   LIST_CATALOG,

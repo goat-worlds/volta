@@ -109,7 +109,10 @@ export const INTENTS: Intent[] = [
     description:
       'Indiquez la pièce et la machine concernée, VOLTA la recherche et vous répond.',
     cta: 'Indiquez votre besoin et recevez votre proposition de pièces.',
-    to: '/market',
+    // Menait au catalogue des machines à vendre : on cherchait un joint de
+    // vérin, on tombait sur des pelles de vingt tonnes. Le formulaire promis
+    // par la carte existe désormais.
+    to: '/demande/pieces',
     icon: Settings,
     image: '/engins/pieces-rechange.jpeg',
     audience: 'CLIENT',
