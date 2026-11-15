@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { CheckCircle2, AlertTriangle, XCircle, MinusCircle, ClipboardCheck, User as UserIcon, Calendar } from 'lucide-react'
 import type { ChecklistItem, CheckResult, Inspection, Report, User } from '../../store/types'
+import ImageProtegee from '../ImageProtegee'
 
 /**
  * Constats d'inspection présentés à l'administration.
@@ -199,7 +200,7 @@ export default function InspectionReview({ inspection, report, inspector }: Prop
           <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Preuves photographiques</div>
           <div className="flex flex-wrap gap-2">
             {inspection.photos.map((p, i) => (
-              <img loading="lazy" key={i} src={p} alt="" className="h-20 w-28 rounded border border-slate-200 object-cover" />
+              <ImageProtegee key={i} src={p} className="h-20 w-28 rounded border border-slate-200 object-cover" />
             ))}
           </div>
         </div>

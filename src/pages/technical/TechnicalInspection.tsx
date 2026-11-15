@@ -5,6 +5,7 @@ import { useStore, type InspectionFindings } from '../../store/StoreContext'
 import { Card, EmptyState, LinkButton, PageTitle, StatusBadge } from '../../components/ui'
 import { useToast } from '../../components/feedback/Toaster'
 import { uploadInspectionFile } from '../../services/uploads'
+import ImageProtegee from '../../components/ImageProtegee'
 import { errorMessage } from '../../store/api'
 import type { CheckResult, ChecklistItem } from '../../store/types'
 
@@ -305,7 +306,7 @@ export default function TechnicalInspection() {
               <div className="mt-1 flex flex-wrap gap-2">
                 {photos.map((p) => (
                   <div key={p} className="group relative">
-                    <img loading="lazy" src={p} alt="" className="h-20 w-28 rounded-lg border border-slate-200 object-cover" />
+                    <ImageProtegee src={p} className="h-20 w-28 rounded-lg border border-slate-200 object-cover" />
                     <button
                       type="button"
                       onClick={() => void removeFile(p, 'photos')}
