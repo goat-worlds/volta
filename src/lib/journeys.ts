@@ -434,6 +434,7 @@ const PIECES: Journey = {
     v.condition ? `Je l'accepte en ${v.condition.toLowerCase()}.` : null,
     v.deadline ? `Mon délai : ${v.deadline.toLowerCase()}.` : null,
     v.details ? `Précision : ${v.details}` : null,
+    v.partPhoto ? 'Une photo de la pièce est jointe.' : null,
   ],
   steps: [
     {
@@ -486,7 +487,27 @@ const PIECES: Journey = {
           label: 'Informations complémentaires',
           kind: 'textarea',
           full: true,
-          help: 'Une photo de la pièce usée vaut souvent mieux qu’une description.',
+          help: 'Dites-nous ce qui a lâché, ou ce que vous cherchez à remplacer.',
+        },
+        /*
+         * Le champ que la phrase précédente promettait.
+         *
+         * L'aide disait « une photo de la pièce usée vaut souvent mieux qu'une
+         * description » — sans qu'aucun champ ne permette d'en joindre une. On
+         * invitait donc à faire quelque chose d'impossible, et la pièce partait
+         * décrite avec des mots là où une image aurait tranché.
+         *
+         * C'est le cas qui compte ici : une pièce absente du catalogue, dont le
+         * client n'a ni la référence ni le nom exact. Il a l'objet dans la main.
+         * Qu'il le photographie.
+         */
+        {
+          name: 'partPhoto',
+          label: 'Photo de la pièce (facultatif)',
+          kind: 'file',
+          full: true,
+          accept: 'image/*,.pdf',
+          help: 'Une photo de l’ancienne pièce, de son étiquette ou de son emplacement. C’est souvent ce qui permet de l’identifier sans référence.',
         },
       ],
     },
